@@ -56,3 +56,11 @@
   * Backend (FastAPI): `http://localhost:8000`
 * **CORS:** El backend debe permitir origen `http://localhost:5173` en desarrollo.
 * **Cero Conocimiento:** El backend **NUNCA** recibe contraseñas maestras, ni nombres de archivos o carpetas en texto plano. Todo llega con campos `_cifrado` y su respectivo IV (vector de inicialización).
+
+---
+
+## 🌿 Política de Ramas de Git (Workflow de Integración)
+1. **`main` (Sagrada):** Solo almacena código terminado, validado y libre de errores. Nadie hace commits directos en `main`.
+2. **`frontend`:** Rama de trabajo activa para el desarrollo del cliente web y criptografía (`@front_agent`).
+3. **`backend`:** Rama de trabajo activa para el servidor FastAPI y base de datos (`@back_agent`).
+4. **Fusión (Merge / Pull Request):** Al culminar y probar una subfase o hito, se fusiona la rama de área hacia `main` previa validación del `@master_agent`.
