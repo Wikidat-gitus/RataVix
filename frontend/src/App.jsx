@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import './App.css';
+import CryptoPlayground from './components/CryptoPlayground';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('resumen');
+  const [activeTab, setActiveTab] = useState('crypto'); // Mostramos por defecto el laboratorio recién creado
 
   return (
     <div className="app-container">
@@ -24,7 +25,28 @@ export default function App() {
 
       {/* Contenido Principal */}
       <main className="main-content">
-        {/* Tarjeta Hero */}
+        {/* Selector de Pestañas */}
+        <nav className="nav-tabs">
+          <button
+            className={`tab-btn ${activeTab === 'crypto' ? 'active' : ''}`}
+            onClick={() => setActiveTab('crypto')}
+          >
+            🧪 Laboratorio Criptográfico (Fase 2)
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'resumen' ? 'active' : ''}`}
+            onClick={() => setActiveTab('resumen')}
+          >
+            📋 Visión y Arquitectura
+          </button>
+        </nav>
+
+        {activeTab === 'crypto' ? (
+          <CryptoPlayground />
+        ) : (
+          <>
+            {/* Tarjeta Hero */}
+
         <section className="hero-card">
           <span className="hero-pill">Fase 1: Cimientos Listos</span>
           <h2 className="hero-title">
@@ -95,6 +117,8 @@ export default function App() {
             </div>
           </div>
         </section>
+        </>
+        )}
       </main>
 
       {/* Footer */}

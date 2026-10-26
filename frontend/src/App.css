@@ -243,3 +243,234 @@
   color: var(--text-subtle);
   font-size: 0.85rem;
 }
+
+/* Barra de Navegación por Pestañas */
+.nav-tabs {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  padding: 0.6rem 1.25rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+  color: #ffffff;
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--border-glow);
+  box-shadow: 0 0 12px var(--accent-purple-glow);
+}
+
+/* Estilos de Crypto Playground */
+.crypto-playground {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.playground-header {
+  background: var(--bg-glass-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+}
+
+.playground-header h3 {
+  font-size: 1.4rem;
+  margin-bottom: 0.4rem;
+  color: var(--text-primary);
+}
+
+.playground-header p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.playground-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  box-shadow: var(--shadow-md);
+  transition: border-color var(--transition-fast);
+}
+
+.playground-card:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.playground-card h4 {
+  font-size: 1.1rem;
+  margin-bottom: 1.25rem;
+  color: var(--accent-cyan);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-group-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-field label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.input-field input[type="text"],
+.input-field input[type="file"] {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.input-field input[type="text"]:focus {
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 10px var(--accent-purple-glow);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-cyan) 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px var(--accent-purple-glow);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-action {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  border-radius: 8px;
+  padding: 0.55rem 1.2rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-action:hover:not(:disabled) {
+  background: var(--accent-cyan);
+  color: #0b0f19;
+}
+
+.btn-action:disabled,
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.badge-success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.crypto-result-box {
+  margin-top: 1.25rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.result-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.result-row code {
+  background: #0b0f19;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-family: monospace;
+  color: #a78bfa;
+  word-break: break-all;
+}
+
+.result-row.success-row {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.decrypted-pill {
+  color: #34d399;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.download-link {
+  display: inline-block;
+  color: var(--accent-cyan);
+  text-decoration: underline;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
