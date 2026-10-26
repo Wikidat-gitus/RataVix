@@ -22,6 +22,7 @@
 | **CP-03** | 2026-10-24 | Usuario + Agente | Implementación de la **Trinidad de Agentes**: Agente Coordinador General ([AGENTS.md](file:///c:/Users/Wikiliks!/Sandbox2/Proyectos/Baul_Magico_2/AGENTS.md)), Agente Frontend ([frontend/AGENTS.md](file:///c:/Users/Wikiliks!/Sandbox2/Proyectos/Baul_Magico_2/frontend/AGENTS.md)) y Agente Backend ([backend/AGENTS.md](file:///c:/Users/Wikiliks!/Sandbox2/Proyectos/Baul_Magico_2/backend/AGENTS.md)). Creación de invocaciones directas por `@` en `.agents/rules/` (`@master_agent`, `@front_agent`, `@back_agent`). |
 | **CP-04** | 2026-10-24 | Usuario + Agente | Formalización del **Plan Maestro de 6 Fases (SDLC)**. Estrategia de desarrollo en paralelo mediante Mocks del contrato de API y cero esperas bloqueantes entre equipos. |
 | **CP-05** | 2026-10-24 | Usuario + Agente | **Gobernanza y Separación Estricta de Roles:** `@master_agent` queda delimitado exclusivamente a planificación, coordinación y documentación raíz; la implementación técnica pasa a ser titularidad exclusiva de `@front_agent` (`frontend/`) y `@back_agent` (`backend/`). |
+| **CP-06** | 2026-10-25 | Usuario + @back_agent | **Cimientos de Backend (Hito 1.4):** Estructura modular de FastAPI en `backend/` (`core/`, `api/v1/`, `schemas/`), entorno virtual `venv` con dependencias instaladas, middleware de CORS para `http://localhost:5173` y validación de endpoints (`/health` y `/api/baules`). |
 
 ---
 
@@ -33,7 +34,7 @@
   * [x] **1.1 (Frontend):** Inicializar aplicación base React + Vite en `frontend/` con sistema de estilos Vanilla CSS modo oscuro.
   * [x] **1.2 (Frontend):** Crear capa de simulación (*mock service*) basada en `docs/API_CONTRACT.md` para trabajar sin depender del backend.
   * [ ] **1.3 (Frontend):** Instalar dependencias (`npm install`) y validar servidor local (`npm run dev`).
-  * [ ] **1.4 (Backend):** Inicializar estructura base de FastAPI y entorno virtual en `backend/`.
+  * [x] **1.4 (Backend):** Inicializar estructura base de FastAPI y entorno virtual en `backend/`.
   * [ ] **1.5:** Commit de cimientos de la Fase 1.
 * [ ] **Fase 2: Desarrollo Paralelo con Contrato de API**
   * Frontend: Criptografía en cliente (`src/crypto/` con AES-GCM + PBKDF2), UI de baúles y tesoros, subida directa a Google Drive API.
