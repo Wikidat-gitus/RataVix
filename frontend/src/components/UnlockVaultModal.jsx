@@ -1,0 +1,105 @@
+import React, { useState } from 'react';
+import { useCrypto } from '../context/CryptoContext';
+
+export default function UnlockVaultModal() {
+  const { unlockVault, unlocking, error } = useCrypto();
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!password.trim()) return;
+    await unlockVault(password);
+  };
+
+  const handleQuickKey = async (demoKey) => {
+    setPassword(demoKey);
+    await unlockVault(demoKey);
+  };
+
+  return (
+    <div className="unlock-container">
+      <div className="unlock-card">
+        {/* Encabezado Mágico */}
+        <div className="unlock-header">
+          <div className="vault-lock-orb">
+            <span className="lock-icon">🔒</span>
+          </div>
+          <h2>Desbloquea tu Baúl Mágico</h2>
+          <p>
+            Ingresa tu <strong>Contraseña Maestra</strong> para derivar tu clave criptográfica de 256 bits en memoria volátil (RAM).
+          </p>
+        </div>
+
+        {/* Formulario de Clave */}
+        <form onSubmit={handleSubmit} className="unlock-form">
+          <div className="form-group">
+            <label htmlFor="master-key">Clave Maestra del Baúl</label>
+            <div className="password-input-wrapper">
+              <input
+                id="master-key"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Escribe tu frase o clave secreta..."
+                autoFocus
+                disabled={unlocking}
+                className="input-field"
+              />
+              <button
+                type="button"
+                className="toggle-vis-btn"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? 'Ocultar' : 'Mostrar'}
+              >
+                {showPassword ? '👁️' : '🕶️'}
+              </button>
+            </div>
+          </div>
+
+          {error && <div className="unlock-error-banner">⚠️ {error}</div>}
+
+          <button
+            type="submit"
+            className="btn-unlock-primary"
+            disabled={unlocking || !password.trim()}
+          >
+            {unlocking ? (
+              <>
+                <span className="spinner-dot"></span>
+                <span>Derivando Clave AES-256...</span>
+              </>
+            ) : (
+              <>
+                <span>🗝️</span>
+                <span>Desbloquear Baúl</span>
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Acceso rápido de prueba para desarrollo */}
+        <div className="dev-shortcut-box">
+          <span className="dev-badge">Modo Desarrollo</span>
+          <p>¿Quieres probar rápido sin escribir?</p>
+          <button
+            type="button"
+            className="btn-shortcut"
+            onClick={() => handleQuickKey('rasputin')}
+            disabled={unlocking}
+          >
+            🪄 Usar clave sugerida: <code>"rasputin"</code>
+          </button>
+        </div>
+
+        {/* Garantía Zero-Knowledge */}
+        <div className="zk-guarantee-footer">
+          <span className="shield-icon">🛡️</span>
+          <p>
+            <strong>Garantía Zero-Knowledge:</strong> Esta clave <em>nunca</em> se guarda en cookies, ni en almacenamiento persistente, ni se envía a internet. Al cerrar o recargar la pestaña, se destruye automáticamente.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

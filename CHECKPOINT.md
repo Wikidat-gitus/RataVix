@@ -26,6 +26,7 @@
 | **CP-07** | 2026-10-25 | Usuario + @front_agent | **Cimientos de Frontend (Hito 1.3):** Instalación exitosa de dependencias con `npm install` (React 18 + Vite) y validación de arranque del servidor de desarrollo en `http://localhost:5173/`. |
 | **CP-08** | 2026-10-25 | Usuario + @master_agent | **Cierre Oficial de la Fase 1:** Entornos de Frontend y Backend 100% operativos, probados localmente y versionados en Git. Paso habilitado a la Fase 2. |
 | **CP-09** | 2026-10-26 | Usuario + @front_agent | **Criptografía Cliente Validada (Hito 2.1):** Módulo nativo Web Crypto API completado y verificado en vivo por el usuario (`utils.js`, `pbkdf2.js`, `aesGcm.js`). Derivación PBKDF2 (100,000 iteraciones SHA-256), cifrado/descifrado AES-GCM (256 bits) para metadatos (texto a Base64 + IV 96 bits) y archivos binarios reales en memoria RAM. Testbench interactivo validado exitosamente en navegador con restauración intacta. |
+| **CP-10** | 2026-10-26 | Usuario + @front_agent + @master_agent | **Clave Efímera en RAM y Explorador de Baúl Virtual (Hito 2.2):** Creación de `CryptoContext` para retención segura de clave en memoria RAM (Zero-Knowledge, destruida al recargar o bloquear). Implementación de `UnlockVaultModal` con soporte para contraseña maestra (ej: `"rasputin"`) y derivación instantánea. Implementación de `VaultExplorer` con navegación fluida por subcarpetas, migas de pan (breadcrumbs), ciclo de vida completo (crear, renombrar, mover y eliminar baúles y tesoros) y subida/descarga de archivos con cifrado/descifrado AES-GCM real en cliente. Actualización del contrato de API ([docs/API_CONTRACT.md](file:///c:/Users/Wikid/SandBox/Proyectos/Baul-Magico-2/docs/API_CONTRACT.md)) con endpoints `PUT` y `DELETE`. |
 
 ---
 
@@ -41,7 +42,7 @@
   * [x] **1.5:** Commit de cimientos de la Fase 1.
 * [ ] **Fase 2: Desarrollo Paralelo con Contrato de API**
   * [x] **2.1 (Frontend):** Criptografía en cliente (`src/crypto/` con AES-GCM 256 bits + derivación PBKDF2 de 100,000 iteraciones + utilidades Base64 + Laboratorio interactivo).
-  * [ ] **2.2 (Frontend):** Almacén seguro de clave efímera (`CryptoContext`), modal de clave maestra y UI completa de Baúles/Tesoros.
+  * [x] **2.2 (Frontend):** Almacén seguro de clave efímera (`CryptoContext`), modal de clave maestra y UI completa de Baúles/Tesoros con navegación y CRUD completo.
   * [ ] **2.3 (Backend):** FastAPI, Google OAuth 2.0 (refresco seguro de tokens), modelos PostgreSQL (`usuarios`, `baules`, `tesoros`), control de sesión única.
 * [ ] **Fase 3: Integración y Auditoría Zero-Knowledge**
   * Conexión Frontend real con Backend real.

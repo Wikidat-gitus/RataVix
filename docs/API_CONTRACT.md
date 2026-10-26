@@ -49,6 +49,20 @@
     }
     ```
   * **Backend responde:** Objeto baúl creado con su nuevo `id`.
+* **`PUT /api/baules/{id}`**
+  * **Objetivo:** Renombrar baúl o moverlo a otro baúl padre.
+  * **Frontend envía (campos opcionales):**
+    ```json
+    {
+      "nombre_cifrado": "base64_string",
+      "iv": "base64_string",
+      "baul_padre_id": "uuid o null"
+    }
+    ```
+  * **Backend responde:** Objeto baúl actualizado.
+* **`DELETE /api/baules/{id}`**
+  * **Objetivo:** Elimina la carpeta virtual (y opcionalmente sus elementos contenidos en cascada).
+  * **Backend responde:** `{ "ok": true, "mensaje": "Baúl eliminado" }`
 
 ---
 
@@ -83,5 +97,17 @@
       "tipo_mime": "application/octet-stream"
     }
     ```
+* **`PUT /api/tesoros/{id}`**
+  * **Objetivo:** Renombrar tesoro o moverlo a otro baúl.
+  * **Frontend envía (campos opcionales):**
+    ```json
+    {
+      "nombre_cifrado": "base64_string",
+      "iv": "base64_string",
+      "baul_id": "uuid"
+    }
+    ```
+  * **Backend responde:** Objeto tesoro actualizado.
 * **`DELETE /api/tesoros/{id}`**
-  * Elimina el registro virtual de la base de datos.
+  * Elimina el registro virtual de la base de datos (y referencia para borrado en Google Drive).
+  * **Backend responde:** `{ "ok": true, "mensaje": "Tesoro eliminado" }`
