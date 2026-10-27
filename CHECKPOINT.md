@@ -7,7 +7,7 @@
 ---
 
 ## 📍 Estado General del Proyecto
-* **Fase Actual:** `Fase 1: Cimientos y Entornos de Trabajo (Frontend React + Vite & Mocking)`
+* **Fase Actual:** `Fase 2: Desarrollo Paralelo con Contrato de API (Criptografía Cliente & UI / Backend OAuth & DB)`
 * **Arquitectura:** Monorepo (`frontend/` + `backend/` + `docs/`)
 * **Repositorio:** `luislopez343/Baul-Magico-2` (GitHub Privado, rama principal: `main`)
 
@@ -25,6 +25,10 @@
 | **CP-06** | 2026-10-25 | Usuario + @back_agent | **Cimientos de Backend (Hito 1.4):** Estructura modular de FastAPI en `backend/` (`core/`, `api/v1/`, `schemas/`), entorno virtual `venv` con dependencias instaladas, middleware de CORS para `http://localhost:5173` y validación de endpoints (`/health` y `/api/baules`). |
 | **CP-07** | 2026-10-25 | Usuario + @front_agent | **Cimientos de Frontend (Hito 1.3):** Instalación exitosa de dependencias con `npm install` (React 18 + Vite) y validación de arranque del servidor de desarrollo en `http://localhost:5173/`. |
 | **CP-08** | 2026-10-25 | Usuario + @master_agent | **Cierre Oficial de la Fase 1:** Entornos de Frontend y Backend 100% operativos, probados localmente y versionados en Git. Paso habilitado a la Fase 2. |
+| **CP-09** | 2026-10-26 | Usuario + @front_agent | **Criptografía Cliente Validada (Hito 2.1):** Módulo nativo Web Crypto API completado y verificado en vivo por el usuario (`utils.js`, `pbkdf2.js`, `aesGcm.js`). Derivación PBKDF2 (100,000 iteraciones SHA-256), cifrado/descifrado AES-GCM (256 bits) para metadatos (texto a Base64 + IV 96 bits) y archivos binarios reales en memoria RAM. Testbench interactivo validado exitosamente en navegador con restauración intacta. |
+| **CP-10** | 2026-10-26 | Usuario + @front_agent + @master_agent | **Clave Efímera en RAM y Explorador de Baúl Virtual (Hito 2.2):** Creación de `CryptoContext` para retención segura de clave en memoria RAM (Zero-Knowledge, destruida al recargar o bloquear). Implementación de `UnlockVaultModal` con soporte para contraseña maestra (ej: `"rasputin"`) y derivación instantánea. Implementación de `VaultExplorer` con navegación fluida por subcarpetas, migas de pan (breadcrumbs), ciclo de vida completo (crear, renombrar, mover y eliminar baúles y tesoros) y subida/descarga de archivos con cifrado/descifrado AES-GCM real en cliente. Actualización del contrato de API ([docs/API_CONTRACT.md](file:///c:/Users/Wikid/SandBox/Proyectos/Baul-Magico-2/docs/API_CONTRACT.md)) con endpoints `PUT` y `DELETE`. |
+| **CP-11** | 2026-10-26 | Usuario + @front_agent | **Experiencia de Usuario Avanzada (Visor en Vivo, Toasts y Detección de Tipos):** Implementación de `TreasureViewerModal` para descifrar y visualizar archivos directamente en el navegador (imágenes con Lightbox, PDFs en iframe integrado, texto/código con visor monoespaciado y copia rápida, audio y video nativo). Detección automática inteligente de categorías de archivo (`fileTypes.js`) con insignias y colores dedicados. Reemplazo de `window.confirm` por `ConfirmModal` con estética oscura y creación de sistema de notificaciones flotantes Toast sin disrupción visual. |
+| **CP-12** | 2026-10-26 | Usuario + @front_agent | **Organización Interactiva por Drag & Drop (Hito 2.2+):** Implementación de la API nativa de arrastrar y soltar (Drag and Drop con el mouse) para mover baúles y tesoros de manera intuitiva. Soporte para soltar elementos tanto sobre cualquier carpeta virtual en el grid como sobre cualquier nivel de la barra de migas de pan (breadcrumbs) para regresar a la raíz o a niveles superiores. Efectos visuales de arrastre (`is-dragging`), iluminación de destino (`drop-hover`) y validación para evitar auto-anidación de carpetas. |
 
 ---
 
@@ -39,8 +43,9 @@
   * [x] **1.4 (Backend):** Inicializar estructura base de FastAPI y entorno virtual en `backend/`.
   * [x] **1.5:** Commit de cimientos de la Fase 1.
 * [ ] **Fase 2: Desarrollo Paralelo con Contrato de API**
-  * Frontend: Criptografía en cliente (`src/crypto/` con AES-GCM + PBKDF2), UI de baúles y tesoros, subida directa a Google Drive API.
-  * Backend: FastAPI, Google OAuth 2.0 (refresco seguro de tokens), modelos PostgreSQL (`usuarios`, `baules`, `tesoros`), control de sesión única.
+  * [x] **2.1 (Frontend):** Criptografía en cliente (`src/crypto/` con AES-GCM 256 bits + derivación PBKDF2 de 100,000 iteraciones + utilidades Base64 + Laboratorio interactivo).
+  * [x] **2.2 (Frontend):** Almacén seguro de clave efímera (`CryptoContext`), modal de clave maestra y UI completa de Baúles/Tesoros con navegación y CRUD completo.
+  * [ ] **2.3 (Backend):** FastAPI, Google OAuth 2.0 (refresco seguro de tokens), modelos PostgreSQL (`usuarios`, `baules`, `tesoros`), control de sesión única.
 * [ ] **Fase 3: Integración y Auditoría Zero-Knowledge**
   * Conexión Frontend real con Backend real.
   * Auditoría de tráfico de red (F12) garantizando que no viajan contraseñas ni textos planos.

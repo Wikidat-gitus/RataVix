@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import './App.css';
+import { CryptoProvider, useCrypto } from './context/CryptoContext';
+import UnlockVaultModal from './components/UnlockVaultModal';
+import VaultExplorer from './components/VaultExplorer';
+import CryptoPlayground from './components/CryptoPlayground';
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState('resumen');
+function AppContent() {
+  const { isUnlocked, lockVault } = useCrypto();
+  const [activeTab, setActiveTab] = useState('vault'); // Pestaña principal: Mi Baúl Virtual
 
   return (
     <div className="app-container">
@@ -16,85 +21,103 @@ export default function App() {
           </div>
         </div>
 
-        <div className="security-badge">
-          <span className="pulse-dot"></span>
-          <span>Zero-Knowledge Activo</span>
+        <div className="header-right">
+          {/* Badge de Seguridad Dinámico */}
+          <div className={`security-badge ${isUnlocked ? 'unlocked-badge' : 'locked-badge'}`}>
+            <span className={isUnlocked ? 'unlocked-pulse' : 'pulse-dot'}></span>
+            <span>{isUnlocked ? '🔓 Baúl Abierto (RAM)' : '🔒 Baúl Bloqueado'}</span>
+          </div>
+
+          {isUnlocked && (
+            <button
+              type="button"
+              className="btn-shortcut"
+              onClick={lockVault}
+              title="Cerrar y destruir clave en RAM"
+            >
+              🔒 Bloquear
+            </button>
+          )}
         </div>
       </header>
 
       {/* Contenido Principal */}
       <main className="main-content">
-        {/* Tarjeta Hero */}
-        <section className="hero-card">
-          <span className="hero-pill">Fase 1: Cimientos Listos</span>
-          <h2 className="hero-title">
-            Tus tesoros digitales, <span>100% blindados</span>.
-          </h2>
-          <p className="hero-description">
-            Cifrado AES-GCM de 256 bits directo en tu navegador. Ni el servidor, ni Google,
-            ni nadie puede leer lo que guardas en tu baúl personal.
-          </p>
-        </section>
+        {/* Selector de Pestañas */}
+        <nav className="nav-tabs">
+          <button
+            className={`tab-btn ${activeTab === 'vault' ? 'active' : ''}`}
+            onClick={() => setActiveTab('vault')}
+          >
+            🏰 Mi Baúl Virtual
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'crypto' ? 'active' : ''}`}
+            onClick={() => setActiveTab('crypto')}
+          >
+            🧪 Laboratorio Criptográfico
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'resumen' ? 'active' : ''}`}
+            onClick={() => setActiveTab('resumen')}
+          >
+            📋 Visión y Arquitectura
+          </button>
+        </nav>
 
-        {/* Pilares de la Arquitectura */}
-        <section className="features-grid">
-          <div className="feature-box">
-            <span className="icon">🛡️</span>
-            <h3>Cifrado en Cliente</h3>
-            <p>Algoritmo AES-GCM (256 bits) usando la Web Crypto API nativa. El archivo sale de tu equipo ya cifrado.</p>
+        {/* 1. Pestaña Principal: Mi Baúl Virtual */}
+        {activeTab === 'vault' && (
+          <div className="tab-pane">
+            {!isUnlocked ? (
+              <UnlockVaultModal />
+            ) : (
+              <VaultExplorer />
+            )}
           </div>
+        )}
 
-          <div className="feature-box">
-            <span className="icon">🔑</span>
-            <h3>Clave Maestra Efímera</h3>
-            <p>Vive solo en la memoria RAM del navegador. Nunca se envía por red ni se guarda en almacenamiento persistente.</p>
+        {/* 2. Pestaña: Laboratorio Criptográfico */}
+        {activeTab === 'crypto' && (
+          <div className="tab-pane">
+            <CryptoPlayground />
           </div>
+        )}
 
-          <div className="feature-box">
-            <span className="icon">☁️</span>
-            <h3>Directo a Google Drive</h3>
-            <p>Los archivos cifrados se almacenan en tu propio Drive. El backend solo almacena nombres virtuales cifrados.</p>
-          </div>
-        </section>
-
-        {/* Maqueta de Vista Previa del Baúl Virtual */}
-        <section className="vault-preview">
-          <div className="vault-preview-header">
-            <div>
-              <h3>Vista Previa del Baúl Virtual</h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Estructura de datos según el contrato de API oficial
+        {/* 3. Pestaña: Visión y Arquitectura */}
+        {activeTab === 'resumen' && (
+          <div className="tab-pane">
+            <section className="hero-card">
+              <span className="hero-pill">Fase 2: Criptografía y Explorador Activo</span>
+              <h2 className="hero-title">
+                Tus tesoros digitales, <span>100% blindados</span>.
+              </h2>
+              <p className="hero-description">
+                Cifrado AES-GCM de 256 bits directo en tu navegador. Ni el servidor, ni Google,
+                ni nadie puede leer lo que guardas en tu baúl personal.
               </p>
-            </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)' }}>Simulación Activa</span>
+            </section>
+
+            <section className="features-grid">
+              <div className="feature-box">
+                <span className="icon">🛡️</span>
+                <h3>Cifrado en Cliente</h3>
+                <p>Algoritmo AES-GCM (256 bits) usando la Web Crypto API nativa. El archivo sale de tu equipo ya cifrado.</p>
+              </div>
+
+              <div className="feature-box">
+                <span className="icon">🔑</span>
+                <h3>Clave Maestra Efímera</h3>
+                <p>Vive solo en la memoria RAM del navegador. Nunca se envía por red ni se guarda en almacenamiento persistente.</p>
+              </div>
+
+              <div className="feature-box">
+                <span className="icon">☁️</span>
+                <h3>Directo a Google Drive</h3>
+                <p>Los archivos cifrados se almacenan en tu propio Drive. El backend solo almacena nombres virtuales cifrados.</p>
+              </div>
+            </section>
           </div>
-
-          <div className="vault-items-grid">
-            <div className="vault-item">
-              <span style={{ fontSize: '1.5rem' }}>📁</span>
-              <div className="vault-item-info">
-                <strong>Documentos Mágicos</strong>
-                <span>Baúl virtual</span>
-              </div>
-            </div>
-
-            <div className="vault-item">
-              <span style={{ fontSize: '1.5rem' }}>🔒</span>
-              <div className="vault-item-info">
-                <strong>cuentas_clave.kdbx</strong>
-                <span>1.4 MB • Cifrado AES</span>
-              </div>
-            </div>
-
-            <div className="vault-item">
-              <span style={{ fontSize: '1.5rem' }}>🔒</span>
-              <div className="vault-item-info">
-                <strong>contrato_confidencial.pdf</strong>
-                <span>3.8 MB • Cifrado AES</span>
-              </div>
-            </div>
-          </div>
-        </section>
+        )}
       </main>
 
       {/* Footer */}
@@ -102,5 +125,13 @@ export default function App() {
         <p>Baúl Mágico 2 — Arquitectura de Conocimiento Cero • Frontend React + Vite</p>
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <CryptoProvider>
+      <AppContent />
+    </CryptoProvider>
   );
 }
