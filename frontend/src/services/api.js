@@ -143,9 +143,9 @@ export const api = {
   },
 
   // --- 3. Tesoros (Metadatos de Archivos Virtuales) ---
-  async getTesoros(baulId) {
-    if (!baulId) return [];
-    return this.request(`/tesoros?baul_id=${encodeURIComponent(baulId)}`, {
+  async getTesoros(baulId = null) {
+    const query = baulId ? `?baul_id=${encodeURIComponent(baulId)}` : '';
+    return this.request(`/tesoros${query}`, {
       method: 'GET',
     });
   },

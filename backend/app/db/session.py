@@ -1,12 +1,20 @@
+from pathlib import Path
 from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from app.core.config import settings
 
-# Normalizar URL de PostgreSQL para usar el driver psycopg2 si no se especificó
+BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
+
+# Normalizar URL de la base de datos
 db_url = settings.DATABASE_URL
 if db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+elif db_url.startswith("sqlite:///."):
+    # Resolver ruta absoluta dentro de backend/ para evitar discrepancias de CWD
+    rel_path = db_url.replace("sqlite:///.", "").lstrip("/\\")
+    abs_db_path = (BACKEND_DIR / rel_path).resolve()
+    db_url = f"sqlite:///{abs_db_path.as_posix()}"
 
 # Parámetros según el motor de base de datos
 connect_args = {}
