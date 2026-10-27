@@ -1,53 +1,154 @@
-from uuid import UUID, uuid4
-from datetime import datetime, timezone
+from uuid import UUID
 from typing import List, Optional
-from fastapi import APIRouter, Query, status
-from app.schemas.tesoro import TesoroCreate, TesoroResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
+from app.db.session import get_db
+from app.models.usuario import Usuario
+from app.models.baul import Baul
+from app.models.tesoro import Tesoro
+from app.core.security import get_current_user
+from app.schemas.tesoro import (
+    TesoroCreate,
+    TesoroUpdate,
+    TesoroResponse,
+    TesoroDeleteResponse,
+)
 
 router = APIRouter(prefix="/tesoros", tags=["Tesoros (Archivos Virtuales en Drive)"])
 
 
 @router.get("", response_model=List[TesoroResponse])
-async def list_tesoros(baul_id: Optional[UUID] = Query(default=None)):
+async def list_tesoros(
+    baul_id: Optional[UUID] = Query(default=None),
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """
-    Lista metadatos de archivos cifrados asociados a un baúl.
+    Lista metadatos de archivos cifrados asociados a un baúl del usuario actual.
     """
     if not baul_id:
         return []
-    return [
-        TesoroResponse(
-            id=uuid4(),
-            baul_id=baul_id,
-            drive_file_id="1xYzDriveFileIdMockExample987654",
-            nombre_cifrado="ZG9jdW1lbnRvX3NlY3JldG8ucGRm",
-            iv="Z2l2ZXNvbWVpdlZhbDEy",
-            tamano_bytes=1048576,
-            tipo_mime="application/octet-stream",
-            creado_en=datetime.now(timezone.utc)
+
+    # Verificar que el baúl pertenezca al usuario
+    baul = (
+        db.query(Baul)
+        .filter(Baul.id == baul_id, Baul.usuario_id == current_user.id)
+        .first()
+    )
+    if not baul:
+        return []
+
+    return (
+        db.query(Tesoro)
+        .filter(
+            Tesoro.baul_id == baul_id,
+            Tesoro.usuario_id == current_user.id,
         )
-    ]
+        .order_by(Tesoro.creado_en.asc())
+        .all()
+    )
 
 
 @router.post("", response_model=TesoroResponse, status_code=status.HTTP_201_CREATED)
-async def create_tesoro(payload: TesoroCreate):
+async def create_tesoro(
+    payload: TesoroCreate,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """
-    Registra en la base de datos el metadato del archivo subido a Google Drive.
+    Registra el metadato del archivo subido a Google Drive (Zero-Knowledge).
     """
-    return TesoroResponse(
-        id=uuid4(),
+    baul = (
+        db.query(Baul)
+        .filter(Baul.id == payload.baul_id, Baul.usuario_id == current_user.id)
+        .first()
+    )
+    if not baul:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="El baúl contenedor especificado no existe o no pertenece al usuario.",
+        )
+
+    nuevo_tesoro = Tesoro(
+        usuario_id=current_user.id,
         baul_id=payload.baul_id,
         drive_file_id=payload.drive_file_id,
         nombre_cifrado=payload.nombre_cifrado,
         iv=payload.iv,
         tamano_bytes=payload.tamano_bytes,
         tipo_mime=payload.tipo_mime,
-        creado_en=datetime.now(timezone.utc)
     )
+    db.add(nuevo_tesoro)
+    db.commit()
+    db.refresh(nuevo_tesoro)
+    return nuevo_tesoro
 
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_tesoro(id: UUID):
+@router.put("/{id}", response_model=TesoroResponse)
+async def update_tesoro(
+    id: UUID,
+    payload: TesoroUpdate,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """
-    Elimina el registro virtual del tesoro en la base de datos.
+    Actualiza el nombre cifrado del tesoro o lo reubica en otro baúl.
     """
-    return None
+    tesoro = (
+        db.query(Tesoro)
+        .filter(Tesoro.id == id, Tesoro.usuario_id == current_user.id)
+        .first()
+    )
+    if not tesoro:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tesoro no encontrado.",
+        )
+
+    if payload.baul_id is not None:
+        nuevo_baul = (
+            db.query(Baul)
+            .filter(Baul.id == payload.baul_id, Baul.usuario_id == current_user.id)
+            .first()
+        )
+        if not nuevo_baul:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="El nuevo baúl de destino no existe.",
+            )
+        tesoro.baul_id = payload.baul_id
+
+    if payload.nombre_cifrado is not None:
+        tesoro.nombre_cifrado = payload.nombre_cifrado
+    if payload.iv is not None:
+        tesoro.iv = payload.iv
+
+    db.add(tesoro)
+    db.commit()
+    db.refresh(tesoro)
+    return tesoro
+
+
+@router.delete("/{id}", response_model=TesoroDeleteResponse)
+async def delete_tesoro(
+    id: UUID,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Elimina el metadato del tesoro en la base de datos virtual.
+    """
+    tesoro = (
+        db.query(Tesoro)
+        .filter(Tesoro.id == id, Tesoro.usuario_id == current_user.id)
+        .first()
+    )
+    if not tesoro:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tesoro no encontrado.",
+        )
+
+    db.delete(tesoro)
+    db.commit()
+    return TesoroDeleteResponse(ok=True, mensaje="Tesoro eliminado con éxito")

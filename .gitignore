@@ -51,8 +51,8 @@ wheels/
 *.egg
 .pytest_cache/
 .coverage
-htmlcov/
 *.sqlite3
+*.db
 
 # Archivos del sistema y del editor
 .DS_Store

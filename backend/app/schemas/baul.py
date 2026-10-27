@@ -14,8 +14,19 @@ class BaulCreate(BaulBase):
     pass
 
 
+class BaulUpdate(BaseModel):
+    nombre_cifrado: Optional[str] = None
+    iv: Optional[str] = None
+    baul_padre_id: Optional[UUID] = None
+
+
 class BaulResponse(BaulBase):
     id: UUID
     creado_en: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class BaulDeleteResponse(BaseModel):
+    ok: bool = True
+    mensaje: str = "Baúl eliminado"

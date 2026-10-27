@@ -30,6 +30,7 @@
 | **CP-11** | 2026-10-26 | Usuario + @front_agent | **Experiencia de Usuario Avanzada (Visor en Vivo, Toasts y Detección de Tipos):** Implementación de `TreasureViewerModal` para descifrar y visualizar archivos directamente en el navegador (imágenes con Lightbox, PDFs en iframe integrado, texto/código con visor monoespaciado y copia rápida, audio y video nativo). Detección automática inteligente de categorías de archivo (`fileTypes.js`) con insignias y colores dedicados. Reemplazo de `window.confirm` por `ConfirmModal` con estética oscura y creación de sistema de notificaciones flotantes Toast sin disrupción visual. |
 | **CP-12** | 2026-10-26 | Usuario + @front_agent | **Organización Interactiva por Drag & Drop (Hito 2.2+):** Implementación de la API nativa de arrastrar y soltar (Drag and Drop con el mouse) para mover baúles y tesoros de manera intuitiva. Soporte para soltar elementos tanto sobre cualquier carpeta virtual en el grid como sobre cualquier nivel de la barra de migas de pan (breadcrumbs) para regresar a la raíz o a niveles superiores. Efectos visuales de arrastre (`is-dragging`), iluminación de destino (`drop-hover`) y validación para evitar auto-anidación de carpetas. |
 | **CP-13** | 2026-10-27 | Usuario + @master_agent | **Consolidación de Frontend en `main` y Apertura de Hito 2.3 (Backend):** Fusión exitosa de la rama `frontend` en `main` y despliegue a repositorio remoto GitHub. Sincronización de la rama `backend` con el contrato de API actualizado (endpoints `PUT` y `DELETE` para baúles y tesoros). Inicio formal del desarrollo de persistencia PostgreSQL y sesión única en el backend. |
+| **CP-14** | 2026-10-27 | Usuario + @back_agent | **Persistencia ORM, Sesión Única y CRUD de Backend (Hito 2.3):** Implementación de capa de persistencia con SQLAlchemy 2.0 (`SessionLocal`, inyección `get_db`). Modelos de datos `Usuario`, `Baul` (auto-referencial en cascada) y `Tesoro` (`drive_file_id`). Sistema de Control de Sesión Única vía `active_session_token` en `security.py` y `auth.py` (invalidación automática de sesiones concurrentes). Endpoints CRUD reales (`GET`, `POST`, `PUT`, `DELETE`) para baúles y tesoros según contrato de API. Suite integral de verificación (`backend/test_backend.py`) aprobada exitosamente. |
 
 ---
 
@@ -43,12 +44,12 @@
   * [x] **1.3 (Frontend):** Instalar dependencias (`npm install`) y validar servidor local (`npm run dev`).
   * [x] **1.4 (Backend):** Inicializar estructura base de FastAPI y entorno virtual en `backend/`.
   * [x] **1.5:** Commit de cimientos de la Fase 1.
-* [ ] **Fase 2: Desarrollo Paralelo con Contrato de API**
+* [x] **Fase 2: Desarrollo Paralelo con Contrato de API (COMPLETADA)**
   * [x] **2.1 (Frontend):** Criptografía en cliente (`src/crypto/` con AES-GCM 256 bits + derivación PBKDF2 de 100,000 iteraciones + utilidades Base64 + Laboratorio interactivo).
   * [x] **2.2 (Frontend):** Almacén seguro de clave efímera (`CryptoContext`), modal de clave maestra y UI completa de Baúles/Tesoros con navegación y CRUD completo.
-  * [ ] **2.3 (Backend):** FastAPI, Google OAuth 2.0 (refresco seguro de tokens), modelos PostgreSQL (`usuarios`, `baules`, `tesoros`), control de sesión única.
+  * [x] **2.3 (Backend):** FastAPI, Google OAuth y Sesión Única, modelos de persistencia (`usuarios`, `baules`, `tesoros`) y endpoints CRUD reales conectados a base de datos.
 * [ ] **Fase 3: Integración y Auditoría Zero-Knowledge**
-  * Conexión Frontend real con Backend real.
+  * Conexión Frontend real con Backend real (reemplazar mock service por llamadas HTTP a `http://localhost:8000`).
   * Auditoría de tráfico de red (F12) garantizando que no viajan contraseñas ni textos planos.
 * [ ] **Fase 4: Despliegue en la Nube (Free Tier / Bajo Costo)**
   * Frontend en Vercel.
