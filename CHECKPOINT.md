@@ -7,7 +7,7 @@
 ---
 
 ## 📍 Estado General del Proyecto
-* **Fase Actual:** `Fase 2: Desarrollo Paralelo con Contrato de API (Criptografía Cliente & UI / Backend OAuth & DB)`
+* **Fase Actual:** `Fase 3: Integración y Auditoría Zero-Knowledge (Frontend ⟷ Backend)`
 * **Arquitectura:** Monorepo (`frontend/` + `backend/` + `docs/`)
 * **Repositorio:** `luislopez343/Baul-Magico-2` (GitHub Privado, rama principal: `main`)
 
@@ -31,6 +31,7 @@
 | **CP-12** | 2026-10-26 | Usuario + @front_agent | **Organización Interactiva por Drag & Drop (Hito 2.2+):** Implementación de la API nativa de arrastrar y soltar (Drag and Drop con el mouse) para mover baúles y tesoros de manera intuitiva. Soporte para soltar elementos tanto sobre cualquier carpeta virtual en el grid como sobre cualquier nivel de la barra de migas de pan (breadcrumbs) para regresar a la raíz o a niveles superiores. Efectos visuales de arrastre (`is-dragging`), iluminación de destino (`drop-hover`) y validación para evitar auto-anidación de carpetas. |
 | **CP-13** | 2026-10-27 | Usuario + @master_agent | **Consolidación de Frontend en `main` y Apertura de Hito 2.3 (Backend):** Fusión exitosa de la rama `frontend` en `main` y despliegue a repositorio remoto GitHub. Sincronización de la rama `backend` con el contrato de API actualizado (endpoints `PUT` y `DELETE` para baúles y tesoros). Inicio formal del desarrollo de persistencia PostgreSQL y sesión única en el backend. |
 | **CP-14** | 2026-10-27 | Usuario + @back_agent | **Persistencia ORM, Sesión Única y CRUD de Backend (Hito 2.3):** Implementación de capa de persistencia con SQLAlchemy 2.0 (`SessionLocal`, inyección `get_db`). Modelos de datos `Usuario`, `Baul` (auto-referencial en cascada) y `Tesoro` (`drive_file_id`). Sistema de Control de Sesión Única vía `active_session_token` en `security.py` y `auth.py` (invalidación automática de sesiones concurrentes). Endpoints CRUD reales (`GET`, `POST`, `PUT`, `DELETE`) para baúles y tesoros según contrato de API. Suite integral de verificación (`backend/test_backend.py`) aprobada exitosamente. |
+| **CP-15** | 2026-10-27 | Usuario + @master_agent | **Cierre Oficial de Fase 2 y Consolidación Total en `main`:** Fusión de la rama `backend` en `main` y sincronización con GitHub (`origin/main`). Frontend (UI, criptografía cliente, Drag & Drop) y Backend (persistencia ORM, control de sesión única, endpoints CRUD) unificados en la rama principal. Habilitado el inicio de la Fase 3: Integración y Auditoría Zero-Knowledge. |
 
 ---
 
