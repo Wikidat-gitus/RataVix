@@ -22,6 +22,10 @@ export default function VaultExplorer() {
   // Sistema de Notificaciones Toast Flotantes
   const [toasts, setToasts] = useState([]);
 
+  // Drag & Drop (Arrastrar y Soltar con el Mouse)
+  const [draggedItem, setDraggedItem] = useState(null); // { type: 'baul' | 'tesoro', item: obj, name: string }
+  const [dragOverTargetId, setDragOverTargetId] = useState(null);
+
   // Modales
   const [modalMode, setModalMode] = useState(null); // 'createFolder' | 'rename' | 'move'
   const [activeItem, setActiveItem] = useState(null);
@@ -43,7 +47,7 @@ export default function VaultExplorer() {
 
   const fileInputRef = useRef(null);
 
-  // Función para disparar notificaciones Toast flotantes y suaves
+  // Notificaciones Toast
   const addToast = (text, type = 'success') => {
     const id = Date.now() + Math.random();
     setToasts((prev) => [...prev, { id, text, type }]);
@@ -68,7 +72,6 @@ export default function VaultExplorer() {
         mockApi.getAllBaules()
       ]);
 
-      // Descifrar nombres de baúles en el cliente
       const decryptedBaules = await Promise.all(
         rawBaules.map(async (b) => {
           const plainName = await decryptName(b.nombre_cifrado, b.iv);
@@ -76,7 +79,6 @@ export default function VaultExplorer() {
         })
       );
 
-      // Descifrar nombres de tesoros en el cliente
       const decryptedTesoros = await Promise.all(
         rawTesoros.map(async (t) => {
           const plainName = await decryptName(t.nombre_cifrado, t.iv);
@@ -84,7 +86,6 @@ export default function VaultExplorer() {
         })
       );
 
-      // Descifrar lista completa para selectores de mover
       const decryptedAll = await Promise.all(
         allAvailable.map(async (b) => {
           const plainName = await decryptName(b.nombre_cifrado, b.iv);
@@ -120,6 +121,80 @@ export default function VaultExplorer() {
     setBreadcrumbs((prev) => prev.slice(0, index + 1));
   };
 
+  // =========================================================================
+  // Control de Arrastrar y Soltar (Drag & Drop)
+  // =========================================================================
+  const handleDragStart = (e, type, item) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({ type, id: item.id, name: item.plainName }));
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggedItem({ type, item, name: item.plainName });
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setDragOverTargetId(null);
+  };
+
+  const handleDragOver = (e, targetId) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverTargetId !== targetId) {
+      setDragOverTargetId(targetId);
+    }
+  };
+
+  const handleDragLeave = (e, targetId) => {
+    e.preventDefault();
+    if (dragOverTargetId === targetId) {
+      setDragOverTargetId(null);
+    }
+  };
+
+  const handleDrop = async (e, targetBaulId, targetName) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverTargetId(null);
+
+    if (!draggedItem) return;
+
+    const { type, item, name } = draggedItem;
+
+    // Validación 1: No soltarse en sí mismo (para baúles)
+    if (type === 'baul' && item.id === targetBaulId) {
+      addToast('No puedes mover una carpeta dentro de sí misma', 'error');
+      setDraggedItem(null);
+      return;
+    }
+
+    // Validación 2: Ya está en esa ubicación
+    if (type === 'baul' && item.baul_padre_id === targetBaulId) {
+      setDraggedItem(null);
+      return;
+    }
+    if (type === 'tesoro' && item.baul_id === targetBaulId) {
+      setDraggedItem(null);
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      if (type === 'baul') {
+        await mockApi.updateBaul(item.id, { baul_padre_id: targetBaulId });
+        addToast(`📁 Baúl "${name}" movido a "${targetName}"`);
+      } else {
+        await mockApi.updateTesoro(item.id, { baul_id: targetBaulId });
+        addToast(`🔒 Tesoro "${name}" movido a "${targetName}"`);
+      }
+      await loadVaultContent();
+    } catch (err) {
+      console.error('Error al soltar elemento:', err);
+      addToast('Error al mover el elemento', 'error');
+    } finally {
+      setActionLoading(false);
+      setDraggedItem(null);
+    }
+  };
+
   // 1. CREAR NUEVO BAÚL (Carpeta)
   const handleOpenCreateFolder = () => {
     setInputValue('');
@@ -149,7 +224,7 @@ export default function VaultExplorer() {
     }
   };
 
-  // 2. SUBIR TESORO (Archivo con detección automática de tipo)
+  // 2. SUBIR TESORO (Archivo)
   const handleTriggerUpload = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -164,16 +239,10 @@ export default function VaultExplorer() {
     try {
       addToast(`Cifrando "${file.name}" con AES-GCM 256 bits...`, 'info');
 
-      // 1. Cifrar binario
       const { encryptedBuffer, iv: fileIv } = await encryptFileBlob(file);
-
-      // 2. Cifrar nombre del archivo
       const { nombre_cifrado, iv: nameIv } = await encryptName(file.name);
-
-      // 3. Simular subida directa a Google Drive
       const { drive_file_id } = await mockApi.uploadDriveMock(encryptedBuffer);
 
-      // 4. Guardar metadatos en el backend
       await mockApi.createTesoro({
         baul_id: currentBaulId,
         drive_file_id,
@@ -183,7 +252,6 @@ export default function VaultExplorer() {
         tipo_mime: file.type || 'application/octet-stream'
       });
 
-      // Guardamos la referencia del IV del binario para descifrado fiel
       window[`iv_file_${drive_file_id}`] = fileIv;
 
       addToast(`Tesoro "${file.name}" blindado y guardado`);
@@ -259,7 +327,7 @@ export default function VaultExplorer() {
     }
   };
 
-  // 5. MOVER (Baúl o Tesoro)
+  // 5. MOVER POR MODAL (Alternativa accesible al arrastrar)
   const handleOpenMove = (type, item) => {
     setActiveItem({ type, item, currentName: item.plainName });
     setSelectedTargetBaulId(null);
@@ -295,7 +363,7 @@ export default function VaultExplorer() {
     }
   };
 
-  // 6. ELIMINAR con ConfirmModal moderno (reemplaza window.confirm)
+  // 6. ELIMINAR con ConfirmModal
   const handleDeleteItem = (type, item) => {
     const isFolder = type === 'baul';
     setConfirmConfig({
@@ -329,7 +397,6 @@ export default function VaultExplorer() {
     });
   };
 
-  // Formateador de bytes
   const formatBytes = (bytes) => {
     if (!bytes || bytes === 0) return '0 B';
     const k = 1024;
@@ -346,7 +413,7 @@ export default function VaultExplorer() {
           <span className="unlocked-pulse"></span>
           <div>
             <strong>Baúl Abierto</strong>
-            <span>Cifrado y descifrado en RAM</span>
+            <span>Arrastra baúles o tesoros para organizarlos</span>
           </div>
         </div>
 
@@ -390,21 +457,37 @@ export default function VaultExplorer() {
         </div>
       </div>
 
-      {/* Migas de Pan (Breadcrumbs) */}
+      {/* Migas de Pan (Breadcrumbs) con soporte para Drop Target */}
       <nav className="breadcrumbs-bar">
         <span className="breadcrumbs-icon">🧭</span>
-        {breadcrumbs.map((crumb, idx) => (
-          <React.Fragment key={crumb.id || 'root'}>
-            {idx > 0 && <span className="breadcrumb-separator">/</span>}
-            <button
-              type="button"
-              className={`breadcrumb-link ${idx === breadcrumbs.length - 1 ? 'current' : ''}`}
-              onClick={() => handleNavigateBreadcrumb(idx)}
-            >
-              {crumb.name}
-            </button>
-          </React.Fragment>
-        ))}
+        {breadcrumbs.map((crumb, idx) => {
+          const isCurrent = idx === breadcrumbs.length - 1;
+          const targetKey = crumb.id || 'root';
+          const isOver = dragOverTargetId === targetKey;
+
+          return (
+            <React.Fragment key={crumb.id || 'root'}>
+              {idx > 0 && <span className="breadcrumb-separator">/</span>}
+              <button
+                type="button"
+                className={`breadcrumb-link ${isCurrent ? 'current' : ''} ${isOver ? 'drop-hover' : ''}`}
+                onClick={() => handleNavigateBreadcrumb(idx)}
+                onDragOver={(e) => {
+                  if (!isCurrent) handleDragOver(e, targetKey);
+                }}
+                onDragLeave={(e) => {
+                  if (!isCurrent) handleDragLeave(e, targetKey);
+                }}
+                onDrop={(e) => {
+                  if (!isCurrent) handleDrop(e, crumb.id, crumb.name);
+                }}
+                title={!isCurrent ? `Arrastra aquí para mover a "${crumb.name}"` : undefined}
+              >
+                {crumb.name}
+              </button>
+            </React.Fragment>
+          );
+        })}
       </nav>
 
       {/* Contenido: Listado de Baúles y Tesoros */}
@@ -426,63 +509,82 @@ export default function VaultExplorer() {
           </div>
         ) : (
           <div className="explorer-grid">
-            {/* 1. Carpetas / Baúles */}
-            {baules.map((baul) => (
-              <div
-                key={baul.id}
-                className="explorer-card folder-card"
-                onDoubleClick={() => handleOpenBaul(baul)}
-              >
-                <div className="card-main" onClick={() => handleOpenBaul(baul)}>
-                  <div className="card-icon folder-icon">📁</div>
-                  <div className="card-details">
-                    <strong className="card-title" title={baul.plainName}>
-                      {baul.plainName}
-                    </strong>
-                    <span className="card-meta">Baúl virtual</span>
-                  </div>
-                </div>
-
-                <div className="card-actions">
-                  <button
-                    className="item-btn"
-                    title="Entrar a esta carpeta"
-                    onClick={() => handleOpenBaul(baul)}
-                  >
-                    📂
-                  </button>
-                  <button
-                    className="item-btn"
-                    title="Renombrar"
-                    onClick={() => handleOpenRename('baul', baul)}
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    className="item-btn"
-                    title="Mover"
-                    onClick={() => handleOpenMove('baul', baul)}
-                  >
-                    📦
-                  </button>
-                  <button
-                    className="item-btn delete-btn"
-                    title="Eliminar"
-                    onClick={() => handleDeleteItem('baul', baul)}
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            {/* 2. Archivos / Tesoros con Reconocimiento Automático de Tipo */}
-            {tesoros.map((tesoro) => {
-              const category = getFileCategory(tesoro.plainName, tesoro.tipo_mime);
+            {/* 1. Carpetas / Baúles (Draggable y Drop Target) */}
+            {baules.map((baul) => {
+              const isDragging = draggedItem?.type === 'baul' && draggedItem.item.id === baul.id;
+              const isDropHover = dragOverTargetId === baul.id;
 
               return (
-                <div key={tesoro.id} className="explorer-card file-card">
-                  {/* Clic principal abre el visor en el navegador */}
+                <div
+                  key={baul.id}
+                  className={`explorer-card folder-card ${isDragging ? 'is-dragging' : ''} ${isDropHover ? 'drop-hover' : ''}`}
+                  draggable={true}
+                  onDragStart={(e) => handleDragStart(e, 'baul', baul)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => handleDragOver(e, baul.id)}
+                  onDragLeave={(e) => handleDragLeave(e, baul.id)}
+                  onDrop={(e) => handleDrop(e, baul.id, baul.plainName)}
+                  onDoubleClick={() => handleOpenBaul(baul)}
+                  title="Arrastra para mover o suelta aquí para guardar dentro"
+                >
+                  <div className="card-main" onClick={() => handleOpenBaul(baul)}>
+                    <div className="card-icon folder-icon">📁</div>
+                    <div className="card-details">
+                      <strong className="card-title" title={baul.plainName}>
+                        {baul.plainName}
+                      </strong>
+                      <span className="card-meta">Baúl virtual • Suelta aquí</span>
+                    </div>
+                  </div>
+
+                  <div className="card-actions">
+                    <button
+                      className="item-btn"
+                      title="Entrar a esta carpeta"
+                      onClick={() => handleOpenBaul(baul)}
+                    >
+                      📂
+                    </button>
+                    <button
+                      className="item-btn"
+                      title="Renombrar"
+                      onClick={() => handleOpenRename('baul', baul)}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="item-btn"
+                      title="Mover"
+                      onClick={() => handleOpenMove('baul', baul)}
+                    >
+                      📦
+                    </button>
+                    <button
+                      className="item-btn delete-btn"
+                      title="Eliminar"
+                      onClick={() => handleDeleteItem('baul', baul)}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* 2. Archivos / Tesoros (Draggable) */}
+            {tesoros.map((tesoro) => {
+              const category = getFileCategory(tesoro.plainName, tesoro.tipo_mime);
+              const isDragging = draggedItem?.type === 'tesoro' && draggedItem.item.id === tesoro.id;
+
+              return (
+                <div
+                  key={tesoro.id}
+                  className={`explorer-card file-card ${isDragging ? 'is-dragging' : ''}`}
+                  draggable={true}
+                  onDragStart={(e) => handleDragStart(e, 'tesoro', tesoro)}
+                  onDragEnd={handleDragEnd}
+                  title="Arrastra este archivo a cualquier carpeta o miga de pan"
+                >
                   <div className="card-main" onClick={() => setViewerTesoro(tesoro)}>
                     <div className={`card-icon file-icon ${category.badgeClass}-icon`}>
                       {category.icon}
@@ -503,7 +605,6 @@ export default function VaultExplorer() {
                   </div>
 
                   <div className="card-actions">
-                    {/* Botón Ver / Abrir en Navegador */}
                     <button
                       className="item-btn preview-action"
                       title="Abrir y ver en navegador"
@@ -511,7 +612,6 @@ export default function VaultExplorer() {
                     >
                       👁️
                     </button>
-                    {/* Botón Descargar */}
                     <button
                       className="item-btn download-action"
                       title="Descargar copia descifrada"
@@ -643,7 +743,7 @@ export default function VaultExplorer() {
         </div>
       )}
 
-      {/* MODAL 3: Visor de Tesoros en Vivo (Abrir y Ver en Navegador) */}
+      {/* MODAL 3: Visor de Tesoros en Vivo */}
       {viewerTesoro && (
         <TreasureViewerModal
           tesoro={viewerTesoro}
@@ -652,7 +752,7 @@ export default function VaultExplorer() {
         />
       )}
 
-      {/* MODAL 4: Confirmación Suave y Flotante (Reemplazo de window.confirm) */}
+      {/* MODAL 4: Confirmación Suave */}
       <ConfirmModal
         isOpen={confirmConfig.isOpen}
         title={confirmConfig.title}
