@@ -19,14 +19,20 @@ router = APIRouter(prefix="/baules", tags=["Baúles (Carpetas Virtuales)"])
 @router.get("", response_model=List[BaulResponse])
 async def list_baules(
     baul_padre_id: Optional[UUID] = Query(default=None),
+    todos: bool = Query(default=False),
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Lista baúles virtuales pertenecientes al usuario autenticado.
-    Filtra por baul_padre_id (o lista los de raíz si es None).
+    - Si todos=True: lista todos los baúles del usuario (para resolver árboles y rutas).
+    - Si todos=False y baul_padre_id=None: lista solo los baúles raíz.
+    - Si todos=False y baul_padre_id={uuid}: lista los subbaúles hijos directos.
     """
     query = db.query(Baul).filter(Baul.usuario_id == current_user.id)
+    if todos:
+        return query.order_by(Baul.creado_en.asc()).all()
+
     if baul_padre_id is not None:
         query = query.filter(Baul.baul_padre_id == baul_padre_id)
     else:

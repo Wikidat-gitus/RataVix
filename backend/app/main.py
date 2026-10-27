@@ -30,8 +30,9 @@ app.add_middleware(
 )
 
 
-# Endpoint de comprobación rápida de salud del servicio
+# Endpoint de comprobación rápida de salud del servicio (accesible en /health y /api/health)
 @app.get("/health", tags=["Salud"])
+@app.get("/api/health", tags=["Salud"])
 async def health_check():
     return {
         "status": "ok",

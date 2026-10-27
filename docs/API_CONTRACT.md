@@ -26,7 +26,7 @@
 
 ### 2. Baúles (Carpetas Virtuales)
 * **`GET /api/baules`**
-  * **Query params:** `?baul_padre_id={uuid}` (opcional, para listar carpetas raíz o subcarpetas)
+  * **Query params:** `?baul_padre_id={uuid}` (opcional, para subcarpetas; omitir para baúles raíz) o `?todos=true` (para listar todo el árbol del usuario).
   * **Backend responde:**
     ```json
     [

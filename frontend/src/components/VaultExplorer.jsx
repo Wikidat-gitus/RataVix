@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useCrypto } from '../context/CryptoContext';
-import { mockApi } from '../services/mockApi';
+import { api } from '../services/api';
 import { getFileCategory } from '../utils/fileTypes';
 import TreasureViewerModal from './TreasureViewerModal';
 import ConfirmModal from './ConfirmModal';
@@ -60,6 +60,16 @@ export default function VaultExplorer() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Listener para el Control de Sesión Única (si se abre sesión en otro dispositivo)
+  useEffect(() => {
+    const handleSessionRevoked = (e) => {
+      addToast(e.detail?.mensaje || 'Sesión cerrada o abierta en otro dispositivo.', 'warning');
+      lockVault();
+    };
+    window.addEventListener('baul:session-revoked', handleSessionRevoked);
+    return () => window.removeEventListener('baul:session-revoked', handleSessionRevoked);
+  }, [lockVault]);
+
   /**
    * Carga y descifra los baúles y tesoros del nivel actual
    */
@@ -67,9 +77,9 @@ export default function VaultExplorer() {
     setLoading(true);
     try {
       const [rawBaules, rawTesoros, allAvailable] = await Promise.all([
-        mockApi.getBaules(currentBaulId),
-        mockApi.getTesoros(currentBaulId),
-        mockApi.getAllBaules()
+        api.getBaules(currentBaulId),
+        api.getTesoros(currentBaulId),
+        api.getAllBaules()
       ]);
 
       const decryptedBaules = await Promise.all(
@@ -179,10 +189,10 @@ export default function VaultExplorer() {
     setActionLoading(true);
     try {
       if (type === 'baul') {
-        await mockApi.updateBaul(item.id, { baul_padre_id: targetBaulId });
+        await api.updateBaul(item.id, { baul_padre_id: targetBaulId });
         addToast(`📁 Baúl "${name}" movido a "${targetName}"`);
       } else {
-        await mockApi.updateTesoro(item.id, { baul_id: targetBaulId });
+        await api.updateTesoro(item.id, { baul_id: targetBaulId });
         addToast(`🔒 Tesoro "${name}" movido a "${targetName}"`);
       }
       await loadVaultContent();
@@ -208,7 +218,7 @@ export default function VaultExplorer() {
     setActionLoading(true);
     try {
       const { nombre_cifrado, iv } = await encryptName(inputValue.trim());
-      await mockApi.createBaul({
+      await api.createBaul({
         nombre_cifrado,
         iv,
         baul_padre_id: currentBaulId
@@ -241,9 +251,9 @@ export default function VaultExplorer() {
 
       const { encryptedBuffer, iv: fileIv } = await encryptFileBlob(file);
       const { nombre_cifrado, iv: nameIv } = await encryptName(file.name);
-      const { drive_file_id } = await mockApi.uploadDriveMock(encryptedBuffer);
+      const { drive_file_id } = await api.uploadDriveMock(encryptedBuffer);
 
-      await mockApi.createTesoro({
+      await api.createTesoro({
         baul_id: currentBaulId,
         drive_file_id,
         nombre_cifrado,
@@ -271,7 +281,7 @@ export default function VaultExplorer() {
     try {
       addToast(`Descifrando "${tesoro.plainName}" en RAM...`, 'info');
 
-      const encryptedBuffer = await mockApi.downloadDriveMock(tesoro.drive_file_id);
+      const encryptedBuffer = await api.downloadDriveMock(tesoro.drive_file_id);
       const fileIv = window[`iv_file_${tesoro.drive_file_id}`] || tesoro.iv;
       const decryptedArrayBuffer = await decryptFileBlob(encryptedBuffer, fileIv);
 
@@ -310,10 +320,10 @@ export default function VaultExplorer() {
       const { nombre_cifrado, iv } = await encryptName(inputValue.trim());
 
       if (activeItem.type === 'baul') {
-        await mockApi.updateBaul(activeItem.item.id, { nombre_cifrado, iv });
+        await api.updateBaul(activeItem.item.id, { nombre_cifrado, iv });
         addToast(`Baúl renombrado a "${inputValue.trim()}"`);
       } else {
-        await mockApi.updateTesoro(activeItem.item.id, { nombre_cifrado, iv });
+        await api.updateTesoro(activeItem.item.id, { nombre_cifrado, iv });
         addToast(`Tesoro renombrado a "${inputValue.trim()}"`);
       }
 
@@ -346,10 +356,10 @@ export default function VaultExplorer() {
     setActionLoading(true);
     try {
       if (activeItem.type === 'baul') {
-        await mockApi.updateBaul(activeItem.item.id, { baul_padre_id: selectedTargetBaulId });
+        await api.updateBaul(activeItem.item.id, { baul_padre_id: selectedTargetBaulId });
         addToast(`Baúl movido exitosamente`);
       } else {
-        await mockApi.updateTesoro(activeItem.item.id, { baul_id: selectedTargetBaulId });
+        await api.updateTesoro(activeItem.item.id, { baul_id: selectedTargetBaulId });
         addToast(`Tesoro movido exitosamente`);
       }
 
@@ -380,10 +390,10 @@ export default function VaultExplorer() {
         setActionLoading(true);
         try {
           if (isFolder) {
-            await mockApi.deleteBaul(item.id);
+            await api.deleteBaul(item.id);
             addToast(`Baúl "${item.plainName}" eliminado`);
           } else {
-            await mockApi.deleteTesoro(item.id);
+            await api.deleteTesoro(item.id);
             addToast(`Tesoro "${item.plainName}" eliminado`);
           }
           await loadVaultContent();

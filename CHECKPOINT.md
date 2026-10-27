@@ -32,6 +32,7 @@
 | **CP-13** | 2026-10-27 | Usuario + @master_agent | **Consolidación de Frontend en `main` y Apertura de Hito 2.3 (Backend):** Fusión exitosa de la rama `frontend` en `main` y despliegue a repositorio remoto GitHub. Sincronización de la rama `backend` con el contrato de API actualizado (endpoints `PUT` y `DELETE` para baúles y tesoros). Inicio formal del desarrollo de persistencia PostgreSQL y sesión única en el backend. |
 | **CP-14** | 2026-10-27 | Usuario + @back_agent | **Persistencia ORM, Sesión Única y CRUD de Backend (Hito 2.3):** Implementación de capa de persistencia con SQLAlchemy 2.0 (`SessionLocal`, inyección `get_db`). Modelos de datos `Usuario`, `Baul` (auto-referencial en cascada) y `Tesoro` (`drive_file_id`). Sistema de Control de Sesión Única vía `active_session_token` en `security.py` y `auth.py` (invalidación automática de sesiones concurrentes). Endpoints CRUD reales (`GET`, `POST`, `PUT`, `DELETE`) para baúles y tesoros según contrato de API. Suite integral de verificación (`backend/test_backend.py`) aprobada exitosamente. |
 | **CP-15** | 2026-10-27 | Usuario + @master_agent | **Cierre Oficial de Fase 2 y Consolidación Total en `main`:** Fusión de la rama `backend` en `main` y sincronización con GitHub (`origin/main`). Frontend (UI, criptografía cliente, Drag & Drop) y Backend (persistencia ORM, control de sesión única, endpoints CRUD) unificados en la rama principal. Habilitado el inicio de la Fase 3: Integración y Auditoría Zero-Knowledge. |
+| **CP-16** | 2026-10-27 | Usuario + @master_agent + @front_agent | **Integración Real Frontend ⟷ Backend (Fase 3):** Creación del cliente HTTP `api.js` en React y enrutamiento mediante proxy en `vite.config.js` hacia FastAPI (`:8000`). Conexión de `VaultExplorer.jsx` y `TreasureViewerModal.jsx` a los endpoints reales de persistencia. Incorporación de indicador de salud dinámico en el encabezado (`🟢 API FastAPI Activa`) y escucha del evento de sesión única revocada para autobloqueo de seguridad. Verificación de proxy y comunicación fluida en vivo. |
 
 ---
 
@@ -50,8 +51,9 @@
   * [x] **2.2 (Frontend):** Almacén seguro de clave efímera (`CryptoContext`), modal de clave maestra y UI completa de Baúles/Tesoros con navegación y CRUD completo.
   * [x] **2.3 (Backend):** FastAPI, Google OAuth y Sesión Única, modelos de persistencia (`usuarios`, `baules`, `tesoros`) y endpoints CRUD reales conectados a base de datos.
 * [ ] **Fase 3: Integración y Auditoría Zero-Knowledge**
-  * Conexión Frontend real con Backend real (reemplazar mock service por llamadas HTTP a `http://localhost:8000`).
-  * Auditoría de tráfico de red (F12) garantizando que no viajan contraseñas ni textos planos.
+  * [x] **3.1:** Conexión de Frontend real con Backend real mediante `api.js` y proxy de Vite (probado con HTTP 200).
+  * [ ] **3.2:** Auditoría de tráfico de red en vivo (F12) garantizando que no viajan contraseñas ni textos planos al crear y listar baúles/tesoros.
+  * [ ] **3.3:** Validación del flujo de Google Drive real (o credenciales OAuth de usuario).
 * [ ] **Fase 4: Despliegue en la Nube (Free Tier / Bajo Costo)**
   * Frontend en Vercel.
   * Backend y PostgreSQL en la nube (Render / Koyeb / Neon / Supabase).
