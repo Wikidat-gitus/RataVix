@@ -1,5 +1,6 @@
 from uuid import UUID
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
@@ -16,8 +17,19 @@ class TesoroCreate(TesoroBase):
     pass
 
 
+class TesoroUpdate(BaseModel):
+    nombre_cifrado: Optional[str] = None
+    iv: Optional[str] = None
+    baul_id: Optional[UUID] = None
+
+
 class TesoroResponse(TesoroBase):
     id: UUID
     creado_en: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class TesoroDeleteResponse(BaseModel):
+    ok: bool = True
+    mensaje: str = "Tesoro eliminado"
