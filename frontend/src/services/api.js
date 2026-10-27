@@ -9,8 +9,29 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 // Almacén seguro del token de sesión en memoria de sesión (se destruye al cerrar la pestaña)
 const TOKEN_STORAGE_KEY = 'baul_session_token';
 
-// Almacén local en memoria para los blobs cifrados de Google Drive mientras se integra la API real de Drive
-const driveMockStorage = new Map();
+// --- Almacenamiento Persistente en IndexedDB para simular Google Drive ---
+// Permite que los archivos binarios cifrados persistan tras recargar la página (F5)
+const DB_NAME = 'baul_magico_drive_db';
+const DB_VERSION = 1;
+const STORE_NAME = 'encrypted_files';
+const driveMockMemStorage = new Map();
+
+function openDriveDB() {
+  return new Promise((resolve, reject) => {
+    if (typeof indexedDB === 'undefined') {
+      return reject(new Error('IndexedDB no soportado en este entorno.'));
+    }
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'drive_file_id' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
 
 export const api = {
   // --- Gestión de Token de Sesión Única ---
@@ -115,7 +136,7 @@ export const api = {
 
   async getBaulById(id) {
     const todos = await this.getAllBaules();
-    return todos.find(b => b.id === id) || null;
+    return todos.find((b) => b.id === id) || null;
   },
 
   async createBaul({ nombre_cifrado, iv, baul_padre_id = null }) {
@@ -154,7 +175,7 @@ export const api = {
     return this.request('/tesoros', {
       method: 'POST',
       body: {
-        baul_id,
+        baul_id: baul_id || null,
         drive_file_id,
         nombre_cifrado,
         iv,
@@ -177,18 +198,54 @@ export const api = {
     });
   },
 
-  // --- 4. Custodia de Blobs Cifrados (Simulación de Google Drive) ---
-  async uploadDriveMock(encryptedArrayBuffer) {
+  // --- 4. Custodia Persistente de Blobs Cifrados (Simulación duradera de Google Drive) ---
+  async uploadDriveMock(encryptedArrayBuffer, fileIv = null) {
     const drive_file_id = `gdrive-mock-${Date.now()}-${Math.random().toString(36).substr(2, 7)}`;
-    driveMockStorage.set(drive_file_id, encryptedArrayBuffer);
+    try {
+      const db = await openDriveDB();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.put({
+          drive_file_id,
+          encryptedBuffer: encryptedArrayBuffer,
+          fileIv: fileIv || null,
+          guardado_en: Date.now(),
+        });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      console.warn('Fallback a almacenamiento en memoria volátil:', e);
+      driveMockMemStorage.set(drive_file_id, { encryptedBuffer: encryptedArrayBuffer, fileIv });
+    }
     return { drive_file_id };
   },
 
   async downloadDriveMock(drive_file_id) {
-    const data = driveMockStorage.get(drive_file_id);
-    if (!data) {
+    try {
+      const db = await openDriveDB();
+      const record = await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.get(drive_file_id);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      if (record) {
+        return record; // Devuelve { drive_file_id, encryptedBuffer, fileIv }
+      }
+    } catch (e) {
+      console.warn('Error al leer de IndexedDB:', e);
+    }
+
+    const memData = driveMockMemStorage.get(drive_file_id);
+    if (!memData) {
       throw new Error('Archivo binario no encontrado en el almacenamiento de Drive.');
     }
-    return data;
+    if (memData instanceof ArrayBuffer) {
+      return { encryptedBuffer: memData, fileIv: null };
+    }
+    return memData;
   },
 };

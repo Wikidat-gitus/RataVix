@@ -28,9 +28,16 @@ export function CryptoProvider({ children }) {
     setUnlocking(true);
     setError(null);
 
+    // Validación de clave maestra (en desarrollo/Fase 3 se exige 'rasputin')
+    if (masterPassword.trim() !== 'rasputin') {
+      setError('Contraseña maestra incorrecta. Por favor verifica tu clave.');
+      setUnlocking(false);
+      return false;
+    }
+
     try {
       // PBKDF2: 100,000 iteraciones con SHA-256
-      const key = await deriveKeyFromPassword(masterPassword, MOCK_SALT);
+      const key = await deriveKeyFromPassword(masterPassword.trim(), MOCK_SALT);
       setCryptoKey(key);
       setUnlocking(false);
       return true;

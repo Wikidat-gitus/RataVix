@@ -251,7 +251,7 @@ export default function VaultExplorer() {
 
       const { encryptedBuffer, iv: fileIv } = await encryptFileBlob(file);
       const { nombre_cifrado, iv: nameIv } = await encryptName(file.name);
-      const { drive_file_id } = await api.uploadDriveMock(encryptedBuffer);
+      const { drive_file_id } = await api.uploadDriveMock(encryptedBuffer, fileIv);
 
       await api.createTesoro({
         baul_id: currentBaulId,
@@ -261,8 +261,6 @@ export default function VaultExplorer() {
         tamano_bytes: file.size,
         tipo_mime: file.type || 'application/octet-stream'
       });
-
-      window[`iv_file_${drive_file_id}`] = fileIv;
 
       addToast(`Tesoro "${file.name}" blindado y guardado`);
       await loadVaultContent();
@@ -281,9 +279,10 @@ export default function VaultExplorer() {
     try {
       addToast(`Descifrando "${tesoro.plainName}" en RAM...`, 'info');
 
-      const encryptedBuffer = await api.downloadDriveMock(tesoro.drive_file_id);
-      const fileIv = window[`iv_file_${tesoro.drive_file_id}`] || tesoro.iv;
-      const decryptedArrayBuffer = await decryptFileBlob(encryptedBuffer, fileIv);
+      const driveRecord = await api.downloadDriveMock(tesoro.drive_file_id);
+      const buffer = driveRecord.encryptedBuffer || driveRecord;
+      const fileIv = driveRecord.fileIv || tesoro.iv;
+      const decryptedArrayBuffer = await decryptFileBlob(buffer, fileIv);
 
       const blob = new Blob([decryptedArrayBuffer], { type: tesoro.tipo_mime || 'application/octet-stream' });
       const downloadUrl = URL.createObjectURL(blob);
