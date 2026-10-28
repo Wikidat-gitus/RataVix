@@ -19,8 +19,9 @@ class Tesoro(Base):
     usuario_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    baul_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("baules.id", ondelete="CASCADE"), nullable=False, index=True
+    # Baúl contenedor: opcional si el tesoro está en la raíz de la bóveda
+    baul_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        Uuid, ForeignKey("baules.id", ondelete="CASCADE"), nullable=True, index=True
     )
     # Puntero directo al archivo encriptado en Google Drive del usuario
     drive_file_id: Mapped[str] = mapped_column(
@@ -50,7 +51,7 @@ class Tesoro(Base):
 
     # Relaciones
     usuario: Mapped["Usuario"] = relationship("Usuario", back_populates="tesoros")
-    baul: Mapped["Baul"] = relationship("Baul", back_populates="tesoros")
+    baul: Mapped[Optional["Baul"]] = relationship("Baul", back_populates="tesoros")
 
     def __repr__(self) -> str:
         return f"<Tesoro {self.id} (drive: {self.drive_file_id})>"

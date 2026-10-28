@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCrypto } from '../context/CryptoContext';
-import { mockApi } from '../services/mockApi';
+import { api } from '../services/api';
 import { getFileCategory } from '../utils/fileTypes';
 
 export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
@@ -20,12 +20,13 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
       setLoading(true);
       setError(null);
       try {
-        // 1. Obtener buffer cifrado desde Google Drive simulado
-        const encryptedBuffer = await mockApi.downloadDriveMock(tesoro.drive_file_id);
-        const fileIv = window[`iv_file_${tesoro.drive_file_id}`] || tesoro.iv;
+        // 1. Obtener buffer cifrado y vector de inicialización desde el almacenamiento persistente de Drive
+        const driveRecord = await api.downloadDriveMock(tesoro.drive_file_id);
+        const buffer = driveRecord.encryptedBuffer || driveRecord;
+        const fileIv = driveRecord.fileIv || tesoro.iv;
 
         // 2. Descifrar en memoria RAM del navegador
-        const decryptedArrayBuffer = await decryptFileBlob(encryptedBuffer, fileIv);
+        const decryptedArrayBuffer = await decryptFileBlob(buffer, fileIv);
 
         // 3. Procesar según la categoría
         if (category.type === 'text') {

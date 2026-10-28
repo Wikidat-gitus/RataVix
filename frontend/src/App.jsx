@@ -8,6 +8,25 @@ import CryptoPlayground from './components/CryptoPlayground';
 function AppContent() {
   const { isUnlocked, lockVault } = useCrypto();
   const [activeTab, setActiveTab] = useState('vault'); // Pestaña principal: Mi Baúl Virtual
+  const [backendStatus, setBackendStatus] = useState('checking'); // 'online' | 'offline'
+
+  React.useEffect(() => {
+    async function checkHealth() {
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          setBackendStatus('online');
+        } else {
+          setBackendStatus('offline');
+        }
+      } catch {
+        setBackendStatus('offline');
+      }
+    }
+    checkHealth();
+    const interval = setInterval(checkHealth, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="app-container">
@@ -22,6 +41,21 @@ function AppContent() {
         </div>
 
         <div className="header-right">
+          {/* Badge de Estado del Backend */}
+          <div
+            className={`security-badge ${backendStatus === 'online' ? 'unlocked-badge' : 'locked-badge'}`}
+            title={backendStatus === 'online' ? 'Conectado a FastAPI (puerto 8000)' : 'Backend no detectado en puerto 8000'}
+          >
+            <span className={backendStatus === 'online' ? 'unlocked-pulse' : 'pulse-dot'}></span>
+            <span>
+              {backendStatus === 'checking'
+                ? 'Conectando...'
+                : backendStatus === 'online'
+                ? '🟢 API FastAPI Activa'
+                : '🔴 API Desconectada'}
+            </span>
+          </div>
+
           {/* Badge de Seguridad Dinámico */}
           <div className={`security-badge ${isUnlocked ? 'unlocked-badge' : 'locked-badge'}`}>
             <span className={isUnlocked ? 'unlocked-pulse' : 'pulse-dot'}></span>

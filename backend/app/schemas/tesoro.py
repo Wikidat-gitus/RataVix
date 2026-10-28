@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class TesoroBase(BaseModel):
-    baul_id: UUID
+    baul_id: Optional[UUID] = None
     drive_file_id: str
     nombre_cifrado: str
     iv: str
