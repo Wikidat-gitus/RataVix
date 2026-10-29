@@ -52,6 +52,13 @@ export default function VaultExplorer({ onLogout }) {
     statusMessage: ''
   });
 
+  // Modal Bloqueante de Purga / Eliminación
+  const [deletingProgress, setDeletingProgress] = useState({
+    isDeleting: false,
+    itemName: '',
+    statusMessage: ''
+  });
+
   // Modal de Confirmación
   const [confirmConfig, setConfirmConfig] = useState({
     isOpen: false,
@@ -469,10 +476,22 @@ export default function VaultExplorer({ onLogout }) {
       onConfirm: async () => {
         setConfirmConfig((prev) => ({ ...prev, isOpen: false }));
         setActionLoading(true);
+        setDeletingProgress({
+          isDeleting: true,
+          itemName: item.plainName,
+          statusMessage: isFolder
+            ? `Eliminando baúl y recolectando archivos dependientes...`
+            : `Purgando archivo cifrado de Google Drive...`
+        });
+
         try {
           if (isFolder) {
             const delRes = await api.deleteBaul(item.id);
             if (delRes?.deleted_drive_file_ids?.length && isGoogleConnected && googleAccessToken) {
+              setDeletingProgress((prev) => ({
+                ...prev,
+                statusMessage: `Purgando ${delRes.deleted_drive_file_ids.length} archivo(s) en Google Drive...`
+              }));
               for (const driveFileId of delRes.deleted_drive_file_ids) {
                 if (!driveFileId.startsWith('gdrive-mock-')) {
                   try {
@@ -497,6 +516,7 @@ export default function VaultExplorer({ onLogout }) {
           addToast('No se pudo eliminar el elemento', 'error');
         } finally {
           setActionLoading(false);
+          setDeletingProgress({ isDeleting: false, itemName: '', statusMessage: '' });
         }
       }
     });
@@ -519,7 +539,7 @@ export default function VaultExplorer({ onLogout }) {
             type="button"
             className="btn-action btn-new-folder"
             onClick={handleOpenCreateFolder}
-            disabled={actionLoading || uploadProgress.isOpen}
+            disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
           >
             <span>📁+</span>
             <span>Nuevo Baúl</span>
@@ -529,7 +549,7 @@ export default function VaultExplorer({ onLogout }) {
             type="button"
             className="btn-action btn-upload"
             onClick={handleTriggerUpload}
-            disabled={actionLoading || uploadProgress.isOpen}
+            disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
           >
             <span>⬆️</span>
             <span>Subir Tesoro</span>
@@ -540,19 +560,8 @@ export default function VaultExplorer({ onLogout }) {
             type="file"
             onChange={handleFileSelected}
             style={{ display: 'none' }}
-            disabled={actionLoading || uploadProgress.isOpen}
+            disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
           />
-
-          <button
-            type="button"
-            className="btn-action btn-lock"
-            onClick={onLogout || lockVault}
-            disabled={actionLoading || uploadProgress.isOpen}
-            title="Cerrar sesión de forma segura y destruir clave en RAM"
-          >
-            <span>🚪</span>
-            <span>Cerrar Sesión</span>
-          </button>
         </div>
       </div>
 
@@ -871,6 +880,47 @@ export default function VaultExplorer({ onLogout }) {
         stage={uploadProgress.stage}
         statusMessage={uploadProgress.statusMessage}
       />
+
+      {/* MODAL 6: Overlay Bloqueante de Purga y Eliminación */}
+      {deletingProgress.isDeleting && (
+        <div className="modal-backdrop upload-overlay-backdrop" role="dialog" aria-modal="true">
+          <div className="modal-box upload-progress-box deletion-progress-box" onClick={(e) => e.stopPropagation()}>
+            <div className="upload-header">
+              <div className="upload-pulse-orb stage-delete">
+                <span className="upload-orb-icon">🗑️</span>
+              </div>
+              <div className="upload-title-area">
+                <h3>Eliminando Elemento</h3>
+                <span className="upload-step-badge delete-badge">Sincronizando con Drive</span>
+              </div>
+            </div>
+
+            <div className="upload-file-card">
+              <span className="upload-file-icon">📦</span>
+              <div className="upload-file-info">
+                <strong className="upload-file-name" title={deletingProgress.itemName}>
+                  {deletingProgress.itemName}
+                </strong>
+                <span className="upload-file-size">Purgando archivo y metadatos de forma segura</span>
+              </div>
+            </div>
+
+            <div className="upload-status-box">
+              <div className="upload-spinner-ring delete-spinner"></div>
+              <p className="upload-status-text">
+                {deletingProgress.statusMessage}
+              </p>
+            </div>
+
+            <div className="upload-security-hint delete-hint">
+              <span>⏳</span>
+              <p>
+                Por favor espera mientras se confirma la eliminación en Google Drive y la base de datos...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 5. Contenedor de Notificaciones Toast Flotantes */}
       <div className="toast-container">

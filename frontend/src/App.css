@@ -1884,3 +1884,36 @@
   box-shadow: 0 0 15px rgba(239, 68, 68, 0.4) !important;
   transform: translateY(-1px);
 }
+
+
+/* ==========================================================================
+   Overlay de Bloqueo durante Eliminación y Purga en Google Drive
+   ========================================================================== */
+.upload-pulse-orb.stage-delete {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border: 1px solid rgba(239, 68, 68, 0.6) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+  animation: pulseOrbRed 2s infinite ease-in-out !important;
+}
+
+@keyframes pulseOrbRed {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+  50% { transform: scale(1.06); box-shadow: 0 0 25px rgba(239, 68, 68, 0.7); }
+}
+
+.delete-badge {
+  color: #f87171 !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.delete-spinner {
+  border-top-color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
+}
+
+.delete-hint {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
+  color: #fca5a5 !important;
+}

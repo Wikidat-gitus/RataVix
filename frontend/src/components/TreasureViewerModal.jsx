@@ -105,8 +105,8 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
   };
 
   return (
-    <div className="viewer-backdrop" onClick={onClose}>
-      <div className="viewer-window" onClick={(e) => e.stopPropagation()}>
+    <div className="viewer-backdrop">
+      <div className="viewer-window">
         {/* Cabecera del Visor */}
         <header className="viewer-header">
           <div className="viewer-title-group">

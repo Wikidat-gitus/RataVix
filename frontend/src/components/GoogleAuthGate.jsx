@@ -113,3 +113,4 @@ export default function GoogleAuthGate({ onContinueLocal }) {
     </div>
   );
 }
+
