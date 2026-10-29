@@ -7,7 +7,7 @@
 ---
 
 ## 📍 Estado General del Proyecto
-* **Fase Actual:** `Fase 3: Integración y Auditoría Zero-Knowledge (Frontend ⟷ Backend)`
+* **Fase Actual:** `Fase 4: Despliegue en la Nube (Free Tier / Bajo Costo)` — *Fase 3 Cerrada y Consolidada en `main`*
 * **Arquitectura:** Monorepo (`frontend/` + `backend/` + `docs/`)
 * **Repositorio:** `luislopez343/Baul-Magico-2` (GitHub Privado, rama principal: `main`)
 
@@ -40,6 +40,7 @@
 | **CP-21** | 2026-10-29 | Usuario + @back_agent + @front_agent + @master_agent | **Eliminación en Cascada y Purga Automática en Google Drive (Cierre de Fase 3):** Actualización de `docs/API_CONTRACT.md` y endpoint `DELETE /api/baules/{id}` en FastAPI con algoritmo BFS para recolectar y devolver todos los `deleted_drive_file_ids` del subárbol jerárquico. Integración en `VaultExplorer.jsx` y `mockApi.js` para purgar concurrentemente los blobs en Google Drive, erradicando archivos huérfanos. Suite de pruebas aprobada y Fase 3 lista para consolidación en `main`. |
 | **CP-22** | 2026-10-29 | Usuario + @front_agent + @master_agent | **Flujo Ordenado en 2 Pasos y Botón Unificado "Cerrar Sesión" (Hito 3.4):** Implementación de `GoogleAuthGate.jsx` (Paso 1: Identificación y Google OAuth) antes de `UnlockVaultModal.jsx` (Paso 2: Derivación de Clave Maestra en RAM). Unificación de acciones de salida en un único botón `🚪 Cerrar Sesión` en Header y Explorador. Resiliencia amigable ante F5 (mantiene sesión de Google en la pestaña pero bloquea el baúl en RAM solicitando únicamente la clave maestra). Compilación validada en Vite y push a rama `frontend`. |
 | **CP-23** | 2026-10-29 | Usuario + @front_agent + @master_agent | **Refinamiento de UX y Blindaje Operativo (Hito 3.4+):** 1) Overlay bloqueante durante eliminación de baúl/tesoro con spinner y mensaje de purga en Drive hasta que el evento se confirme. 2) Visor de tesoros persistente (solo se cierra al pulsar 'X', ignorando clics accidentales fuera del modal). 3) Botón único 'Cerrar Sesión' exclusivamente en el encabezado superior (removido botón redundante en barra del explorador). Compilación validada en Vite y push a rama `frontend`. |
+| **CP-24** | 2026-10-29 | Usuario + @master_agent | **Consolidación Oficial de Fase 3 en `main` y Cierre de Hito:** Fusión limpia y completa de todas las características de la Fase 3 en la rama sagrada `main` y GitHub remoto. Sistema validado end-to-end con Google Drive real (.enc), Web Crypto nativo, flujo de acceso en 2 pasos (Google OAuth ➔ Clave Maestra en RAM), overlays bloqueantes contra condiciones de carrera, eliminación en cascada con purga en nube, y botón único 'Cerrar Sesión'. Paso habilitado a la Fase 4 (Despliegue Cloud). |
 
 ---
 
@@ -57,7 +58,7 @@
   * [x] **2.1 (Frontend):** Criptografía en cliente (`src/crypto/` con AES-GCM 256 bits + derivación PBKDF2 de 100,000 iteraciones + utilidades Base64 + Laboratorio interactivo).
   * [x] **2.2 (Frontend):** Almacén seguro de clave efímera (`CryptoContext`), modal de clave maestra y UI completa de Baúles/Tesoros con navegación y CRUD completo.
   * [x] **2.3 (Backend):** FastAPI, Google OAuth y Sesión Única, modelos de persistencia (`usuarios`, `baules`, `tesoros`) y endpoints CRUD reales conectados a base de datos.
-* [x] **Fase 3: Integración y Auditoría Zero-Knowledge (COMPLETADA)**
+* [x] **Fase 3: Integración y Auditoría Zero-Knowledge (COMPLETADA Y CONSOLIDADA EN MAIN)**
   * [x] **3.1:** Conexión de Frontend real con Backend real mediante `api.js` y proxy de Vite (probado con HTTP 200).
   * [x] **3.2:** Auditoría de tráfico de red en vivo (F12) garantizando que no viajan contraseñas ni textos planos al crear y listar baúles/tesoros.
   * [x] **3.3:** Validación del flujo de Google Drive real (subida y almacenamiento de blobs .enc validado en vivo).
