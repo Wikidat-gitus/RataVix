@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
 import './App.css';
 import { CryptoProvider, useCrypto } from './context/CryptoContext';
+import { GoogleAuthProvider, useGoogleAuth } from './context/GoogleAuthContext';
 import UnlockVaultModal from './components/UnlockVaultModal';
 import VaultExplorer from './components/VaultExplorer';
 import CryptoPlayground from './components/CryptoPlayground';
 
 function AppContent() {
   const { isUnlocked, lockVault } = useCrypto();
+  const {
+    isGoogleConnected,
+    googleUser,
+    connectGoogleDrive,
+    disconnectGoogleDrive,
+    isLoadingAuth,
+    authError,
+  } = useGoogleAuth();
   const [activeTab, setActiveTab] = useState('vault'); // Pestaña principal: Mi Baúl Virtual
   const [backendStatus, setBackendStatus] = useState('checking'); // 'online' | 'offline'
 
@@ -41,6 +50,34 @@ function AppContent() {
         </div>
 
         <div className="header-right">
+          {/* Badge de Google Drive OAuth */}
+          {isGoogleConnected ? (
+            <div className="security-badge unlocked-badge" title="Almacenamiento activo en tu Google Drive (carpeta 'Baúl Mágico - Datos Cifrados')">
+              <span className="unlocked-pulse"></span>
+              <span>☁️ {googleUser?.email || 'Google Drive Conectado'}</span>
+              <button
+                type="button"
+                className="btn-text-small"
+                onClick={disconnectGoogleDrive}
+                title="Desconectar cuenta de Google Drive"
+                style={{ marginLeft: '0.4rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.75rem' }}
+              >
+                ✖
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="btn-shortcut"
+              onClick={connectGoogleDrive}
+              disabled={isLoadingAuth}
+              title="Conecta tu Google Drive para almacenar los blobs cifrados directamente en tu nube"
+              style={{ borderColor: 'rgba(56, 189, 248, 0.4)', color: '#38bdf8' }}
+            >
+              {isLoadingAuth ? 'Conectando...' : '☁️ Conectar Google Drive'}
+            </button>
+          )}
+
           {/* Badge de Estado del Backend */}
           <div
             className={`security-badge ${backendStatus === 'online' ? 'unlocked-badge' : 'locked-badge'}`}
@@ -164,8 +201,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <CryptoProvider>
+    <GoogleAuthProvider>
+      <CryptoProvider>
       <AppContent />
-    </CryptoProvider>
+      </CryptoProvider>
+    </GoogleAuthProvider>
   );
 }

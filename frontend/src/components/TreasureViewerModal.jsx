@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useCrypto } from '../context/CryptoContext';
+import { useGoogleAuth } from '../context/GoogleAuthContext';
+import { downloadEncryptedFileFromDrive } from '../services/googleDrive';
 import { api } from '../services/api';
 import { getFileCategory } from '../utils/fileTypes';
 
 export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
   const { decryptFileBlob } = useCrypto();
+  const { isGoogleConnected, googleAccessToken } = useGoogleAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [blobUrl, setBlobUrl] = useState(null);
@@ -21,9 +24,27 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
       setError(null);
       try {
         // 1. Obtener buffer cifrado y vector de inicialización desde el almacenamiento persistente de Drive
-        const driveRecord = await api.downloadDriveMock(tesoro.drive_file_id);
-        const buffer = driveRecord.encryptedBuffer || driveRecord;
-        const fileIv = driveRecord.fileIv || tesoro.iv;
+        let buffer;
+        let fileIv;
+
+        if (tesoro.drive_file_id.startsWith('gdrive-mock-')) {
+          const driveRecord = await api.downloadDriveMock(tesoro.drive_file_id);
+          buffer = driveRecord.encryptedBuffer || driveRecord;
+          fileIv = driveRecord.fileIv || tesoro.iv;
+        } else {
+          if (!isGoogleConnected || !googleAccessToken) {
+            throw new Error('Debes conectar tu cuenta de Google Drive para visualizar este archivo.');
+          }
+          const driveRecord = await downloadEncryptedFileFromDrive({
+            driveFileId: tesoro.drive_file_id,
+            accessToken: googleAccessToken,
+            fallbackIv: tesoro.iv,
+          });
+          buffer = driveRecord.encryptedBuffer;
+          fileIv = driveRecord.fileIv || tesoro.iv;
+        }
+
+
 
         // 2. Descifrar en memoria RAM del navegador
         const decryptedArrayBuffer = await decryptFileBlob(buffer, fileIv);

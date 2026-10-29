@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useCrypto } from '../context/CryptoContext';
+import { useGoogleAuth } from '../context/GoogleAuthContext';
+import {
+  uploadEncryptedFileToDrive,
+  downloadEncryptedFileFromDrive,
+  deleteFileFromDrive,
+} from '../services/googleDrive';
 import { api } from '../services/api';
 import { getFileCategory } from '../utils/fileTypes';
 import TreasureViewerModal from './TreasureViewerModal';
@@ -7,6 +13,7 @@ import ConfirmModal from './ConfirmModal';
 
 export default function VaultExplorer() {
   const { lockVault, encryptName, decryptName, encryptFileBlob, decryptFileBlob } = useCrypto();
+  const { isGoogleConnected, googleAccessToken } = useGoogleAuth();
 
   // Navegación
   const [currentBaulId, setCurrentBaulId] = useState(null);
@@ -251,7 +258,19 @@ export default function VaultExplorer() {
 
       const { encryptedBuffer, iv: fileIv } = await encryptFileBlob(file);
       const { nombre_cifrado, iv: nameIv } = await encryptName(file.name);
-      const { drive_file_id } = await api.uploadDriveMock(encryptedBuffer, fileIv);
+      let drive_file_id;
+      if (isGoogleConnected && googleAccessToken) {
+        addToast(`Subiendo a carpeta 'Baúl Mágico - Datos Cifrados' en Google Drive...`, 'info');
+        const driveRes = await uploadEncryptedFileToDrive({
+          encryptedBuffer,
+          fileIv,
+          accessToken: googleAccessToken,
+        });
+        drive_file_id = driveRes.drive_file_id;
+      } else {
+        const mockRes = await api.uploadDriveMock(encryptedBuffer, fileIv);
+        drive_file_id = mockRes.drive_file_id;
+      }
 
       await api.createTesoro({
         baul_id: currentBaulId,
@@ -279,9 +298,29 @@ export default function VaultExplorer() {
     try {
       addToast(`Descifrando "${tesoro.plainName}" en RAM...`, 'info');
 
-      const driveRecord = await api.downloadDriveMock(tesoro.drive_file_id);
-      const buffer = driveRecord.encryptedBuffer || driveRecord;
-      const fileIv = driveRecord.fileIv || tesoro.iv;
+      let buffer;
+      let fileIv;
+
+      if (tesoro.drive_file_id.startsWith('gdrive-mock-')) {
+        const driveRecord = await api.downloadDriveMock(tesoro.drive_file_id);
+        buffer = driveRecord.encryptedBuffer || driveRecord;
+        fileIv = driveRecord.fileIv || tesoro.iv;
+      } else {
+        if (!isGoogleConnected || !googleAccessToken) {
+          addToast('Debes conectar tu Google Drive para descargar este tesoro', 'error');
+          return;
+        }
+        addToast(`Descargando blob cifrado desde Google Drive...`, 'info');
+        const driveRecord = await downloadEncryptedFileFromDrive({
+          driveFileId: tesoro.drive_file_id,
+          accessToken: googleAccessToken,
+          fallbackIv: tesoro.iv,
+        });
+        buffer = driveRecord.encryptedBuffer;
+        fileIv = driveRecord.fileIv || tesoro.iv;
+      }
+
+
       const decryptedArrayBuffer = await decryptFileBlob(buffer, fileIv);
 
       const blob = new Blob([decryptedArrayBuffer], { type: tesoro.tipo_mime || 'application/octet-stream' });
@@ -392,6 +431,9 @@ export default function VaultExplorer() {
             await api.deleteBaul(item.id);
             addToast(`Baúl "${item.plainName}" eliminado`);
           } else {
+            if (item.drive_file_id && !item.drive_file_id.startsWith('gdrive-mock-') && isGoogleConnected && googleAccessToken) {
+              await deleteFileFromDrive({ driveFileId: item.drive_file_id, accessToken: googleAccessToken });
+            }
             await api.deleteTesoro(item.id);
             addToast(`Tesoro "${item.plainName}" eliminado`);
           }
