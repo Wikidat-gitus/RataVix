@@ -10,6 +10,7 @@ import { api } from '../services/api';
 import { getFileCategory } from '../utils/fileTypes';
 import TreasureViewerModal from './TreasureViewerModal';
 import ConfirmModal from './ConfirmModal';
+import UploadProgressModal from './UploadProgressModal';
 
 export default function VaultExplorer() {
   const { lockVault, encryptName, decryptName, encryptFileBlob, decryptFileBlob } = useCrypto();
@@ -41,6 +42,15 @@ export default function VaultExplorer() {
 
   // Visor de Tesoros
   const [viewerTesoro, setViewerTesoro] = useState(null);
+
+  // Modal Bloqueante de Progreso de Subida (Zero-Knowledge)
+  const [uploadProgress, setUploadProgress] = useState({
+    isOpen: false,
+    fileName: '',
+    fileSize: '',
+    stage: 'encrypting', // 'encrypting' | 'uploading' | 'saving'
+    statusMessage: ''
+  });
 
   // Modal de Confirmación
   const [confirmConfig, setConfirmConfig] = useState({
@@ -241,6 +251,14 @@ export default function VaultExplorer() {
     }
   };
 
+  const formatBytes = (bytes) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
   // 2. SUBIR TESORO (Archivo)
   const handleTriggerUpload = () => {
     if (fileInputRef.current) {
@@ -252,12 +270,30 @@ export default function VaultExplorer() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const formattedSize = formatBytes(file.size);
     setActionLoading(true);
+    setUploadProgress({
+      isOpen: true,
+      fileName: file.name,
+      fileSize: formattedSize,
+      stage: 'encrypting',
+      statusMessage: 'Cifrando bytes con AES-GCM (256 bits) en memoria RAM...'
+    });
+
     try {
       addToast(`Cifrando "${file.name}" con AES-GCM 256 bits...`, 'info');
 
       const { encryptedBuffer, iv: fileIv } = await encryptFileBlob(file);
       const { nombre_cifrado, iv: nameIv } = await encryptName(file.name);
+
+      setUploadProgress((prev) => ({
+        ...prev,
+        stage: 'uploading',
+        statusMessage: isGoogleConnected && googleAccessToken
+          ? "Subiendo blob cifrado (.enc) a Google Drive..."
+          : "Guardando en almacenamiento local simulado..."
+      }));
+
       let drive_file_id;
       if (isGoogleConnected && googleAccessToken) {
         addToast(`Subiendo a carpeta 'Baúl Mágico - Datos Cifrados' en Google Drive...`, 'info');
@@ -271,6 +307,12 @@ export default function VaultExplorer() {
         const mockRes = await api.uploadDriveMock(encryptedBuffer, fileIv);
         drive_file_id = mockRes.drive_file_id;
       }
+
+      setUploadProgress((prev) => ({
+        ...prev,
+        stage: 'saving',
+        statusMessage: 'Registrando metadatos blindados en el Baúl...'
+      }));
 
       await api.createTesoro({
         baul_id: currentBaulId,
@@ -288,6 +330,7 @@ export default function VaultExplorer() {
       addToast(err.message || 'Error al cifrar y subir el archivo', 'error');
     } finally {
       setActionLoading(false);
+      setUploadProgress((prev) => ({ ...prev, isOpen: false }));
       e.target.value = '';
     }
   };
@@ -448,14 +491,6 @@ export default function VaultExplorer() {
     });
   };
 
-  const formatBytes = (bytes) => {
-    if (!bytes || bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  };
-
   return (
     <div className="vault-explorer">
       {/* Barra Superior de Acciones y Seguridad */}
@@ -473,7 +508,7 @@ export default function VaultExplorer() {
             type="button"
             className="btn-action btn-new-folder"
             onClick={handleOpenCreateFolder}
-            disabled={actionLoading}
+            disabled={actionLoading || uploadProgress.isOpen}
           >
             <span>📁+</span>
             <span>Nuevo Baúl</span>
@@ -483,7 +518,7 @@ export default function VaultExplorer() {
             type="button"
             className="btn-action btn-upload"
             onClick={handleTriggerUpload}
-            disabled={actionLoading}
+            disabled={actionLoading || uploadProgress.isOpen}
           >
             <span>⬆️</span>
             <span>Subir Tesoro</span>
@@ -494,12 +529,14 @@ export default function VaultExplorer() {
             type="file"
             onChange={handleFileSelected}
             style={{ display: 'none' }}
+            disabled={actionLoading || uploadProgress.isOpen}
           />
 
           <button
             type="button"
             className="btn-action btn-lock"
             onClick={lockVault}
+            disabled={actionLoading || uploadProgress.isOpen}
             title="Destruir clave en RAM y cerrar baúl"
           >
             <span>🔒</span>
@@ -813,6 +850,15 @@ export default function VaultExplorer() {
         isDanger={confirmConfig.isDanger}
         onConfirm={confirmConfig.onConfirm}
         onCancel={() => setConfirmConfig((prev) => ({ ...prev, isOpen: false }))}
+      />
+
+      {/* MODAL 5: Overlay Bloqueante de Subida Protegida (Zero-Knowledge) */}
+      <UploadProgressModal
+        isOpen={uploadProgress.isOpen}
+        fileName={uploadProgress.fileName}
+        fileSize={uploadProgress.fileSize}
+        stage={uploadProgress.stage}
+        statusMessage={uploadProgress.statusMessage}
       />
 
       {/* 5. Contenedor de Notificaciones Toast Flotantes */}

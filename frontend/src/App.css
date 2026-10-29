@@ -1509,3 +1509,210 @@
 
 
 
+
+
+/* ==========================================================================
+   Overlay y Modal Bloqueante de Subida Protegida (UploadProgressModal)
+   ========================================================================== */
+.upload-overlay-backdrop {
+  z-index: 2500;
+  backdrop-filter: blur(12px);
+  background: rgba(4, 6, 12, 0.85);
+  cursor: wait;
+}
+
+.upload-progress-box {
+  max-width: 480px;
+  background: linear-gradient(160deg, rgba(26, 29, 48, 0.95) 0%, rgba(15, 17, 28, 0.98) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(139, 92, 246, 0.25);
+  border-radius: 18px;
+  padding: 2.2rem;
+  gap: 1.25rem;
+  animation: fadeInModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: default;
+}
+
+.upload-header {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.upload-pulse-orb {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.upload-pulse-orb.stage-crypto {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  animation: pulseOrbPurple 2s infinite ease-in-out;
+}
+
+.upload-pulse-orb.stage-upload {
+  background: rgba(6, 182, 212, 0.2);
+  border: 1px solid rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+  animation: pulseOrbCyan 2s infinite ease-in-out;
+}
+
+.upload-pulse-orb.stage-save {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  animation: pulseOrbEmerald 2s infinite ease-in-out;
+}
+
+@keyframes pulseOrbPurple {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); }
+  50% { transform: scale(1.06); box-shadow: 0 0 25px rgba(139, 92, 246, 0.7); }
+}
+
+@keyframes pulseOrbCyan {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(6, 182, 212, 0.4); }
+  50% { transform: scale(1.06); box-shadow: 0 0 25px rgba(6, 182, 212, 0.7); }
+}
+
+@keyframes pulseOrbEmerald {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+  50% { transform: scale(1.06); box-shadow: 0 0 25px rgba(16, 185, 129, 0.7); }
+}
+
+.upload-title-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.upload-title-area h3 {
+  font-size: 1.15rem;
+  color: var(--text-main);
+  font-weight: 700;
+  margin: 0;
+}
+
+.upload-step-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-purple);
+  background: rgba(139, 92, 246, 0.15);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  width: fit-content;
+}
+
+.upload-file-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: rgba(10, 12, 22, 0.65);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+}
+
+.upload-file-icon {
+  font-size: 1.4rem;
+}
+
+.upload-file-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 0.2rem;
+}
+
+.upload-file-name {
+  color: var(--text-main);
+  font-size: 0.92rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upload-file-size {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.upload-status-box {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.65rem 0.25rem;
+}
+
+.upload-spinner-ring {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(139, 92, 246, 0.25);
+  border-top-color: var(--accent-purple);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.upload-status-text {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.upload-progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.upload-progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease;
+}
+
+.upload-progress-bar-fill.encrypting {
+  background: linear-gradient(90deg, #8b5cf6, #a855f7);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+}
+
+.upload-progress-bar-fill.uploading {
+  background: linear-gradient(90deg, #06b6d4, #3b82f6);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+}
+
+.upload-progress-bar-fill.saving {
+  background: linear-gradient(90deg, #10b981, #059669);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+}
+
+.upload-security-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.78rem;
+  color: #a7f3d0;
+  margin: 0;
+}
+
+.upload-security-hint p {
+  margin: 0;
+  line-height: 1.4;
+}
