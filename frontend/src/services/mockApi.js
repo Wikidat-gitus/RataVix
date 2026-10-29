@@ -69,9 +69,12 @@ export const mockApi = {
       }
     }
 
+    const deletedTesoros = mockTesoros.filter(t => idsAEliminar.includes(t.baul_id));
+    const deleted_drive_file_ids = deletedTesoros.map(t => t.drive_file_id).filter(Boolean);
+
     mockBaules = mockBaules.filter(b => !idsAEliminar.includes(b.id));
     mockTesoros = mockTesoros.filter(t => !idsAEliminar.includes(t.baul_id));
-    return { ok: true, mensaje: 'Baúl y contenidos eliminados' };
+    return { ok: true, mensaje: 'Baúl y contenidos eliminados', deleted_drive_file_ids };
   },
 
   // 3. Tesoros (Archivos)

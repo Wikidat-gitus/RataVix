@@ -471,8 +471,19 @@ export default function VaultExplorer() {
         setActionLoading(true);
         try {
           if (isFolder) {
-            await api.deleteBaul(item.id);
-            addToast(`Baúl "${item.plainName}" eliminado`);
+            const delRes = await api.deleteBaul(item.id);
+            if (delRes?.deleted_drive_file_ids?.length && isGoogleConnected && googleAccessToken) {
+              for (const driveFileId of delRes.deleted_drive_file_ids) {
+                if (!driveFileId.startsWith('gdrive-mock-')) {
+                  try {
+                    await deleteFileFromDrive({ driveFileId, accessToken: googleAccessToken });
+                  } catch (driveErr) {
+                    console.warn(`No se pudo eliminar de Google Drive (${driveFileId}):`, driveErr);
+                  }
+                }
+              }
+            }
+            addToast(`Baúl "${item.plainName}" y sus contenidos eliminados`);
           } else {
             if (item.drive_file_id && !item.drive_file_id.startsWith('gdrive-mock-') && isGoogleConnected && googleAccessToken) {
               await deleteFileFromDrive({ driveFileId: item.drive_file_id, accessToken: googleAccessToken });

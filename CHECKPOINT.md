@@ -37,6 +37,7 @@
 | **CP-18** | 2026-10-28 | Usuario + @front_agent + @master_agent | **Auditoría Zero-Knowledge (Hito 3.2) y Conexión Google Drive Real (Hito 3.3):** Auditoría F12 superada empíricamente (cero contraseñas o nombres en claro por la red). Configuración de Client ID OAuth de Google Cloud. Creación del servicio `googleDrive.js` y `GoogleAuthContext.jsx` con Google Identity Services (`drive.file`). Soporte de subida multipart con empaquetado autocontenido de IV (12 bytes), descarga, borrado en nube y carpeta contenedora automática `Baúl Mágico - Datos Cifrados`. |
 | **CP-19** | 2026-10-29 | Usuario + @front_agent + @master_agent | **Subida Real a Google Drive Validada y Diagnóstico de Pruebas de Estrés:** Corrección del estándar multipart RFC 2387 en `googleDrive.js`. Subida real de blobs cifrados (.enc) a Google Drive confirmada en vivo en la carpeta `Baúl Mágico - Datos Cifrados`. Identificadas mejoras de blindaje para retomar: bloqueo de acciones/overlay durante subida (evitar condiciones de carrera) y retorno de `deleted_drive_file_ids` en backend para purga automática en Google Drive de baúles eliminados en cascada. |
 | **CP-20** | 2026-10-29 | Usuario + @front_agent + @master_agent | **Blindaje UX y Overlay Bloqueante de Subida Protegida (Hito 3.3+):** Creación del componente `UploadProgressModal.jsx` y su sistema visual de 3 etapas en `App.css` (Cifrado RAM con AES-GCM 256 bits ➔ Subida .enc a Google Drive ➔ Sincronización en Baúl). Bloqueo total de interfaz y botones críticos (`Cerrar Baúl`, `Subir Tesoro`, `Nuevo Baúl`) durante la subida para evitar condiciones de carrera o destrucción prematura de la clave en RAM. Compilación exitosa con Vite y push a rama `frontend`. |
+| **CP-21** | 2026-10-29 | Usuario + @back_agent + @front_agent + @master_agent | **Eliminación en Cascada y Purga Automática en Google Drive (Cierre de Fase 3):** Actualización de `docs/API_CONTRACT.md` y endpoint `DELETE /api/baules/{id}` en FastAPI con algoritmo BFS para recolectar y devolver todos los `deleted_drive_file_ids` del subárbol jerárquico. Integración en `VaultExplorer.jsx` y `mockApi.js` para purgar concurrentemente los blobs en Google Drive, erradicando archivos huérfanos. Suite de pruebas aprobada y Fase 3 lista para consolidación en `main`. |
 
 ---
 
@@ -54,10 +55,11 @@
   * [x] **2.1 (Frontend):** Criptografía en cliente (`src/crypto/` con AES-GCM 256 bits + derivación PBKDF2 de 100,000 iteraciones + utilidades Base64 + Laboratorio interactivo).
   * [x] **2.2 (Frontend):** Almacén seguro de clave efímera (`CryptoContext`), modal de clave maestra y UI completa de Baúles/Tesoros con navegación y CRUD completo.
   * [x] **2.3 (Backend):** FastAPI, Google OAuth y Sesión Única, modelos de persistencia (`usuarios`, `baules`, `tesoros`) y endpoints CRUD reales conectados a base de datos.
-* [ ] **Fase 3: Integración y Auditoría Zero-Knowledge**
+* [x] **Fase 3: Integración y Auditoría Zero-Knowledge (COMPLETADA)**
   * [x] **3.1:** Conexión de Frontend real con Backend real mediante `api.js` y proxy de Vite (probado con HTTP 200).
   * [x] **3.2:** Auditoría de tráfico de red en vivo (F12) garantizando que no viajan contraseñas ni textos planos al crear y listar baúles/tesoros.
   * [x] **3.3:** Validación del flujo de Google Drive real (subida y almacenamiento de blobs .enc validado en vivo).
+  * [x] **3.4:** Blindaje de subida (anti race-conditions) y purga en cascada en Google Drive.
 * [ ] **Fase 4: Despliegue en la Nube (Free Tier / Bajo Costo)**
   * Frontend en Vercel.
   * Backend y PostgreSQL en la nube (Render / Koyeb / Neon / Supabase).
