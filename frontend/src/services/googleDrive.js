@@ -76,46 +76,40 @@ export async function uploadEncryptedFileToDrive({ encryptedBuffer, fileIv, acce
   const folderId = await getOrCreateVaultFolder(accessToken);
   const blobName = `vault_blob_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.enc`;
 
-  const boundary = `-------BaulMagicoBoundary${Date.now()}`;
-  const metadata = {
+  const boundary = `-------BaulMagico${Date.now()}`;
+  const metadata = JSON.stringify({
     name: blobName,
     parents: [folderId],
     mimeType: 'application/octet-stream',
-    description: 'Blob cifrado con AES-GCM 256 bits. Ininteligible sin la clave maestra efímera del usuario.',
-  };
+    description: 'Blob cifrado con AES-GCM 256 bits (Zero-Knowledge).',
+  });
 
-  const delimiter = `\r\n--${boundary}\r\n`;
-  const closeDelimiter = `\r\n--${boundary}--`;
+  const ivBytes = fileIv ? base64ToBuffer(fileIv) : new Uint8Array(0);
+  const cipherBytes = new Uint8Array(encryptedBuffer);
 
-  const metadataPart = `${delimiter}Content-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}`;
-  const mediaHeader = `${delimiter}Content-Type: application/octet-stream\r\n\r\n`;
+  const fullPayload = new Uint8Array(ivBytes.byteLength + cipherBytes.byteLength);
+  fullPayload.set(ivBytes, 0);
+  fullPayload.set(cipherBytes, ivBytes.byteLength);
 
-  // Preparar el buffer binario: Si se suministra fileIv, se anteponen sus 12 bytes al inicio
-  let binaryBlob;
-  if (fileIv) {
-    const ivBytes = base64ToBuffer(fileIv);
-    binaryBlob = new Blob([
-      metadataPart,
-      mediaHeader,
-      ivBytes,
-      new Uint8Array(encryptedBuffer),
-      closeDelimiter,
-    ], { type: `multipart/related; boundary=${boundary}` });
-  } else {
-    binaryBlob = new Blob([
-      metadataPart,
-      mediaHeader,
-      new Uint8Array(encryptedBuffer),
-      closeDelimiter,
-    ], { type: `multipart/related; boundary=${boundary}` });
-  }
+  const bodyParts = [
+    `--${boundary}\r\n`,
+    'Content-Type: application/json; charset=UTF-8\r\n\r\n',
+    metadata,
+    `\r\n--${boundary}\r\n`,
+    'Content-Type: application/octet-stream\r\n\r\n',
+    fullPayload,
+    `\r\n--${boundary}--`,
+  ];
+
+  const multipartBlob = new Blob(bodyParts);
 
   const response = await fetch(DRIVE_UPLOAD_URL, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
+      'Content-Type': `multipart/related; boundary=${boundary}`,
     },
-    body: binaryBlob,
+    body: multipartBlob,
   });
 
   if (!response.ok) {

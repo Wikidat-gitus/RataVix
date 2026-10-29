@@ -285,7 +285,7 @@ export default function VaultExplorer() {
       await loadVaultContent();
     } catch (err) {
       console.error('Error al subir archivo:', err);
-      addToast('Error al cifrar y subir el archivo', 'error');
+      addToast(err.message || 'Error al cifrar y subir el archivo', 'error');
     } finally {
       setActionLoading(false);
       e.target.value = '';
