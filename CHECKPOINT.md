@@ -35,6 +35,7 @@
 | **CP-16** | 2026-10-27 | Usuario + @master_agent + @front_agent | **Integración Real Frontend ⟷ Backend (Fase 3):** Creación del cliente HTTP `api.js` en React y enrutamiento mediante proxy en `vite.config.js` hacia FastAPI (`:8000`). Conexión de `VaultExplorer.jsx` y `TreasureViewerModal.jsx` a los endpoints reales de persistencia. Incorporación de indicador de salud dinámico en el encabezado (`🟢 API FastAPI Activa`) y escucha del evento de sesión única revocada para autobloqueo de seguridad. Verificación de proxy y comunicación fluida en vivo. |
 | **CP-17** | 2026-10-28 | Usuario + @master_agent | **Consolidación en `main` de Persistencia IndexedDB y Subida en Raíz:** Fusión de las ramas `frontend` y sincronización con `backend` hacia `main` y GitHub remoto. Soporte para tesoros sin carpeta padre (`baul_id = null`), persistencia de binarios e IVs en IndexedDB cliente (`baul_magico_drive_db`) tras recarga (F5) y validación de contraseña maestra estricta (`"rasputin"`). Confirmada la inspección visual en base de datos mediante extensión SQLite Viewer. |
 | **CP-18** | 2026-10-28 | Usuario + @front_agent + @master_agent | **Auditoría Zero-Knowledge (Hito 3.2) y Conexión Google Drive Real (Hito 3.3):** Auditoría F12 superada empíricamente (cero contraseñas o nombres en claro por la red). Configuración de Client ID OAuth de Google Cloud. Creación del servicio `googleDrive.js` y `GoogleAuthContext.jsx` con Google Identity Services (`drive.file`). Soporte de subida multipart con empaquetado autocontenido de IV (12 bytes), descarga, borrado en nube y carpeta contenedora automática `Baúl Mágico - Datos Cifrados`. |
+| **CP-19** | 2026-10-29 | Usuario + @front_agent + @master_agent | **Subida Real a Google Drive Validada y Diagnóstico de Pruebas de Estrés:** Corrección del estándar multipart RFC 2387 en `googleDrive.js`. Subida real de blobs cifrados (.enc) a Google Drive confirmada en vivo en la carpeta `Baúl Mágico - Datos Cifrados`. Identificadas mejoras de blindaje para retomar: bloqueo de acciones/overlay durante subida (evitar condiciones de carrera) y retorno de `deleted_drive_file_ids` en backend para purga automática en Google Drive de baúles eliminados en cascada. |
 
 ---
 
@@ -55,7 +56,7 @@
 * [ ] **Fase 3: Integración y Auditoría Zero-Knowledge**
   * [x] **3.1:** Conexión de Frontend real con Backend real mediante `api.js` y proxy de Vite (probado con HTTP 200).
   * [x] **3.2:** Auditoría de tráfico de red en vivo (F12) garantizando que no viajan contraseñas ni textos planos al crear y listar baúles/tesoros.
-  * [ ] **3.3:** Validación del flujo de Google Drive real (o credenciales OAuth de usuario).
+  * [x] **3.3:** Validación del flujo de Google Drive real (subida y almacenamiento de blobs .enc validado en vivo).
 * [ ] **Fase 4: Despliegue en la Nube (Free Tier / Bajo Costo)**
   * Frontend en Vercel.
   * Backend y PostgreSQL en la nube (Render / Koyeb / Neon / Supabase).
