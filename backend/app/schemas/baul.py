@@ -1,6 +1,6 @@
 from uuid import UUID
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, ConfigDict
 
 
@@ -29,4 +29,5 @@ class BaulResponse(BaulBase):
 
 class BaulDeleteResponse(BaseModel):
     ok: bool = True
-    mensaje: str = "Baúl eliminado"
+    mensaje: str = "Baúl eliminado con éxito"
+    deleted_drive_file_ids: List[str] = []
