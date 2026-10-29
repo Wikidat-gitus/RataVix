@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import { CryptoProvider, useCrypto } from './context/CryptoContext';
 import { GoogleAuthProvider, useGoogleAuth } from './context/GoogleAuthContext';
+import GoogleAuthGate from './components/GoogleAuthGate';
 import UnlockVaultModal from './components/UnlockVaultModal';
 import VaultExplorer from './components/VaultExplorer';
 import CryptoPlayground from './components/CryptoPlayground';
@@ -11,11 +12,13 @@ function AppContent() {
   const {
     isGoogleConnected,
     googleUser,
-    connectGoogleDrive,
     disconnectGoogleDrive,
-    isLoadingAuth,
-    authError,
   } = useGoogleAuth();
+
+  const [isLocalMock, setIsLocalMock] = useState(() => {
+    return sessionStorage.getItem('baul_local_mock') === 'true';
+  });
+
   const [activeTab, setActiveTab] = useState('vault'); // Pestaña principal: Mi Baúl Virtual
   const [backendStatus, setBackendStatus] = useState('checking'); // 'online' | 'offline'
 
@@ -37,6 +40,16 @@ function AppContent() {
     return () => clearInterval(interval);
   }, []);
 
+  const isSessionStarted = isGoogleConnected || isLocalMock;
+
+  // Cierre de Sesión Unificado: destruye clave en RAM y revoca tokens de sesión
+  const handleLogout = () => {
+    lockVault();
+    disconnectGoogleDrive();
+    setIsLocalMock(false);
+    sessionStorage.removeItem('baul_local_mock');
+  };
+
   return (
     <div className="app-container">
       {/* Header Principal */}
@@ -50,34 +63,6 @@ function AppContent() {
         </div>
 
         <div className="header-right">
-          {/* Badge de Google Drive OAuth */}
-          {isGoogleConnected ? (
-            <div className="security-badge unlocked-badge" title="Almacenamiento activo en tu Google Drive (carpeta 'Baúl Mágico - Datos Cifrados')">
-              <span className="unlocked-pulse"></span>
-              <span>☁️ {googleUser?.email || 'Google Drive Conectado'}</span>
-              <button
-                type="button"
-                className="btn-text-small"
-                onClick={disconnectGoogleDrive}
-                title="Desconectar cuenta de Google Drive"
-                style={{ marginLeft: '0.4rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.75rem' }}
-              >
-                ✖
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="btn-shortcut"
-              onClick={connectGoogleDrive}
-              disabled={isLoadingAuth}
-              title="Conecta tu Google Drive para almacenar los blobs cifrados directamente en tu nube"
-              style={{ borderColor: 'rgba(56, 189, 248, 0.4)', color: '#38bdf8' }}
-            >
-              {isLoadingAuth ? 'Conectando...' : '☁️ Conectar Google Drive'}
-            </button>
-          )}
-
           {/* Badge de Estado del Backend */}
           <div
             className={`security-badge ${backendStatus === 'online' ? 'unlocked-badge' : 'locked-badge'}`}
@@ -93,21 +78,38 @@ function AppContent() {
             </span>
           </div>
 
-          {/* Badge de Seguridad Dinámico */}
-          <div className={`security-badge ${isUnlocked ? 'unlocked-badge' : 'locked-badge'}`}>
-            <span className={isUnlocked ? 'unlocked-pulse' : 'pulse-dot'}></span>
-            <span>{isUnlocked ? '🔓 Baúl Abierto (RAM)' : '🔒 Baúl Bloqueado'}</span>
-          </div>
+          {/* Badges y Botón Unificado cuando hay sesión iniciada */}
+          {isSessionStarted && (
+            <>
+              {/* Badge de Cuenta Conectada */}
+              <div
+                className="security-badge unlocked-badge"
+                title="Cuenta autenticada en esta sesión"
+              >
+                <span className="unlocked-pulse"></span>
+                <span>
+                  {isGoogleConnected
+                    ? `☁️ ${googleUser?.email || 'Google Drive Conectado'}`
+                    : '💾 Modo Local'}
+                </span>
+              </div>
 
-          {isUnlocked && (
-            <button
-              type="button"
-              className="btn-shortcut"
-              onClick={lockVault}
-              title="Cerrar y destruir clave en RAM"
-            >
-              🔒 Bloquear
-            </button>
+              {/* Badge de Seguridad Dinámico */}
+              <div className={`security-badge ${isUnlocked ? 'unlocked-badge' : 'locked-badge'}`}>
+                <span className={isUnlocked ? 'unlocked-pulse' : 'pulse-dot'}></span>
+                <span>{isUnlocked ? '🔓 Baúl Abierto (RAM)' : '🔒 Baúl Bloqueado'}</span>
+              </div>
+
+              {/* ÚNICO BOTÓN: Cerrar Sesión */}
+              <button
+                type="button"
+                className="btn-shortcut btn-logout-header"
+                onClick={handleLogout}
+                title="Cerrar sesión de forma segura y regresar al inicio"
+              >
+                🚪 Cerrar Sesión
+              </button>
+            </>
           )}
         </div>
       </header>
@@ -136,13 +138,20 @@ function AppContent() {
           </button>
         </nav>
 
-        {/* 1. Pestaña Principal: Mi Baúl Virtual */}
+        {/* 1. Pestaña Principal: Mi Baúl Virtual (Flujo en 2 Pasos) */}
         {activeTab === 'vault' && (
           <div className="tab-pane">
-            {!isUnlocked ? (
-              <UnlockVaultModal />
+            {!isSessionStarted ? (
+              <GoogleAuthGate
+                onContinueLocal={() => {
+                  setIsLocalMock(true);
+                  sessionStorage.setItem('baul_local_mock', 'true');
+                }}
+              />
+            ) : !isUnlocked ? (
+              <UnlockVaultModal onLogout={handleLogout} isLocalMock={isLocalMock} />
             ) : (
-              <VaultExplorer />
+              <VaultExplorer onLogout={handleLogout} />
             )}
           </div>
         )}
@@ -158,7 +167,7 @@ function AppContent() {
         {activeTab === 'resumen' && (
           <div className="tab-pane">
             <section className="hero-card">
-              <span className="hero-pill">Fase 2: Criptografía y Explorador Activo</span>
+              <span className="hero-pill">Fase 3: Integración Zero-Knowledge & Google Drive</span>
               <h2 className="hero-title">
                 Tus tesoros digitales, <span>100% blindados</span>.
               </h2>
@@ -203,7 +212,7 @@ export default function App() {
   return (
     <GoogleAuthProvider>
       <CryptoProvider>
-      <AppContent />
+        <AppContent />
       </CryptoProvider>
     </GoogleAuthProvider>
   );

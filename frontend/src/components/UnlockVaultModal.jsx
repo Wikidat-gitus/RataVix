@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useCrypto } from '../context/CryptoContext';
+import { useGoogleAuth } from '../context/GoogleAuthContext';
 
-export default function UnlockVaultModal() {
+export default function UnlockVaultModal({ onLogout, isLocalMock }) {
   const { unlockVault, unlocking, error } = useCrypto();
+  const { isGoogleConnected, googleUser } = useGoogleAuth();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -25,6 +27,28 @@ export default function UnlockVaultModal() {
           <div className="vault-lock-orb">
             <span className="lock-icon">🔒</span>
           </div>
+          <span className="auth-step-pill">Paso 2 de 2 • Desbloqueo Zero-Knowledge</span>
+
+          {/* Chip de Identidad Conectada */}
+          <div className="account-connected-chip">
+            <span className="account-dot"></span>
+            <span className="account-email">
+              {isGoogleConnected
+                ? `☁️ ${googleUser?.email || 'Google Drive Conectado'}`
+                : '💾 Modo de Prueba Local'}
+            </span>
+            {onLogout && (
+              <button
+                type="button"
+                className="account-logout-link"
+                onClick={onLogout}
+                title="Cerrar sesión y cambiar de cuenta"
+              >
+                Cerrar sesión
+              </button>
+            )}
+          </div>
+
           <h2>Desbloquea tu Baúl Mágico</h2>
           <p>
             Ingresa tu <strong>Contraseña Maestra</strong> para derivar tu clave criptográfica de 256 bits en memoria volátil (RAM).

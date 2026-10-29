@@ -12,7 +12,7 @@ import TreasureViewerModal from './TreasureViewerModal';
 import ConfirmModal from './ConfirmModal';
 import UploadProgressModal from './UploadProgressModal';
 
-export default function VaultExplorer() {
+export default function VaultExplorer({ onLogout }) {
   const { lockVault, encryptName, decryptName, encryptFileBlob, decryptFileBlob } = useCrypto();
   const { isGoogleConnected, googleAccessToken } = useGoogleAuth();
 
@@ -546,12 +546,12 @@ export default function VaultExplorer() {
           <button
             type="button"
             className="btn-action btn-lock"
-            onClick={lockVault}
+            onClick={onLogout || lockVault}
             disabled={actionLoading || uploadProgress.isOpen}
-            title="Destruir clave en RAM y cerrar baúl"
+            title="Cerrar sesión de forma segura y destruir clave en RAM"
           >
-            <span>🔒</span>
-            <span>Cerrar Baúl</span>
+            <span>🚪</span>
+            <span>Cerrar Sesión</span>
           </button>
         </div>
       </div>
