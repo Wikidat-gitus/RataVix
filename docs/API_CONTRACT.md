@@ -61,8 +61,15 @@
     ```
   * **Backend responde:** Objeto baúl actualizado.
 * **`DELETE /api/baules/{id}`**
-  * **Objetivo:** Elimina la carpeta virtual (y opcionalmente sus elementos contenidos en cascada).
-  * **Backend responde:** `{ "ok": true, "mensaje": "Baúl eliminado" }`
+  * **Objetivo:** Elimina la carpeta virtual y sus contenidos dependientes en cascada.
+  * **Backend responde:**
+    ```json
+    {
+      "ok": true,
+      "mensaje": "Baúl eliminado con éxito",
+      "deleted_drive_file_ids": ["string (IDs de Google Drive para purga en cliente)"]
+    }
+    ```
 
 ---
 

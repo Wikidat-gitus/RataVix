@@ -153,10 +153,23 @@ def run_tests():
     assert len(list_tesoros_after.json()) == 0
     print("✅ Verificación de eliminación de tesoro confirmada.")
     
-    # Eliminar baúl raíz (debe eliminar también subbaul en cascada)
+    # Crear un tesoro anidado en subbaúl para probar cascada de drive_file_ids
+    client.post("/api/tesoros", json={
+        "baul_id": subbaul_id,
+        "drive_file_id": "gdrive-cascade-test-123",
+        "nombre_cifrado": "dGVzb3JvX2FuaWRhZG9fY2lmcmFkbw==",
+        "iv": "aXZfZXhhbXBsZV85Ng==",
+        "tamano_bytes": 4096,
+        "tipo_mime": "application/pdf"
+    }, headers=headers)
+
+    # Eliminar baúl raíz (debe eliminar también subbaul y devolver deleted_drive_file_ids)
     del_baul = client.delete(f"/api/baules/{baul_raiz_id}", headers=headers)
     assert del_baul.status_code == 200
-    print("✅ Baúl raíz eliminado en cascada exitosamente.")
+    del_data = del_baul.json()
+    assert "deleted_drive_file_ids" in del_data
+    assert "gdrive-cascade-test-123" in del_data["deleted_drive_file_ids"]
+    print(f"✅ Baúl raíz eliminado en cascada exitosamente con drive_ids reportados: {del_data['deleted_drive_file_ids']}")
     
     print("\n🎉 ¡TODAS LAS PRUEBAS DE BACKEND Y PERSISTENCIA PASARON CON ÉXITO! 🎉")
 

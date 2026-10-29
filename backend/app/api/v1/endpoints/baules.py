@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.usuario import Usuario
 from app.models.baul import Baul
+from app.models.tesoro import Tesoro
 from app.core.security import get_current_user
 from app.schemas.baul import (
     BaulCreate,
@@ -140,6 +141,8 @@ async def delete_baul(
 ):
     """
     Elimina un baúl virtual y sus contenidos dependientes en cascada.
+    Retorna la lista de `deleted_drive_file_ids` de todos los tesoros hijos
+    y descendientes para que el cliente pueda eliminarlos de Google Drive.
     """
     baul = (
         db.query(Baul)
@@ -152,6 +155,43 @@ async def delete_baul(
             detail="Baúl no encontrado.",
         )
 
+    # 1. Recorrer el subárbol completo de baúles (BFS) para recolectar todos los IDs
+    baul_ids_to_check = [baul.id]
+    all_descendant_baul_ids = set()
+
+    while baul_ids_to_check:
+        current_baul_id = baul_ids_to_check.pop()
+        all_descendant_baul_ids.add(current_baul_id)
+        hijos = (
+            db.query(Baul.id)
+            .filter(
+                Baul.baul_padre_id == current_baul_id,
+                Baul.usuario_id == current_user.id,
+            )
+            .all()
+        )
+        for (hijo_id,) in hijos:
+            baul_ids_to_check.append(hijo_id)
+
+    # 2. Recolectar todos los drive_file_ids de tesoros dentro de la jerarquía
+    drive_ids_records = (
+        db.query(Tesoro.drive_file_id)
+        .filter(
+            Tesoro.baul_id.in_(all_descendant_baul_ids),
+            Tesoro.usuario_id == current_user.id,
+        )
+        .all()
+    )
+    deleted_drive_file_ids = list(
+        dict.fromkeys(r[0] for r in drive_ids_records if r[0])
+    )
+
+    # 3. Eliminar el baúl en la base de datos (cascade borra subbaúles y tesoros)
     db.delete(baul)
     db.commit()
-    return BaulDeleteResponse(ok=True, mensaje="Baúl eliminado con éxito")
+
+    return BaulDeleteResponse(
+        ok=True,
+        mensaje="Baúl eliminado con éxito",
+        deleted_drive_file_ids=deleted_drive_file_ids,
+    )
