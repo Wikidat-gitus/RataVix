@@ -177,3 +177,4 @@ export default function CreateMasterKeyModal({ onLogout, isLocalMock, showDevToo
     </div>
   );
 }
+
