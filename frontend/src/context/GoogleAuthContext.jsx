@@ -15,6 +15,10 @@ export function GoogleAuthProvider({ children }) {
     const cached = sessionStorage.getItem('baul_google_user');
     return cached ? JSON.parse(cached) : null;
   });
+  const [backendUser, setBackendUser] = useState(() => {
+    const cached = sessionStorage.getItem('baul_backend_user');
+    return cached ? JSON.parse(cached) : null;
+  });
   const [isGisReady, setIsGisReady] = useState(false);
   const [authError, setAuthError] = useState(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(false);
@@ -45,11 +49,19 @@ export function GoogleAuthProvider({ children }) {
           setGoogleUser(user);
           sessionStorage.setItem('baul_google_user', JSON.stringify(user));
           if (user?.email) {
-            await api.loginGoogle({
-              email: user.email,
-              google_id: user.sub || user.id || `google_${user.email}`,
-              code: googleAccessToken,
-            }).catch((e) => console.warn('Error al sincronizar sesión backend:', e));
+            try {
+              const res = await api.loginGoogle({
+                email: user.email,
+                google_id: user.sub || user.id || `google_${user.email}`,
+                code: googleAccessToken,
+              });
+              if (res?.usuario) {
+                setBackendUser(res.usuario);
+                sessionStorage.setItem('baul_backend_user', JSON.stringify(res.usuario));
+              }
+            } catch (e) {
+              console.warn('Error al sincronizar sesión backend:', e);
+            }
           }
         })
         .catch(() => {
@@ -60,9 +72,25 @@ export function GoogleAuthProvider({ children }) {
         email: googleUser.email,
         google_id: googleUser.sub || googleUser.id || `google_${googleUser.email}`,
         code: googleAccessToken,
-      }).catch((e) => console.warn('Error al sincronizar sesión backend:', e));
+      })
+        .then((res) => {
+          if (res?.usuario) {
+            setBackendUser(res.usuario);
+            sessionStorage.setItem('baul_backend_user', JSON.stringify(res.usuario));
+          }
+        })
+        .catch((e) => console.warn('Error al sincronizar sesión backend:', e));
     }
   }, [googleAccessToken]);
+
+  const updateBackendUser = (updatedUser) => {
+    setBackendUser(updatedUser);
+    if (updatedUser) {
+      sessionStorage.setItem('baul_backend_user', JSON.stringify(updatedUser));
+    } else {
+      sessionStorage.removeItem('baul_backend_user');
+    }
+  };
 
   const connectGoogleDrive = () => {
     setAuthError(null);
@@ -100,16 +128,20 @@ export function GoogleAuthProvider({ children }) {
               setGoogleUser(userInfo);
               sessionStorage.setItem('baul_google_user', JSON.stringify(userInfo));
 
-              // Sincronizar sesión activa en el backend FastAPI
+              // Sincronizar sesión activa en el backend FastAPI y capturar estado de clave maestra
               if (userInfo?.email) {
-                await api.loginGoogle({
+                const res = await api.loginGoogle({
                   email: userInfo.email,
                   google_id: userInfo.sub || userInfo.id || `google_${userInfo.email}`,
                   code: token,
-                }).catch((e) => console.warn('Error al sincronizar sesión backend:', e));
+                });
+                if (res?.usuario) {
+                  setBackendUser(res.usuario);
+                  sessionStorage.setItem('baul_backend_user', JSON.stringify(res.usuario));
+                }
               }
             } catch (err) {
-              console.warn('No se pudo obtener datos del perfil:', err);
+              console.warn('No se pudo obtener datos del perfil o sincronizar backend:', err);
             }
           }
         },
@@ -141,14 +173,18 @@ export function GoogleAuthProvider({ children }) {
     api.logout().catch(() => {});
     setGoogleAccessToken(null);
     setGoogleUser(null);
+    setBackendUser(null);
     sessionStorage.removeItem('baul_google_access_token');
     sessionStorage.removeItem('baul_google_user');
+    sessionStorage.removeItem('baul_backend_user');
   };
 
   const value = {
     isGoogleConnected: Boolean(googleAccessToken),
     googleAccessToken,
     googleUser,
+    backendUser,
+    updateBackendUser,
     isGisReady,
     isLoadingAuth,
     authError,

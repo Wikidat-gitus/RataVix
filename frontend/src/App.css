@@ -2319,3 +2319,204 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+
+/* ==========================================================================
+   Autonomía de Usuario: Creación de Clave Maestra y Purga por Olvido
+   ========================================================================== */
+
+/* Caja de Advertencia Crítica en Modal de Creación */
+.critical-warning-box {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  margin-top: 0.5rem;
+}
+
+.critical-warning-box .warning-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.critical-warning-box .warning-text strong {
+  color: #fca5a5;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.critical-warning-box .warning-text p {
+  color: #fecaca;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.setup-orb {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(139, 92, 246, 0.25)) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.35) !important;
+}
+
+.btn-setup-primary {
+  background: linear-gradient(135deg, #d97706 0%, #7c3aed 100%) !important;
+  border: none !important;
+}
+
+.btn-setup-primary:hover:not(:disabled) {
+  box-shadow: 0 0 25px rgba(217, 119, 6, 0.45) !important;
+}
+
+/* Enlace "¿Olvidaste tu contraseña?" */
+.forgot-password-box {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.btn-link-forgot {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0.3rem 0.6rem;
+}
+
+.btn-link-forgot:hover {
+  color: #f87171;
+}
+
+/* Modal de Purga y Reseteo */
+.reset-vault-modal {
+  max-width: 540px !important;
+  background: #151624 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.25) !important;
+}
+
+.reset-modal-header {
+  text-align: center;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reset-icon-orb {
+  width: 56px;
+  height: 56px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.35);
+}
+
+.reset-modal-header h2 {
+  font-size: 1.35rem;
+  color: #ffffff;
+  margin: 0;
+}
+
+.reset-badge-danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.reset-explanation-box {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+.reset-explanation-box strong {
+  color: #ffffff;
+}
+
+.reset-consequences-list {
+  margin: 0.75rem 0 0 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #fca5a5;
+  font-size: 0.82rem;
+}
+
+.reset-confirmation-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.reset-confirmation-prompt label {
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.reset-input-danger {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  background: rgba(239, 68, 68, 0.05) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.reset-input-danger:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3) !important;
+}
+
+.reset-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.btn-danger-confirm {
+  background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%);
+  border: none;
+  color: #ffffff;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger-confirm:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626 0%, #f87171 100%);
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-danger-confirm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}

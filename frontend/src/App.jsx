@@ -3,7 +3,9 @@ import './App.css';
 import { CryptoProvider, useCrypto } from './context/CryptoContext';
 import { GoogleAuthProvider, useGoogleAuth } from './context/GoogleAuthContext';
 import GoogleAuthGate from './components/GoogleAuthGate';
+import CreateMasterKeyModal from './components/CreateMasterKeyModal';
 import UnlockVaultModal from './components/UnlockVaultModal';
+import ResetVaultModal from './components/ResetVaultModal';
 import VaultExplorer from './components/VaultExplorer';
 import CryptoPlayground from './components/CryptoPlayground';
 import AdminMaintenancePanel from './components/AdminMaintenancePanel';
@@ -13,6 +15,7 @@ function AppContent() {
   const {
     isGoogleConnected,
     googleUser,
+    backendUser,
     disconnectGoogleDrive,
   } = useGoogleAuth();
 
@@ -33,6 +36,7 @@ function AppContent() {
     return sessionStorage.getItem('baul_local_mock') === 'true';
   });
 
+  const [showResetModal, setShowResetModal] = useState(false);
   const [activeTab, setActiveTab] = useState('vault'); // 'vault' | 'admin' | 'crypto' | 'architecture'
   const [backendStatus, setBackendStatus] = useState('checking'); // 'online' | 'offline' | 'checking'
   const [backendLatency, setBackendLatency] = useState(null);
@@ -88,6 +92,8 @@ function AppContent() {
   };
 
   const isSessionStarted = isGoogleConnected || isLocalMock;
+  // Determinar si el usuario ya tiene su contraseña maestra configurada
+  const userHasMasterKey = Boolean(backendUser?.tiene_clave_maestra);
 
   // Cierre de Sesión Unificado
   const handleLogout = () => {
@@ -174,8 +180,6 @@ function AppContent() {
         </div>
 
         <div className="header-right">
-          {/* En Modo Dev, el estado del backend ya está en la barra superior.
-              En Modo Usuario, solo mostramos información relevante para el usuario */}
           {isSessionStarted && (
             <>
               {/* Badge de Cuenta Conectada */}
@@ -211,7 +215,7 @@ function AppContent() {
         </div>
       </header>
 
-      {/* Banner Amigable de Despertar del Backend en Render (Solo si el usuario está esperando conexión) */}
+      {/* Banner Amigable de Despertar del Backend en Render */}
       {!isDevMode && backendStatus === 'offline' && (
         <div className="cold-start-banner">
           <span className="cold-start-spinner">⏳</span>
@@ -243,12 +247,24 @@ function AppContent() {
                 }}
               />
             ) : !isUnlocked ? (
-              <UnlockVaultModal
-                showDevTools={isDevMode}
-                onLogout={handleLogout}
-                isLocalMock={isLocalMock}
-              />
+              !userHasMasterKey ? (
+                /* Flujo A: Usuario Nuevo sin contraseña maestra */
+                <CreateMasterKeyModal
+                  onLogout={handleLogout}
+                  isLocalMock={isLocalMock}
+                  showDevTools={isDevMode}
+                />
+              ) : (
+                /* Flujo B: Usuario Existente con contraseña maestra */
+                <UnlockVaultModal
+                  onLogout={handleLogout}
+                  onForgotPassword={() => setShowResetModal(true)}
+                  isLocalMock={isLocalMock}
+                  showDevTools={isDevMode}
+                />
+              )
             ) : (
+              /* Flujo C: Baúl Abierto con clave en RAM */
               <VaultExplorer onLogout={handleLogout} />
             )}
           </div>
@@ -314,6 +330,14 @@ function AppContent() {
           </div>
         )}
       </main>
+
+      {/* Modal de Purga y Reseteo de Emergencia por Olvido de Clave */}
+      {showResetModal && (
+        <ResetVaultModal
+          onClose={() => setShowResetModal(false)}
+          isLocalMock={isLocalMock}
+        />
+      )}
 
       {/* Footer */}
       <footer className="app-footer">

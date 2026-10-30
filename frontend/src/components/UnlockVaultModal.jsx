@@ -3,9 +3,14 @@ import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
 import { api } from '../services/api';
 
-export default function UnlockVaultModal({ onLogout, isLocalMock, showDevTools = false }) {
+export default function UnlockVaultModal({
+  onLogout,
+  onForgotPassword,
+  isLocalMock,
+  showDevTools = false,
+}) {
   const { unlockVault, unlocking, error } = useCrypto();
-  const { isGoogleConnected, googleUser } = useGoogleAuth();
+  const { isGoogleConnected, googleUser, backendUser } = useGoogleAuth();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,13 +31,13 @@ export default function UnlockVaultModal({ onLogout, isLocalMock, showDevTools =
     e.preventDefault();
     if (!password.trim()) return;
     await ensureBackendSession();
-    await unlockVault(password);
+    await unlockVault(password, backendUser);
   };
 
   const handleQuickKey = async (demoKey) => {
     setPassword(demoKey);
     await ensureBackendSession();
-    await unlockVault(demoKey);
+    await unlockVault(demoKey, backendUser);
   };
 
   return (
@@ -107,7 +112,7 @@ export default function UnlockVaultModal({ onLogout, isLocalMock, showDevTools =
             {unlocking ? (
               <>
                 <span className="spinner-dot"></span>
-                <span>Derivando Clave AES-256...</span>
+                <span>Verificando y Derivando Clave AES-256...</span>
               </>
             ) : (
               <>
@@ -117,6 +122,17 @@ export default function UnlockVaultModal({ onLogout, isLocalMock, showDevTools =
             )}
           </button>
         </form>
+
+        {/* Enlace para restablecimiento de emergencia en caso de olvido */}
+        <div className="forgot-password-box">
+          <button
+            type="button"
+            className="btn-link-forgot"
+            onClick={onForgotPassword}
+          >
+            ¿Olvidaste tu contraseña maestra? Restablecer baúl
+          </button>
+        </div>
 
         {/* Acceso rápido de prueba para desarrollo (Solo en Modo Dev / Admin) */}
         {showDevTools && (

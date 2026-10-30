@@ -10,10 +10,62 @@ let mockBaules = [];
 let mockTesoros = [];
 const mockDriveStorage = new Map(); // drive_file_id -> ArrayBuffer cifrado
 
+let mockUserCrypto = {
+  salt_cifrado: null,
+  canary_cifrado: null,
+  canary_iv: null,
+  tiene_clave_maestra: false,
+};
+
 export const mockApi = {
   // 1. Sesión y Autenticación
   async checkSession() {
-    return { activa: true, session_id: 'mock-session-uuid-1234', email: 'usuario@baulmagico.local' };
+    return {
+      activa: true,
+      session_id: 'mock-session-uuid-1234',
+      email: 'usuario@baulmagico.local',
+      usuario: {
+        id: 'mock-session-uuid-1234',
+        email: 'usuario@baulmagico.local',
+        ...mockUserCrypto,
+      },
+    };
+  },
+
+  async setupMasterKey({ salt_cifrado, canary_cifrado, canary_iv }) {
+    mockUserCrypto = {
+      salt_cifrado,
+      canary_cifrado,
+      canary_iv,
+      tiene_clave_maestra: true,
+    };
+    return {
+      ok: true,
+      mensaje: 'Clave maestra configurada con éxito en modo simulado',
+      usuario: {
+        id: 'mock-session-uuid-1234',
+        email: 'usuario@baulmagico.local',
+        ...mockUserCrypto,
+      },
+    };
+  },
+
+  async resetVault() {
+    const deleted_drive_file_ids = mockTesoros.map((t) => t.drive_file_id).filter(Boolean);
+    mockBaules = [];
+    mockTesoros = [];
+    mockDriveStorage.clear();
+    mockUserCrypto = {
+      salt_cifrado: null,
+      canary_cifrado: null,
+      canary_iv: null,
+      tiene_clave_maestra: false,
+    };
+    return {
+      ok: true,
+      mensaje: 'Baúl purgado y reseteado con éxito en modo simulado',
+      deleted_drive_file_ids,
+    };
   },
 
   // 2. Baúles (Carpetas)

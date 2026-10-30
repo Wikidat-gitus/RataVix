@@ -111,6 +111,20 @@ export const api = {
     return data;
   },
 
+  async setupMasterKey({ salt_cifrado, canary_cifrado, canary_iv }) {
+    return this.request('/auth/setup-master-key', {
+      method: 'POST',
+      body: { salt_cifrado, canary_cifrado, canary_iv },
+    });
+  },
+
+  async resetVault() {
+    return this.request('/auth/reset-vault', {
+      method: 'POST',
+      body: { confirmacion: 'BORRAR_TODO' },
+    });
+  },
+
   async checkSession() {
     return this.request('/auth/session-check', {
       method: 'GET',
