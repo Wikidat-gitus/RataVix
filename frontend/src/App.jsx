@@ -25,7 +25,8 @@ function AppContent() {
   React.useEffect(() => {
     async function checkHealth() {
       try {
-        const res = await fetch('/api/health');
+        const apiBase = import.meta.env.VITE_API_URL || '/api';
+        const res = await fetch(`${apiBase}/health`);
         if (res.ok) {
           setBackendStatus('online');
         } else {
