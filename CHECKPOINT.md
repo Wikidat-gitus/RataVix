@@ -7,10 +7,10 @@
 ---
 
 ## 📍 Estado General del Proyecto
-* **Fase Actual:** `Fase 5: Consolidación, Mantenimiento y Aprendizaje Profundo` — *Fase 4 Desplegada en la Nube y en Producción ($0/mes)*
+* **Fase Actual:** `Fase 4.5: Refinamiento, Pruebas de Estrés y Optimización UX en la Nube` ➔ Previa a `Fase 5 (Consolidación / Docs)` y futura extensión móvil `Android App`.
 * **Arquitectura:** Monorepo (`frontend/` + `backend/` + `docs/`)
 * **Repositorio:** `Wikidat-gitus/Baul-Magico-2` (GitHub Privado, rama principal: `main`)
-* **URLs de Producción:**
+* **URLs de Producción ($0/mes):**
   * **Frontend (Vercel):** `https://baul-magico-2.vercel.app`
   * **Backend (Render):** `https://baul-magico-2-api-9e9p.onrender.com`
   * **Base de Datos (Neon):** PostgreSQL Serverless (AWS US-East Virginia)
@@ -46,6 +46,7 @@
 | **CP-23** | 2026-10-29 | Usuario + @front_agent + @master_agent | **Refinamiento de UX y Blindaje Operativo (Hito 3.4+):** 1) Overlay bloqueante durante eliminación de baúl/tesoro con spinner y mensaje de purga en Drive hasta que el evento se confirme. 2) Visor de tesoros persistente (solo se cierra al pulsar 'X', ignorando clics accidentales fuera del modal). 3) Botón único 'Cerrar Sesión' exclusivamente en el encabezado superior (removido botón redundante en barra del explorador). Compilación validada en Vite y push a rama `frontend`. |
 | **CP-24** | 2026-10-29 | Usuario + @master_agent | **Consolidación Oficial de Fase 3 en `main` y Cierre de Hito:** Fusión limpia y completa de todas las características de la Fase 3 en la rama sagrada `main` y GitHub remoto. Sistema validado end-to-end con Google Drive real (.enc), Web Crypto nativo, flujo de acceso en 2 pasos (Google OAuth ➔ Clave Maestra en RAM), overlays bloqueantes contra condiciones de carrera, eliminación en cascada con purga en nube, y botón único 'Cerrar Sesión'. Paso habilitado a la Fase 4 (Despliegue Cloud). |
 | **CP-25** | 2026-10-29 | Usuario + @master_agent + @front_agent + @back_agent | **Despliegue en la Nube 100% Operativo ($0/mes) y Cierre de Fase 4:** 1) Provisión de base de datos PostgreSQL Serverless en Neon (`AWS US East 1`) con tablas `usuarios`, `baules`, `tesoros` creadas y verificadas. 2) Despliegue de Backend FastAPI en Render (`baul-magico-2-api-9e9p.onrender.com`) en Virginia, con arranque Uvicorn y CORS habilitado para Vercel. 3) Despliegue de Frontend React + Vite en Vercel (`baul-magico-2.vercel.app`) con reglas SPA `vercel.json` y health check dinámico. 4) Autorización de orígenes en Google OAuth Cloud Console. 5) Sincronización automática de sesión única entre Google Identity Services y FastAPI (`/api/auth/google`), permitiendo desbloqueo instantáneo con clave maestra en RAM en producción. Paso habilitado a la Fase 5. |
+| **CP-26** | 2026-10-30 | Usuario + @master_agent | **Verificación Empírica en Producción y Planificación de Próxima Sesión:** 1) Confirmada la persistencia real en la nube: usuario `wikidat.g@gmail.com` autenticado, baúl virtual creado y tesoro de video (`video/mp4`, 1.4 MB) subido a Google Drive (`144u32w...`) con metadatos y nombre cifrado (`PeaLV...`, `tLVgs...`) custodiados en Neon. 2) Registro de prioridades para la siguiente sesión: **Refinamiento & Pulido de Detalles** (pruebas de estrés de red/subida, optimizaciones UX/UI, tiempos de respuesta) antes de la documentación de Fase 5 y la arquitectura del arnés para la futura **App Android**. |
 
 ---
 
@@ -74,9 +75,16 @@
   * [x] **4.3:** Despliegue de Frontend React + Vite en Vercel (`vercel.json` SPA + `VITE_API_URL`).
   * [x] **4.4:** Autorización de orígenes en Google Cloud Console para Google OAuth & Drive.
   * [x] **4.5:** Sincronización de token de sesión única en producción y validación end-to-end.
+* [ ] **Fase 4.5: Refinamiento, Pruebas de Estrés y Optimización UX (EN CURSO)**
+  * [ ] Pruebas de estrés con archivos de distintos pesos y formatos en la nube.
+  * [ ] Optimización de tiempos de carga inicial (despertar de Render y feedback visual de espera).
+  * [ ] Pulido de microinteracciones en la interfaz web (drag & drop, navegación, modales).
 * [ ] **Fase 5: Consolidación, Mantenimiento y Aprendizaje Profundo**
   * Documentación paso a paso ("Cómo recrear Baúl Mágico 2 desde cero sin agentes").
-  * Manual de mantenimiento y soporte.
+  * Manual de mantenimiento, variables de entorno y soporte.
+* [ ] **Fase 6: Expansión Móvil — Arnés de Agente y Arquitectura Android**
+  * Definición del agente especialista en Android / Flutter.
+  * Reutilización de los pilares de API Contract y Web Crypto nativo adaptado a móvil.
 
 ---
 
