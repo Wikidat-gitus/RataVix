@@ -99,10 +99,11 @@ export const api = {
   },
 
   // --- 1. Autenticación y Sesión ---
-  async loginGoogle(code = 'mock_google_auth_code') {
+  async loginGoogle(payload = 'mock_google_auth_code') {
+    const body = typeof payload === 'object' ? payload : { code: payload };
     const data = await this.request('/auth/google', {
       method: 'POST',
-      body: { code },
+      body,
     });
     if (data.access_token) {
       this.setToken(data.access_token);

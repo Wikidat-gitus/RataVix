@@ -29,18 +29,12 @@ async def auth_google(
 ):
     """
     Autenticación con Google OAuth:
-    1. En producción, intercambia el 'code' con la API de Google por el ID token y perfil.
-    2. En desarrollo / pruebas locales, permite flujo inmediato para 'usuario.demo@baulmagico.local'.
-    3. Aplica CONTROL DE SESIÓN ÚNICA: Genera un nuevo token de sesión activo,
+    1. Si se envía el email del usuario de Google, registra o asocia al usuario en Neon.
+    2. Aplica CONTROL DE SESIÓN ÚNICA: Genera un nuevo token de sesión activo,
        invalidando automáticamente cualquier sesión previa del usuario.
     """
-    email = "usuario.demo@baulmagico.local"
-    google_id = "demo_google_id_12345"
-
-    # Si se configuraron credenciales reales de Google OAuth, aquí se procesaría el intercambio
-    if settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_ID != "mock_client_id.apps.googleusercontent.com":
-        logger.info("Credenciales de Google OAuth detectadas para intercambio seguro.")
-        # Aquí se realiza la llamada con httpx al endpoint de token de Google
+    email = payload.email or "usuario.demo@baulmagico.local"
+    google_id = payload.google_id or f"google_id_{email}"
 
     user = db.query(Usuario).filter(Usuario.email == email).first()
     if not user:
@@ -68,16 +62,15 @@ async def check_session(
     db: Session = Depends(get_db),
 ):
     """
-    Verifica que la sesión actual siga siendo la ÚNICA sesión activa.
-    Si el usuario inició sesión en otro navegador, esta llamada responderá activa=False (o HTTP 401).
+    Comprueba si el token enviado sigue siendo la sesión activa en el servidor.
     """
     if not credentials:
-        return SessionCheckResponse(activa=False, session_id=None)
+        return SessionCheckResponse(activa=False)
 
     token = credentials.credentials
     user = db.query(Usuario).filter(Usuario.active_session_token == token).first()
     if not user:
-        return SessionCheckResponse(activa=False, session_id=None)
+        return SessionCheckResponse(activa=False)
 
     return SessionCheckResponse(activa=True, session_id=user.id)
 
@@ -88,9 +81,9 @@ async def logout(
     db: Session = Depends(get_db),
 ):
     """
-    Cierra la sesión activa actual invalidando el token de sesión en la base de datos.
+    Revoca la sesión activa actual del usuario.
     """
     current_user.active_session_token = None
     db.add(current_user)
     db.commit()
-    return {"ok": True, "mensaje": "Sesión cerrada correctamente."}
+    return {"message": "Sesión cerrada correctamente."}

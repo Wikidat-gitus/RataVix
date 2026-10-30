@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchGoogleUserInfo } from '../services/googleDrive';
+import { api } from '../services/api';
 
 const GoogleAuthContext = createContext();
 
@@ -36,18 +37,30 @@ export function GoogleAuthProvider({ children }) {
     };
   }, []);
 
-  // Si ya tenemos token guardado en sessionStorage, verificarlo o recargar perfil
+  // Si ya tenemos token guardado en sessionStorage, verificarlo o recargar perfil y sincronizar backend
   useEffect(() => {
     if (googleAccessToken && !googleUser) {
       fetchGoogleUserInfo(googleAccessToken)
-        .then((user) => {
+        .then(async (user) => {
           setGoogleUser(user);
           sessionStorage.setItem('baul_google_user', JSON.stringify(user));
+          if (user?.email) {
+            await api.loginGoogle({
+              email: user.email,
+              google_id: user.sub || user.id || `google_${user.email}`,
+              code: googleAccessToken,
+            }).catch((e) => console.warn('Error al sincronizar sesión backend:', e));
+          }
         })
         .catch(() => {
-          // Token expirado o inválido
           disconnectGoogleDrive();
         });
+    } else if (googleAccessToken && googleUser && !api.getToken()) {
+      api.loginGoogle({
+        email: googleUser.email,
+        google_id: googleUser.sub || googleUser.id || `google_${googleUser.email}`,
+        code: googleAccessToken,
+      }).catch((e) => console.warn('Error al sincronizar sesión backend:', e));
     }
   }, [googleAccessToken]);
 
@@ -86,6 +99,15 @@ export function GoogleAuthProvider({ children }) {
               const userInfo = await fetchGoogleUserInfo(token);
               setGoogleUser(userInfo);
               sessionStorage.setItem('baul_google_user', JSON.stringify(userInfo));
+
+              // Sincronizar sesión activa en el backend FastAPI
+              if (userInfo?.email) {
+                await api.loginGoogle({
+                  email: userInfo.email,
+                  google_id: userInfo.sub || userInfo.id || `google_${userInfo.email}`,
+                  code: token,
+                }).catch((e) => console.warn('Error al sincronizar sesión backend:', e));
+              }
             } catch (err) {
               console.warn('No se pudo obtener datos del perfil:', err);
             }
@@ -116,6 +138,7 @@ export function GoogleAuthProvider({ children }) {
         console.warn('Error al revocar token:', e);
       }
     }
+    api.logout().catch(() => {});
     setGoogleAccessToken(null);
     setGoogleUser(null);
     sessionStorage.removeItem('baul_google_access_token');
@@ -147,4 +170,3 @@ export function useGoogleAuth() {
   }
   return context;
 }
-

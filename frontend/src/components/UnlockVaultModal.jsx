@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
+import { api } from '../services/api';
 
 export default function UnlockVaultModal({ onLogout, isLocalMock }) {
   const { unlockVault, unlocking, error } = useCrypto();
@@ -8,14 +9,29 @@ export default function UnlockVaultModal({ onLogout, isLocalMock }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  const ensureBackendSession = async () => {
+    if (!api.getToken()) {
+      try {
+        await api.loginGoogle({
+          email: googleUser?.email || 'usuario.demo@baulmagico.local',
+          code: 'session_init',
+        });
+      } catch (err) {
+        console.warn('Sincronización previa de sesión:', err);
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!password.trim()) return;
+    await ensureBackendSession();
     await unlockVault(password);
   };
 
   const handleQuickKey = async (demoKey) => {
     setPassword(demoKey);
+    await ensureBackendSession();
     await unlockVault(demoKey);
   };
 

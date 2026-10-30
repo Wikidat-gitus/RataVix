@@ -7,9 +7,13 @@
 ---
 
 ## 📍 Estado General del Proyecto
-* **Fase Actual:** `Fase 4: Despliegue en la Nube (Free Tier / Bajo Costo)` — *Fase 3 Cerrada y Consolidada en `main`*
+* **Fase Actual:** `Fase 5: Consolidación, Mantenimiento y Aprendizaje Profundo` — *Fase 4 Desplegada en la Nube y en Producción ($0/mes)*
 * **Arquitectura:** Monorepo (`frontend/` + `backend/` + `docs/`)
-* **Repositorio:** `luislopez343/Baul-Magico-2` (GitHub Privado, rama principal: `main`)
+* **Repositorio:** `Wikidat-gitus/Baul-Magico-2` (GitHub Privado, rama principal: `main`)
+* **URLs de Producción:**
+  * **Frontend (Vercel):** `https://baul-magico-2.vercel.app`
+  * **Backend (Render):** `https://baul-magico-2-api-9e9p.onrender.com`
+  * **Base de Datos (Neon):** PostgreSQL Serverless (AWS US-East Virginia)
 
 ---
 
@@ -17,9 +21,9 @@
 
 | Checkpoint | Fecha | Responsable | Descripción y Logro |
 | :--- | :--- | :--- | :--- |
-| **CP-01** | 2026-10-24 | Usuario + Agente | Inicialización del repositorio Git local y GitHub remoto (`luislopez343/Baul-Magico-2`). Configuración de [.gitignore](file:///c:/Users/Wikiliks!/Sandbox2/Proyectos/Baul_Magico_2/.gitignore) y [AGENTS.md](file:///c:/Users/Wikiliks!/Sandbox2/Proyectos/Baul_Magico_2/AGENTS.md). |
-| **CP-02** | 2026-10-24 | Usuario + Agente | Transición acordada a arquitectura **Monorepo**. Configuración de memoria persistente ([CHECKPOINT.md](file:///c:/Users/Wikiliks!/Sandbox2/Proyectos/Baul_Magico_2/CHECKPOINT.md)) y contrato de API ([docs/API_CONTRACT.md](file:///c:/Users/Wikiliks!/Sandbox2/Proyectos/Baul_Magico_2/docs/API_CONTRACT.md)). |
-| **CP-03** | 2026-10-24 | Usuario + Agente | Implementación de la **Trinidad de Agentes**: Agente Coordinador General ([AGENTS.md](file:///c:/Users/Wikiliks!/Sandbox2/Proyectos/Baul_Magico_2/AGENTS.md)), Agente Frontend ([frontend/AGENTS.md](file:///c:/Users/Wikiliks!/Sandbox2/Proyectos/Baul_Magico_2/frontend/AGENTS.md)) y Agente Backend ([backend/AGENTS.md](file:///c:/Users/Wikiliks!/Sandbox2/Proyectos/Baul_Magico_2/backend/AGENTS.md)). Creación de invocaciones directas por `@` en `.agents/rules/` (`@master_agent`, `@front_agent`, `@back_agent`). |
+| **CP-01** | 2026-10-24 | Usuario + Agente | Inicialización del repositorio Git local y GitHub remoto (`Wikidat-gitus/Baul-Magico-2`). Configuración de [.gitignore](file:///c:/Users/Wikid/SandBox/Proyectos/Baul-Magico-2/.gitignore) y [AGENTS.md](file:///c:/Users/Wikid/SandBox/Proyectos/Baul-Magico-2/AGENTS.md). |
+| **CP-02** | 2026-10-24 | Usuario + Agente | Transición acordada a arquitectura **Monorepo**. Configuración de memoria persistente ([CHECKPOINT.md](file:///c:/Users/Wikid/SandBox/Proyectos/Baul-Magico-2/CHECKPOINT.md)) y contrato de API ([docs/API_CONTRACT.md](file:///c:/Users/Wikid/SandBox/Proyectos/Baul-Magico-2/docs/API_CONTRACT.md)). |
+| **CP-03** | 2026-10-24 | Usuario + Agente | Implementación de la **Trinidad de Agentes**: Agente Coordinador General ([AGENTS.md](file:///c:/Users/Wikid/SandBox/Proyectos/Baul-Magico-2/AGENTS.md)), Agente Frontend ([frontend/AGENTS.md](file:///c:/Users/Wikid/SandBox/Proyectos/Baul-Magico-2/frontend/AGENTS.md)) y Agente Backend ([backend/AGENTS.md](file:///c:/Users/Wikid/SandBox/Proyectos/Baul-Magico-2/backend/AGENTS.md)). Creación de invocaciones directas por `@` en `.agents/rules/` (`@master_agent`, `@front_agent`, `@back_agent`). |
 | **CP-04** | 2026-10-24 | Usuario + Agente | Formalización del **Plan Maestro de 6 Fases (SDLC)**. Estrategia de desarrollo en paralelo mediante Mocks del contrato de API y cero esperas bloqueantes entre equipos. |
 | **CP-05** | 2026-10-24 | Usuario + Agente | **Gobernanza y Separación Estricta de Roles:** `@master_agent` queda delimitado exclusivamente a planificación, coordinación y documentación raíz; la implementación técnica pasa a ser titularidad exclusiva de `@front_agent` (`frontend/`) y `@back_agent` (`backend/`). |
 | **CP-06** | 2026-10-25 | Usuario + @back_agent | **Cimientos de Backend (Hito 1.4):** Estructura modular de FastAPI en `backend/` (`core/`, `api/v1/`, `schemas/`), entorno virtual `venv` con dependencias instaladas, middleware de CORS para `http://localhost:5173` y validación de endpoints (`/health` y `/api/baules`). |
@@ -41,6 +45,7 @@
 | **CP-22** | 2026-10-29 | Usuario + @front_agent + @master_agent | **Flujo Ordenado en 2 Pasos y Botón Unificado "Cerrar Sesión" (Hito 3.4):** Implementación de `GoogleAuthGate.jsx` (Paso 1: Identificación y Google OAuth) antes de `UnlockVaultModal.jsx` (Paso 2: Derivación de Clave Maestra en RAM). Unificación de acciones de salida en un único botón `🚪 Cerrar Sesión` en Header y Explorador. Resiliencia amigable ante F5 (mantiene sesión de Google en la pestaña pero bloquea el baúl en RAM solicitando únicamente la clave maestra). Compilación validada en Vite y push a rama `frontend`. |
 | **CP-23** | 2026-10-29 | Usuario + @front_agent + @master_agent | **Refinamiento de UX y Blindaje Operativo (Hito 3.4+):** 1) Overlay bloqueante durante eliminación de baúl/tesoro con spinner y mensaje de purga en Drive hasta que el evento se confirme. 2) Visor de tesoros persistente (solo se cierra al pulsar 'X', ignorando clics accidentales fuera del modal). 3) Botón único 'Cerrar Sesión' exclusivamente en el encabezado superior (removido botón redundante en barra del explorador). Compilación validada en Vite y push a rama `frontend`. |
 | **CP-24** | 2026-10-29 | Usuario + @master_agent | **Consolidación Oficial de Fase 3 en `main` y Cierre de Hito:** Fusión limpia y completa de todas las características de la Fase 3 en la rama sagrada `main` y GitHub remoto. Sistema validado end-to-end con Google Drive real (.enc), Web Crypto nativo, flujo de acceso en 2 pasos (Google OAuth ➔ Clave Maestra en RAM), overlays bloqueantes contra condiciones de carrera, eliminación en cascada con purga en nube, y botón único 'Cerrar Sesión'. Paso habilitado a la Fase 4 (Despliegue Cloud). |
+| **CP-25** | 2026-10-29 | Usuario + @master_agent + @front_agent + @back_agent | **Despliegue en la Nube 100% Operativo ($0/mes) y Cierre de Fase 4:** 1) Provisión de base de datos PostgreSQL Serverless en Neon (`AWS US East 1`) con tablas `usuarios`, `baules`, `tesoros` creadas y verificadas. 2) Despliegue de Backend FastAPI en Render (`baul-magico-2-api-9e9p.onrender.com`) en Virginia, con arranque Uvicorn y CORS habilitado para Vercel. 3) Despliegue de Frontend React + Vite en Vercel (`baul-magico-2.vercel.app`) con reglas SPA `vercel.json` y health check dinámico. 4) Autorización de orígenes en Google OAuth Cloud Console. 5) Sincronización automática de sesión única entre Google Identity Services y FastAPI (`/api/auth/google`), permitiendo desbloqueo instantáneo con clave maestra en RAM en producción. Paso habilitado a la Fase 5. |
 
 ---
 
@@ -63,9 +68,12 @@
   * [x] **3.2:** Auditoría de tráfico de red en vivo (F12) garantizando que no viajan contraseñas ni textos planos al crear y listar baúles/tesoros.
   * [x] **3.3:** Validación del flujo de Google Drive real (subida y almacenamiento de blobs .enc validado en vivo).
   * [x] **3.4:** Blindaje de subida (anti race-conditions) y purga en cascada en Google Drive.
-* [ ] **Fase 4: Despliegue en la Nube (Free Tier / Bajo Costo)**
-  * Frontend en Vercel.
-  * Backend y PostgreSQL en la nube (Render / Koyeb / Neon / Supabase).
+* [x] **Fase 4: Despliegue en la Nube (Free Tier / Bajo Costo) (COMPLETADA Y EN PRODUCCIÓN)**
+  * [x] **4.1:** Provisión de base de datos PostgreSQL en Neon (Serverless permanente con SSL en Virginia).
+  * [x] **4.2:** Despliegue de Backend FastAPI en Render (Uvicorn + CORS para Vercel en Virginia).
+  * [x] **4.3:** Despliegue de Frontend React + Vite en Vercel (`vercel.json` SPA + `VITE_API_URL`).
+  * [x] **4.4:** Autorización de orígenes en Google Cloud Console para Google OAuth & Drive.
+  * [x] **4.5:** Sincronización de token de sesión única en producción y validación end-to-end.
 * [ ] **Fase 5: Consolidación, Mantenimiento y Aprendizaje Profundo**
   * Documentación paso a paso ("Cómo recrear Baúl Mágico 2 desde cero sin agentes").
   * Manual de mantenimiento y soporte.
@@ -76,7 +84,11 @@
 * **Puertos locales:**
   * Frontend (Vite): `http://localhost:5173`
   * Backend (FastAPI): `http://localhost:8000`
-* **CORS:** El backend debe permitir origen `http://localhost:5173` en desarrollo.
+* **Entornos de Producción Cloud ($0/mes):**
+  * Frontend: `https://baul-magico-2.vercel.app`
+  * Backend: `https://baul-magico-2-api-9e9p.onrender.com`
+  * Database: Neon PostgreSQL (`neondb` en AWS US-East-1)
+* **CORS:** El backend en Render permite `http://localhost:5173` y `https://baul-magico-2.vercel.app`.
 * **Cero Conocimiento:** El backend **NUNCA** recibe contraseñas maestras, ni nombres de archivos o carpetas en texto plano. Todo llega con campos `_cifrado` y su respectivo IV (vector de inicialización).
 
 ---

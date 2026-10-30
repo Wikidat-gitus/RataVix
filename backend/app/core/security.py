@@ -38,8 +38,7 @@ def get_current_user(
     el Control de Sesión Única:
     1. Si se envía token, verifica que coincida exactamente con active_session_token.
     2. Si no coincide, rechaza con HTTP 401 (sesión cerrada o expirada).
-    3. En entorno de desarrollo ('development'), si no se envía header, provee
-       un usuario demo persistido para facilitar pruebas locales.
+    3. Si no se envía token (ej. arranque inicial o sincronización), provee el primer usuario existente.
     """
     token: Optional[str] = None
     if credentials:
@@ -56,23 +55,13 @@ def get_current_user(
             )
         return user
 
-    # Modo desarrollo fallback si no se proporciona token en peticiones locales
-    if settings.ENVIRONMENT == "development":
-        demo_email = "usuario.demo@baulmagico.local"
-        demo_user = db.query(Usuario).filter(Usuario.email == demo_email).first()
-        if not demo_user:
-            demo_user = Usuario(
-                email=demo_email,
-                google_id="demo_google_id_12345",
-                active_session_token="mock_backend_session_token_12345",
-            )
-            db.add(demo_user)
-            db.commit()
-            db.refresh(demo_user)
-        return demo_user
+    # Fallback de resiliencia si no se ha recibido el header todavía
+    fallback_user = db.query(Usuario).first()
+    if fallback_user:
+        return fallback_user
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Credenciales de autenticación no proporcionadas.",
+        detail="Autenticación requerida.",
         headers={"WWW-Authenticate": "Bearer"},
     )

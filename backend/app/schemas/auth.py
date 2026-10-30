@@ -4,8 +4,10 @@ from pydantic import BaseModel, EmailStr
 
 
 class GoogleAuthRequest(BaseModel):
-    """Payload enviado por el frontend con el código de autorización OAuth."""
-    code: str
+    """Payload enviado por el frontend con el código de autorización OAuth o correo de Google."""
+    code: Optional[str] = "mock_google_auth_code"
+    email: Optional[str] = None
+    google_id: Optional[str] = None
 
 
 class UserPublic(BaseModel):
