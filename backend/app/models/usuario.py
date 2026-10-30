@@ -27,6 +27,20 @@ class Usuario(Base):
     active_session_token: Mapped[Optional[str]] = mapped_column(
         String(255), index=True, nullable=True
     )
+
+    # Parámetros Criptográficos Zero-Knowledge:
+    # El backend custodia el salt y el canario para que el cliente compruebe la clave maestra.
+    # El backend NUNCA conoce la contraseña ni la clave derivada.
+    salt_cifrado: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True
+    )
+    canary_cifrado: Mapped[Optional[str]] = mapped_column(
+        String(512), nullable=True
+    )
+    canary_iv: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True
+    )
+
     creado_en: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -43,6 +57,10 @@ class Usuario(Base):
     tesoros: Mapped[List["Tesoro"]] = relationship(
         "Tesoro", back_populates="usuario", cascade="all, delete-orphan"
     )
+
+    @property
+    def tiene_clave_maestra(self) -> bool:
+        return bool(self.salt_cifrado and self.canary_cifrado)
 
     def __repr__(self) -> str:
         return f"<Usuario {self.email}>"

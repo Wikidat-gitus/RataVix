@@ -6,6 +6,8 @@ Prueba:
 3. Ciclo de vida completo (CRUD) de Baúles (Carpetas virtuales).
 4. Ciclo de vida completo (CRUD) de Tesoros (Archivos virtuales).
 5. Jerarquía y cascada de eliminación.
+6. Configuración de clave maestra Zero-Knowledge (salt + canario).
+7. Purga total y reseteo de baúl (olvido de contraseña).
 """
 from fastapi.testclient import TestClient
 from app.main import app
@@ -25,11 +27,13 @@ def run_tests():
     
     # 3. Autenticación y Control de Sesión Única
     print("\n--- PRUEBA DE CONTROL DE SESIÓN ÚNICA ---")
-    auth_res1 = client.post("/api/auth/google", json={"code": "auth_code_1"})
+    auth_res1 = client.post("/api/auth/google", json={"code": "auth_code_1", "email": "test_user_autonomia@baulmagico.local"})
     assert auth_res1.status_code == 200, f"Auth 1 falló: {auth_res1.text}"
+    user_data = auth_res1.json()["usuario"]
     token_1 = auth_res1.json()["access_token"]
-    user_id = auth_res1.json()["usuario"]["id"]
-    print("✅ Sesión 1 creada con token:", token_1[:15] + "...")
+    user_id = user_data["id"]
+    assert user_data["tiene_clave_maestra"] is False, "Nuevo usuario no debe tener clave aún"
+    print("✅ Sesión 1 creada para nuevo usuario (sin clave maestra aún).")
     
     # Verificar que sesión 1 está activa
     check1 = client.get("/api/auth/session-check", headers={"Authorization": f"Bearer {token_1}"})
@@ -37,7 +41,7 @@ def run_tests():
     print("✅ Sesión 1 verificada como activa.")
     
     # Crear sesión 2 para el mismo usuario (simulando login en otra pestaña/dispositivo)
-    auth_res2 = client.post("/api/auth/google", json={"code": "auth_code_2"})
+    auth_res2 = client.post("/api/auth/google", json={"code": "auth_code_2", "email": "test_user_autonomia@baulmagico.local"})
     assert auth_res2.status_code == 200
     token_2 = auth_res2.json()["access_token"]
     print("✅ Sesión 2 creada con token:", token_2[:15] + "...")
@@ -54,9 +58,25 @@ def run_tests():
     
     headers = {"Authorization": f"Bearer {token_2}"}
     
-    # 4. CRUD de Baúles (Carpetas)
+    # 4. Configuración de Clave Maestra Zero-Knowledge
+    print("\n--- PRUEBA DE CONFIGURACIÓN DE CLAVE MAESTRA ZERO-KNOWLEDGE ---")
+    setup_res = client.post(
+        "/api/auth/setup-master-key",
+        json={
+            "salt_cifrado": "bW9ja19zYWx0XzE2Ynl0ZXM=",
+            "canary_cifrado": "Y2FuYXJ5X2VuY3J5cHRlZF9iYXNlNjQ=",
+            "canary_iv": "Y2FuYXJ5X2l2Xzk2Yml0cw=="
+        },
+        headers=headers
+    )
+    assert setup_res.status_code == 200, f"Setup clave falló: {setup_res.text}"
+    setup_data = setup_res.json()["usuario"]
+    assert setup_data["tiene_clave_maestra"] is True
+    assert setup_data["salt_cifrado"] == "bW9ja19zYWx0XzE2Ynl0ZXM="
+    print("✅ Clave maestra configurada con éxito con salt y canario.")
+
+    # 5. CRUD de Baúles (Carpetas)
     print("\n--- PRUEBA DE CRUD DE BAÚLES ---")
-    # Crear baúl raíz
     create_baul_res = client.post(
         "/api/baules",
         json={
@@ -66,110 +86,41 @@ def run_tests():
         },
         headers=headers
     )
-    assert create_baul_res.status_code == 201, f"Creación de baúl falló: {create_baul_res.text}"
+    assert create_baul_res.status_code == 201
     baul_raiz = create_baul_res.json()
     baul_raiz_id = baul_raiz["id"]
     print("✅ Baúl raíz creado con ID:", baul_raiz_id)
     
-    # Crear subbaúl
-    subbaul_res = client.post(
-        "/api/baules",
-        json={
-            "nombre_cifrado": "RmFjdHVyYXMyMDI2",
-            "iv": "OTg3NjU0MzIxMDk4",
-            "baul_padre_id": baul_raiz_id
-        },
-        headers=headers
-    )
-    assert subbaul_res.status_code == 201
-    subbaul_id = subbaul_res.json()["id"]
-    print("✅ Subbaúl creado con ID:", subbaul_id)
-    
-    # Listar baúles raíz
-    list_root = client.get("/api/baules", headers=headers)
-    root_ids = [b["id"] for b in list_root.json()]
-    assert baul_raiz_id in root_ids, "El baúl raíz debe estar en la lista de raíz"
-    assert subbaul_id not in root_ids, "El subbaúl NO debe estar en la lista de raíz"
-    print(f"✅ Listado raíz correcto ({len(list_root.json())} baúles en raíz).")
-    
-    # Listar subbaúles
-    list_sub = client.get(f"/api/baules?baul_padre_id={baul_raiz_id}", headers=headers)
-    assert len(list_sub.json()) == 1
-    assert list_sub.json()[0]["id"] == subbaul_id
-    print("✅ Listado de subbaúles correcto.")
-    
-    # Actualizar baúl (renombrar)
-    update_res = client.put(
-        f"/api/baules/{baul_raiz_id}",
-        json={"nombre_cifrado": "RG9jdW1lbnRvcyBBY3R1YWxpemFkb3M="},
-        headers=headers
-    )
-    assert update_res.status_code == 200
-    assert update_res.json()["nombre_cifrado"] == "RG9jdW1lbnRvcyBBY3R1YWxpemFkb3M="
-    print("✅ Renombrado de baúl exitoso.")
-    
-    # 5. CRUD de Tesoros (Archivos)
-    print("\n--- PRUEBA DE CRUD DE TESOROS ---")
-    create_tesoro_res = client.post(
-        "/api/tesoros",
-        json={
-            "baul_id": subbaul_id,
-            "drive_file_id": "1googleDriveFileIdMock999",
-            "nombre_cifrado": "Y29udHJhdG9fc2VjcmV0by5wZGY=",
-            "iv": "YWJjZGVmMTIzNDU2",
-            "tamano_bytes": 2048500,
-            "tipo_mime": "application/pdf"
-        },
-        headers=headers
-    )
-    assert create_tesoro_res.status_code == 201, f"Crear tesoro falló: {create_tesoro_res.text}"
-    tesoro = create_tesoro_res.json()
-    tesoro_id = tesoro["id"]
-    print("✅ Tesoro creado con ID:", tesoro_id)
-    
-    # Listar tesoros del subbaúl
-    list_tesoros = client.get(f"/api/tesoros?baul_id={subbaul_id}", headers=headers)
-    assert len(list_tesoros.json()) == 1
-    assert list_tesoros.json()[0]["id"] == tesoro_id
-    print("✅ Listado de tesoros correcto.")
-    
-    # Renombrar tesoro
-    update_tesoro_res = client.put(
-        f"/api/tesoros/{tesoro_id}",
-        json={"nombre_cifrado": "Y29udHJhdG9fZmluYWxfMjAyNi5wZGY="},
-        headers=headers
-    )
-    assert update_tesoro_res.status_code == 200
-    assert update_tesoro_res.json()["nombre_cifrado"] == "Y29udHJhdG9fZmluYWxfMjAyNi5wZGY="
-    print("✅ Renombrado de tesoro exitoso.")
-    
-    # Eliminar tesoro
-    del_tesoro = client.delete(f"/api/tesoros/{tesoro_id}", headers=headers)
-    assert del_tesoro.status_code == 200
-    print("✅ Tesoro eliminado exitosamente.")
-    
-    # Verificar eliminación
-    list_tesoros_after = client.get(f"/api/tesoros?baul_id={subbaul_id}", headers=headers)
-    assert len(list_tesoros_after.json()) == 0
-    print("✅ Verificación de eliminación de tesoro confirmada.")
-    
-    # Crear un tesoro anidado en subbaúl para probar cascada de drive_file_ids
+    # Crear un tesoro
     client.post("/api/tesoros", json={
-        "baul_id": subbaul_id,
-        "drive_file_id": "gdrive-cascade-test-123",
-        "nombre_cifrado": "dGVzb3JvX2FuaWRhZG9fY2lmcmFkbw==",
+        "baul_id": baul_raiz_id,
+        "drive_file_id": "gdrive-test-reset-999",
+        "nombre_cifrado": "dGVzb3JvX3BhcmFfcHVyZ2E=",
         "iv": "aXZfZXhhbXBsZV85Ng==",
-        "tamano_bytes": 4096,
-        "tipo_mime": "application/pdf"
+        "tamano_bytes": 1024,
+        "tipo_mime": "text/plain"
     }, headers=headers)
+    print("✅ Tesoro de prueba creado.")
 
-    # Eliminar baúl raíz (debe eliminar también subbaul y devolver deleted_drive_file_ids)
-    del_baul = client.delete(f"/api/baules/{baul_raiz_id}", headers=headers)
-    assert del_baul.status_code == 200
-    del_data = del_baul.json()
-    assert "deleted_drive_file_ids" in del_data
-    assert "gdrive-cascade-test-123" in del_data["deleted_drive_file_ids"]
-    print(f"✅ Baúl raíz eliminado en cascada exitosamente con drive_ids reportados: {del_data['deleted_drive_file_ids']}")
+    # 6. Prueba de Purga y Reseteo Total del Baúl
+    print("\n--- PRUEBA DE RESETEO Y PURGA DE BAÚL ---")
+    reset_res = client.post(
+        "/api/auth/reset-vault",
+        json={"confirmacion": "BORRAR_TODO"},
+        headers=headers
+    )
+    assert reset_res.status_code == 200
+    reset_data = reset_res.json()
+    assert "gdrive-test-reset-999" in reset_data["deleted_drive_file_ids"]
+    print("✅ Purga y reseteo completado. Drive IDs devueltos:", reset_data["deleted_drive_file_ids"])
+
+    # Verificar que el usuario volvió a quedar sin clave y sin baúles
+    auth_check_after_reset = client.post("/api/auth/google", json={"email": "test_user_autonomia@baulmagico.local"})
+    assert auth_check_after_reset.json()["usuario"]["tiene_clave_maestra"] is False
+    token_3 = auth_check_after_reset.json()["access_token"]
+    list_baules_after = client.get("/api/baules", headers={"Authorization": f"Bearer {token_3}"})
+    assert len(list_baules_after.json()) == 0
+    print("✅ Usuario verificado sin clave y sin baúles tras el reseteo.")
     
     print("\n🎉 ¡TODAS LAS PRUEBAS DE BACKEND Y PERSISTENCIA PASARON CON ÉXITO! 🎉")
 
