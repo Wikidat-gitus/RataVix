@@ -5,7 +5,7 @@ import { useGoogleAuth } from '../context/GoogleAuthContext';
  * Puerta de Entrada (Paso 1):
  * Autenticación mediante Google OAuth 2.0 antes de solicitar la clave de cifrado.
  */
-export default function GoogleAuthGate({ onContinueLocal }) {
+export default function GoogleAuthGate({ onContinueLocal, showDevTools = false }) {
   const { connectGoogleDrive, isLoadingAuth, authError } = useGoogleAuth();
 
   return (
@@ -88,7 +88,7 @@ export default function GoogleAuthGate({ onContinueLocal }) {
         </div>
 
         {/* Acceso Alternativo de Modo Local Simulado */}
-        {onContinueLocal && (
+        {showDevTools && onContinueLocal && (
           <div className="dev-shortcut-box" style={{ marginTop: '1.5rem' }}>
             <span className="dev-badge">Modo de Pruebas</span>
             <p>¿No quieres vincular Google Drive ahora?</p>

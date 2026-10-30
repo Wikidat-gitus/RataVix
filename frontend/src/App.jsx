@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { CryptoProvider, useCrypto } from './context/CryptoContext';
 import { GoogleAuthProvider, useGoogleAuth } from './context/GoogleAuthContext';
@@ -6,6 +6,7 @@ import GoogleAuthGate from './components/GoogleAuthGate';
 import UnlockVaultModal from './components/UnlockVaultModal';
 import VaultExplorer from './components/VaultExplorer';
 import CryptoPlayground from './components/CryptoPlayground';
+import AdminMaintenancePanel from './components/AdminMaintenancePanel';
 
 function AppContent() {
   const { isUnlocked, lockVault } = useCrypto();
@@ -15,35 +16,80 @@ function AppContent() {
     disconnectGoogleDrive,
   } = useGoogleAuth();
 
+  // Control de Modo Desarrollador / Admin (persistido o por URL ?dev=true)
+  const [isDevMode, setIsDevMode] = useState(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('dev') === 'true' || urlParams.get('admin') === 'true') {
+        return true;
+      }
+      return localStorage.getItem('baul_dev_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const [isLocalMock, setIsLocalMock] = useState(() => {
     return sessionStorage.getItem('baul_local_mock') === 'true';
   });
 
-  const [activeTab, setActiveTab] = useState('vault'); // Pestaña principal: Mi Baúl Virtual
-  const [backendStatus, setBackendStatus] = useState('checking'); // 'online' | 'offline'
+  const [activeTab, setActiveTab] = useState('vault'); // 'vault' | 'admin' | 'crypto' | 'architecture'
+  const [backendStatus, setBackendStatus] = useState('checking'); // 'online' | 'offline' | 'checking'
+  const [backendLatency, setBackendLatency] = useState(null);
 
-  React.useEffect(() => {
-    async function checkHealth() {
-      try {
-        const apiBase = import.meta.env.VITE_API_URL || '/api';
-        const res = await fetch(`${apiBase}/health`);
-        if (res.ok) {
-          setBackendStatus('online');
-        } else {
-          setBackendStatus('offline');
-        }
-      } catch {
+  // Verificación de Salud y Latencia del Backend
+  const checkHealth = useCallback(async () => {
+    try {
+      const apiBase = import.meta.env.VITE_API_URL || '/api';
+      const t0 = performance.now();
+      const res = await fetch(`${apiBase}/health`);
+      const t1 = performance.now();
+      if (res.ok) {
+        setBackendStatus('online');
+        setBackendLatency(Math.round(t1 - t0));
+      } else {
         setBackendStatus('offline');
+        setBackendLatency(null);
       }
+    } catch {
+      setBackendStatus('offline');
+      setBackendLatency(null);
     }
-    checkHealth();
-    const interval = setInterval(checkHealth, 15000);
-    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    checkHealth();
+    const interval = setInterval(checkHealth, 20000);
+    return () => clearInterval(interval);
+  }, [checkHealth]);
+
+  // Atajo de teclado: Ctrl + Shift + D (o Cmd + Shift + D) para alternar Modo Admin
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        setIsDevMode((prev) => {
+          const next = !prev;
+          localStorage.setItem('baul_dev_mode', next ? 'true' : 'false');
+          return next;
+        });
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const toggleDevMode = () => {
+    setIsDevMode((prev) => {
+      const next = !prev;
+      localStorage.setItem('baul_dev_mode', next ? 'true' : 'false');
+      return next;
+    });
+  };
 
   const isSessionStarted = isGoogleConnected || isLocalMock;
 
-  // Cierre de Sesión Unificado: destruye clave en RAM y revoca tokens de sesión
+  // Cierre de Sesión Unificado
   const handleLogout = () => {
     lockVault();
     disconnectGoogleDrive();
@@ -52,8 +98,72 @@ function AppContent() {
   };
 
   return (
-    <div className="app-container">
-      {/* Header Principal */}
+    <div className={`app-container ${isDevMode ? 'dev-mode-active' : ''}`}>
+      {/* 🛠️ BARRA SUPERIOR EXCLUSIVA PARA MODO DESARROLLADOR / ADMIN */}
+      {isDevMode && (
+        <aside className="admin-topbar">
+          <div className="admin-topbar-left">
+            <span className="admin-topbar-badge">🛠️ MODO ADMIN / DEV</span>
+            <span
+              className={`admin-status-indicator ${backendStatus === 'online' ? 'online' : 'offline'}`}
+              title="Monitoreo de FastAPI en Render / Neon"
+            >
+              {backendStatus === 'online'
+                ? `🟢 Backend Online (${backendLatency !== null ? `${backendLatency}ms` : 'OK'})`
+                : '🔴 Backend Offline'}
+            </span>
+            <span className="admin-env-pill">
+              {import.meta.env.VITE_API_URL ? 'Cloud (Render/Neon)' : 'Localhost'}
+            </span>
+          </div>
+
+          <div className="admin-topbar-center">
+            <nav className="admin-nav-tabs">
+              <button
+                type="button"
+                className={`admin-tab-btn ${activeTab === 'vault' ? 'active' : ''}`}
+                onClick={() => setActiveTab('vault')}
+              >
+                🏰 Baúl Virtual
+              </button>
+              <button
+                type="button"
+                className={`admin-tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
+                onClick={() => setActiveTab('admin')}
+              >
+                ⚙️ Mantenimiento
+              </button>
+              <button
+                type="button"
+                className={`admin-tab-btn ${activeTab === 'crypto' ? 'active' : ''}`}
+                onClick={() => setActiveTab('crypto')}
+              >
+                🧪 Lab Cripto
+              </button>
+              <button
+                type="button"
+                className={`admin-tab-btn ${activeTab === 'architecture' ? 'active' : ''}`}
+                onClick={() => setActiveTab('architecture')}
+              >
+                📋 Arquitectura
+              </button>
+            </nav>
+          </div>
+
+          <div className="admin-topbar-right">
+            <button
+              type="button"
+              className="btn-exit-dev"
+              onClick={toggleDevMode}
+              title="Volver a la vista limpia de usuario normal (Ctrl+Shift+D)"
+            >
+              ✖️ Salir a Modo Usuario
+            </button>
+          </div>
+        </aside>
+      )}
+
+      {/* Header Principal de la Aplicación */}
       <header className="app-header">
         <div className="brand-badge">
           <div className="brand-icon">🧙‍♂️</div>
@@ -64,22 +174,8 @@ function AppContent() {
         </div>
 
         <div className="header-right">
-          {/* Badge de Estado del Backend */}
-          <div
-            className={`security-badge ${backendStatus === 'online' ? 'unlocked-badge' : 'locked-badge'}`}
-            title={backendStatus === 'online' ? 'Conectado a FastAPI (puerto 8000)' : 'Backend no detectado en puerto 8000'}
-          >
-            <span className={backendStatus === 'online' ? 'unlocked-pulse' : 'pulse-dot'}></span>
-            <span>
-              {backendStatus === 'checking'
-                ? 'Conectando...'
-                : backendStatus === 'online'
-                ? '🟢 API FastAPI Activa'
-                : '🔴 API Desconectada'}
-            </span>
-          </div>
-
-          {/* Badges y Botón Unificado cuando hay sesión iniciada */}
+          {/* En Modo Dev, el estado del backend ya está en la barra superior.
+              En Modo Usuario, solo mostramos información relevante para el usuario */}
           {isSessionStarted && (
             <>
               {/* Badge de Cuenta Conectada */}
@@ -91,7 +187,7 @@ function AppContent() {
                 <span>
                   {isGoogleConnected
                     ? `☁️ ${googleUser?.email || 'Google Drive Conectado'}`
-                    : '💾 Modo Local'}
+                    : '💾 Modo Simulado'}
                 </span>
               </div>
 
@@ -106,7 +202,7 @@ function AppContent() {
                 type="button"
                 className="btn-shortcut btn-logout-header"
                 onClick={handleLogout}
-                title="Cerrar sesión de forma segura y regresar al inicio"
+                title="Cerrar sesión de forma segura y destruir clave en RAM"
               >
                 🚪 Cerrar Sesión
               </button>
@@ -115,60 +211,78 @@ function AppContent() {
         </div>
       </header>
 
+      {/* Banner Amigable de Despertar del Backend en Render (Solo si el usuario está esperando conexión) */}
+      {!isDevMode && backendStatus === 'offline' && (
+        <div className="cold-start-banner">
+          <span className="cold-start-spinner">⏳</span>
+          <div>
+            <strong>Conectando con tu servidor seguro...</strong>
+            <p>El backend gratuito en la nube puede tardar unos segundos en despertar. Por favor espera un momento.</p>
+          </div>
+          <button
+            type="button"
+            className="btn-cold-start-retry"
+            onClick={checkHealth}
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
       {/* Contenido Principal */}
       <main className="main-content">
-        {/* Selector de Pestañas */}
-        <nav className="nav-tabs">
-          <button
-            className={`tab-btn ${activeTab === 'vault' ? 'active' : ''}`}
-            onClick={() => setActiveTab('vault')}
-          >
-            🏰 Mi Baúl Virtual
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'crypto' ? 'active' : ''}`}
-            onClick={() => setActiveTab('crypto')}
-          >
-            🧪 Laboratorio Criptográfico
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'resumen' ? 'active' : ''}`}
-            onClick={() => setActiveTab('resumen')}
-          >
-            📋 Visión y Arquitectura
-          </button>
-        </nav>
-
-        {/* 1. Pestaña Principal: Mi Baúl Virtual (Flujo en 2 Pasos) */}
-        {activeTab === 'vault' && (
+        {/* 1. Vista de Usuario: Mi Baúl Virtual (O pestaña 'vault' en modo dev) */}
+        {(activeTab === 'vault' || !isDevMode) && (
           <div className="tab-pane">
             {!isSessionStarted ? (
               <GoogleAuthGate
+                showDevTools={isDevMode}
                 onContinueLocal={() => {
                   setIsLocalMock(true);
                   sessionStorage.setItem('baul_local_mock', 'true');
                 }}
               />
             ) : !isUnlocked ? (
-              <UnlockVaultModal onLogout={handleLogout} isLocalMock={isLocalMock} />
+              <UnlockVaultModal
+                showDevTools={isDevMode}
+                onLogout={handleLogout}
+                isLocalMock={isLocalMock}
+              />
             ) : (
               <VaultExplorer onLogout={handleLogout} />
             )}
           </div>
         )}
 
-        {/* 2. Pestaña: Laboratorio Criptográfico */}
-        {activeTab === 'crypto' && (
+        {/* 2. Vista Exclusiva Admin: Consola de Mantenimiento y Diagnóstico */}
+        {isDevMode && activeTab === 'admin' && (
+          <div className="tab-pane">
+            <AdminMaintenancePanel
+              backendStatus={backendStatus}
+              backendLatency={backendLatency}
+              onCheckHealth={checkHealth}
+              isLocalMock={isLocalMock}
+              onToggleLocalMock={() => {
+                const next = !isLocalMock;
+                setIsLocalMock(next);
+                sessionStorage.setItem('baul_local_mock', next ? 'true' : 'false');
+              }}
+            />
+          </div>
+        )}
+
+        {/* 3. Vista Exclusiva Admin: Laboratorio Criptográfico */}
+        {isDevMode && activeTab === 'crypto' && (
           <div className="tab-pane">
             <CryptoPlayground />
           </div>
         )}
 
-        {/* 3. Pestaña: Visión y Arquitectura */}
-        {activeTab === 'resumen' && (
+        {/* 4. Vista Exclusiva Admin: Especificación de Arquitectura */}
+        {isDevMode && activeTab === 'architecture' && (
           <div className="tab-pane">
             <section className="hero-card">
-              <span className="hero-pill">Fase 3: Integración Zero-Knowledge & Google Drive</span>
+              <span className="hero-pill">Baúl Mágico 2 • Cero Conocimiento</span>
               <h2 className="hero-title">
                 Tus tesoros digitales, <span>100% blindados</span>.
               </h2>
@@ -203,7 +317,19 @@ function AppContent() {
 
       {/* Footer */}
       <footer className="app-footer">
-        <p>Baúl Mágico 2 — Arquitectura de Conocimiento Cero • Frontend React + Vite</p>
+        <div className="footer-content">
+          <p>Baúl Mágico 2 — Arquitectura de Conocimiento Cero • Frontend React + Vite</p>
+          <div className="footer-actions">
+            <button
+              type="button"
+              className={`btn-footer-admin ${isDevMode ? 'active' : ''}`}
+              onClick={toggleDevMode}
+              title="Alternar Modo Desarrollador / Admin (Atajo: Ctrl + Shift + D)"
+            >
+              {isDevMode ? '🛠️ Modo Admin Activo' : '🛠️ Modo Admin'}
+            </button>
+          </div>
+        </div>
       </footer>
     </div>
   );

@@ -3,7 +3,7 @@ import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
 import { api } from '../services/api';
 
-export default function UnlockVaultModal({ onLogout, isLocalMock }) {
+export default function UnlockVaultModal({ onLogout, isLocalMock, showDevTools = false }) {
   const { unlockVault, unlocking, error } = useCrypto();
   const { isGoogleConnected, googleUser } = useGoogleAuth();
   const [password, setPassword] = useState('');
@@ -118,19 +118,21 @@ export default function UnlockVaultModal({ onLogout, isLocalMock }) {
           </button>
         </form>
 
-        {/* Acceso rápido de prueba para desarrollo */}
-        <div className="dev-shortcut-box">
-          <span className="dev-badge">Modo Desarrollo</span>
-          <p>¿Quieres probar rápido sin escribir?</p>
-          <button
-            type="button"
-            className="btn-shortcut"
-            onClick={() => handleQuickKey('rasputin')}
-            disabled={unlocking}
-          >
-            🪄 Usar clave sugerida: <code>"rasputin"</code>
-          </button>
-        </div>
+        {/* Acceso rápido de prueba para desarrollo (Solo en Modo Dev / Admin) */}
+        {showDevTools && (
+          <div className="dev-shortcut-box">
+            <span className="dev-badge">Modo Desarrollo</span>
+            <p>¿Quieres probar rápido sin escribir?</p>
+            <button
+              type="button"
+              className="btn-shortcut"
+              onClick={() => handleQuickKey('rasputin')}
+              disabled={unlocking}
+            >
+              🪄 Usar clave sugerida: <code>"rasputin"</code>
+            </button>
+          </div>
+        )}
 
         {/* Garantía Zero-Knowledge */}
         <div className="zk-guarantee-footer">
