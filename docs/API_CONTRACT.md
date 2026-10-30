@@ -9,15 +9,66 @@
 2. El backend **nunca** recibe la contraseña maestra del usuario.
 3. El backend almacena punteros a Google Drive (`drive_file_id`), pero nunca el contenido ni la clave para descifrarlo.
 4. El backend gestiona el refresco de tokens OAuth para Google Drive.
+5. El backend almacena el `salt_cifrado` y el `canary_cifrado` (con su IV) para la verificación de clave en el cliente, pero nunca la clave en sí.
 
 ---
 
 ## 🛰️ Especificación de Endpoints
 
-### 1. Autenticación y Sesión
+### 1. Autenticación, Seguridad y Estado del Baúl
 * **`POST /api/auth/google`**
-  * **Frontend envía:** `{ "code": "string" }` (Código de autorización OAuth de Google)
-  * **Backend responde:** `{ "access_token": "string", "token_type": "bearer", "usuario": { "id": "uuid", "email": "string" } }`
+  * **Frontend envía:** `{ "code": "string", "email": "string", "google_id": "string" }`
+  * **Backend responde:**
+    ```json
+    {
+      "access_token": "string",
+      "token_type": "bearer",
+      "usuario": {
+        "id": "uuid",
+        "email": "string",
+        "tiene_clave_maestra": true,
+        "salt_cifrado": "base64_string o null",
+        "canary_cifrado": "base64_string o null",
+        "canary_iv": "base64_string o null"
+      }
+    }
+    ```
+* **`POST /api/auth/setup-master-key`**
+  * **Objetivo:** Registro inicial de la contraseña maestra en Zero-Knowledge (guardando salt y canario de prueba).
+  * **Frontend envía:**
+    ```json
+    {
+      "salt_cifrado": "base64_string",
+      "canary_cifrado": "base64_string",
+      "canary_iv": "base64_string"
+    }
+    ```
+  * **Backend responde:**
+    ```json
+    {
+      "ok": true,
+      "mensaje": "Clave maestra configurada con éxito",
+      "usuario": {
+        "id": "uuid",
+        "email": "string",
+        "tiene_clave_maestra": true,
+        "salt_cifrado": "base64_string",
+        "canary_cifrado": "base64_string",
+        "canary_iv": "base64_string"
+      }
+    }
+    ```
+* **`POST /api/auth/reset-vault`**
+  * **Objetivo:** Purgar todos los baúles y tesoros del usuario en Neon y resetear su clave maestra (en caso de olvido), devolviendo los IDs de Google Drive a purgar en la nube.
+  * **Frontend envía:** `{ "confirmacion": "BORRAR_TODO" }`
+  * **Backend responde:**
+    ```json
+    {
+      "ok": true,
+      "mensaje": "Baúl purgado y reseteado exitosamente",
+      "deleted_drive_file_ids": ["string (IDs de Google Drive para purga en cliente)"]
+    }
+    ```
 * **`GET /api/auth/session-check`**
   * **Objetivo:** Validar que no haya otra sesión activa simultánea para este usuario.
   * **Backend responde:** `{ "activa": true, "session_id": "uuid" }`
