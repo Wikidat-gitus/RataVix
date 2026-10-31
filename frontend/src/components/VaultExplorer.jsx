@@ -11,6 +11,7 @@ import { getFileCategory } from '../utils/fileTypes';
 import TreasureViewerModal from './TreasureViewerModal';
 import ConfirmModal from './ConfirmModal';
 import UploadProgressModal from './UploadProgressModal';
+import baulPixelArt from '../assets/baul-pixel-art.jpg';
 
 export default function VaultExplorer({ onLogout }) {
   const { lockVault, encryptName, decryptName, encryptFileBlob, decryptFileBlob } = useCrypto();
@@ -33,6 +34,13 @@ export default function VaultExplorer({ onLogout }) {
   // Drag & Drop (Arrastrar y Soltar con el Mouse)
   const [draggedItem, setDraggedItem] = useState(null); // { type: 'baul' | 'tesoro', item: obj, name: string }
   const [dragOverTargetId, setDragOverTargetId] = useState(null);
+
+  // Menú contextual flotante de 3 puntos (⋮)
+  const [openMenuId, setOpenMenuId] = useState(null); // 'baul-${id}' | 'tesoro-${id}' | null
+
+  // Dropzone Global para arrastrar archivos directamente desde Windows / Mac
+  const [isExternalDragging, setIsExternalDragging] = useState(false);
+  const dragCounter = useRef(0);
 
   // Modales
   const [modalMode, setModalMode] = useState(null); // 'createFolder' | 'rename' | 'move'
@@ -93,6 +101,26 @@ export default function VaultExplorer({ onLogout }) {
     window.addEventListener('baul:session-revoked', handleSessionRevoked);
     return () => window.removeEventListener('baul:session-revoked', handleSessionRevoked);
   }, [lockVault]);
+
+  // Listener para cerrar el menú contextual ⋮ al hacer clic afuera o presionar Escape
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.card-menu-container')) {
+        setOpenMenuId(null);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   /**
    * Carga y descifra los baúles y tesoros del nivel actual
@@ -229,6 +257,56 @@ export default function VaultExplorer({ onLogout }) {
     }
   };
 
+  // =========================================================================
+  // Control de Arrastre de Archivos desde el Sistema Operativo (Windows / Mac)
+  // =========================================================================
+  const handleExternalDragEnter = (e) => {
+    e.preventDefault();
+    if (draggedItem) return; // Si es arrastre interno de la app, ignorar
+    if (e.dataTransfer?.types && Array.from(e.dataTransfer.types).includes('Files')) {
+      dragCounter.current += 1;
+      setIsExternalDragging(true);
+    }
+  };
+
+  const handleExternalDragLeave = (e) => {
+    e.preventDefault();
+    if (draggedItem) return;
+    dragCounter.current -= 1;
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0;
+      setIsExternalDragging(false);
+    }
+  };
+
+  const handleExternalDragOver = (e) => {
+    e.preventDefault();
+    if (draggedItem) return;
+    if (e.dataTransfer?.types && Array.from(e.dataTransfer.types).includes('Files')) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  };
+
+  const handleExternalDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current = 0;
+    setIsExternalDragging(false);
+
+    if (draggedItem) return;
+
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    if (actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting) {
+      addToast('Espera a que culmine la operación actual antes de subir otro archivo', 'warning');
+      return;
+    }
+
+    const file = files[0];
+    await processFileUpload(file);
+  };
+
   // 1. CREAR NUEVO BAÚL (Carpeta)
   const handleOpenCreateFolder = () => {
     setInputValue('');
@@ -273,8 +351,7 @@ export default function VaultExplorer({ onLogout }) {
     }
   };
 
-  const handleFileSelected = async (e) => {
-    const file = e.target.files?.[0];
+  const processFileUpload = async (file) => {
     if (!file) return;
 
     const formattedSize = formatBytes(file.size);
@@ -338,8 +415,16 @@ export default function VaultExplorer({ onLogout }) {
     } finally {
       setActionLoading(false);
       setUploadProgress((prev) => ({ ...prev, isOpen: false }));
-      e.target.value = '';
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
+  };
+
+  const handleFileSelected = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processFileUpload(file);
   };
 
   // 3. DESCARGAR Y DESCIFRAR TESORO
@@ -523,23 +608,77 @@ export default function VaultExplorer({ onLogout }) {
   };
 
   return (
-    <div className="vault-explorer">
-      {/* Barra Superior de Acciones y Seguridad */}
-      <div className="explorer-topbar">
-        <div className="vault-security-indicator">
-          <span className="unlocked-pulse"></span>
-          <div>
-            <strong>Baúl Abierto</strong>
-            <span>Arrastra baúles o tesoros para organizarlos</span>
+    <div
+      className={`vault-explorer ${isExternalDragging ? 'external-drag-active' : ''}`}
+      onDragEnter={handleExternalDragEnter}
+      onDragOver={handleExternalDragOver}
+      onDragLeave={handleExternalDragLeave}
+      onDrop={handleExternalDrop}
+    >
+      {/* Overlay Mágico de Dropzone Global desde Windows / Mac */}
+      {isExternalDragging && (
+        <div
+          className="external-drop-overlay"
+          onDragOver={handleExternalDragOver}
+          onDragLeave={handleExternalDragLeave}
+          onDrop={handleExternalDrop}
+        >
+          <div className="external-drop-content">
+            <div className="drop-pulse-icon">✨</div>
+            <h3>¡Suelta tu archivo aquí!</h3>
+            <p>
+              Se cifrará en tu navegador con <strong>AES-GCM (256 bits)</strong> antes de subirse a este baúl.
+            </p>
+            <div className="drop-badge">
+              <span>🛡️ Cero Conocimiento • Subida Protegida</span>
+            </div>
           </div>
         </div>
+      )}
 
-        <div className="topbar-actions">
+      {/* Barra Unificada de Navegación y Acciones Rápidas */}
+      <div className="explorer-toolbar">
+        {/* Migas de Pan (Breadcrumbs) con soporte para Drop Target */}
+        <nav className="breadcrumbs-bar">
+          <span className="breadcrumbs-icon">🧭</span>
+          {breadcrumbs.map((crumb, idx) => {
+            const isCurrent = idx === breadcrumbs.length - 1;
+            const targetKey = crumb.id || 'root';
+            const isOver = dragOverTargetId === targetKey;
+
+            return (
+              <React.Fragment key={crumb.id || 'root'}>
+                {idx > 0 && <span className="breadcrumb-separator">/</span>}
+                <button
+                  type="button"
+                  className={`breadcrumb-link ${isCurrent ? 'current' : ''} ${isOver ? 'drop-hover' : ''}`}
+                  onClick={() => handleNavigateBreadcrumb(idx)}
+                  onDragOver={(e) => {
+                    if (!isCurrent) handleDragOver(e, targetKey);
+                  }}
+                  onDragLeave={(e) => {
+                    if (!isCurrent) handleDragLeave(e, targetKey);
+                  }}
+                  onDrop={(e) => {
+                    if (!isCurrent) handleDrop(e, crumb.id, crumb.name);
+                  }}
+                  title={!isCurrent ? `Arrastra aquí para mover a "${crumb.name}"` : undefined}
+                >
+                  {crumb.name}
+                </button>
+              </React.Fragment>
+            );
+          })}
+        </nav>
+
+        {/* Botones de Acción en la misma sección de Raíz del Baúl */}
+        <div className="toolbar-actions">
           <button
             type="button"
             className="btn-action btn-new-folder"
             onClick={handleOpenCreateFolder}
             disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
+            title="Crear un nuevo baúl virtual"
           >
             <span>📁+</span>
             <span>Nuevo Baúl</span>
@@ -550,6 +689,7 @@ export default function VaultExplorer({ onLogout }) {
             className="btn-action btn-upload"
             onClick={handleTriggerUpload}
             disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
+            title="Subir y cifrar un archivo con AES-GCM 256 bits"
           >
             <span>⬆️</span>
             <span>Subir Tesoro</span>
@@ -565,39 +705,6 @@ export default function VaultExplorer({ onLogout }) {
         </div>
       </div>
 
-      {/* Migas de Pan (Breadcrumbs) con soporte para Drop Target */}
-      <nav className="breadcrumbs-bar">
-        <span className="breadcrumbs-icon">🧭</span>
-        {breadcrumbs.map((crumb, idx) => {
-          const isCurrent = idx === breadcrumbs.length - 1;
-          const targetKey = crumb.id || 'root';
-          const isOver = dragOverTargetId === targetKey;
-
-          return (
-            <React.Fragment key={crumb.id || 'root'}>
-              {idx > 0 && <span className="breadcrumb-separator">/</span>}
-              <button
-                type="button"
-                className={`breadcrumb-link ${isCurrent ? 'current' : ''} ${isOver ? 'drop-hover' : ''}`}
-                onClick={() => handleNavigateBreadcrumb(idx)}
-                onDragOver={(e) => {
-                  if (!isCurrent) handleDragOver(e, targetKey);
-                }}
-                onDragLeave={(e) => {
-                  if (!isCurrent) handleDragLeave(e, targetKey);
-                }}
-                onDrop={(e) => {
-                  if (!isCurrent) handleDrop(e, crumb.id, crumb.name);
-                }}
-                title={!isCurrent ? `Arrastra aquí para mover a "${crumb.name}"` : undefined}
-              >
-                {crumb.name}
-              </button>
-            </React.Fragment>
-          );
-        })}
-      </nav>
-
       {/* Contenido: Listado de Baúles y Tesoros */}
       <div className="explorer-content">
         {loading ? (
@@ -607,13 +714,15 @@ export default function VaultExplorer({ onLogout }) {
           </div>
         ) : baules.length === 0 && tesoros.length === 0 ? (
           <div className="vault-empty-state">
-            <div className="empty-icon">✨</div>
-            <h3>Este baúl está esperando tus tesoros</h3>
-            <p>Crea una subcarpeta con <strong>"Nuevo Baúl"</strong> o añade tu primer archivo protegido con <strong>"Subir Tesoro"</strong>.</p>
-            <div className="empty-actions">
-              <button className="btn-action btn-new-folder" onClick={handleOpenCreateFolder}>📁 Crear Baúl</button>
-              <button className="btn-action btn-upload" onClick={handleTriggerUpload}>⬆️ Subir Archivo</button>
+            <div className="empty-pixel-art-container">
+              <img
+                src={baulPixelArt}
+                alt="Baúl Mágico"
+                className="empty-pixel-art-img"
+              />
+              <div className="empty-pixel-glow"></div>
             </div>
+            <p className="empty-pixel-hint">Tu baúl está vacío y protegido con Conocimiento Cero</p>
           </div>
         ) : (
           <div className="explorer-grid">
@@ -633,48 +742,80 @@ export default function VaultExplorer({ onLogout }) {
                   onDragLeave={(e) => handleDragLeave(e, baul.id)}
                   onDrop={(e) => handleDrop(e, baul.id, baul.plainName)}
                   onDoubleClick={() => handleOpenBaul(baul)}
-                  title="Arrastra para mover o suelta aquí para guardar dentro"
+                  onClick={() => handleOpenBaul(baul)}
+                  title={baul.plainName}
                 >
-                  <div className="card-main" onClick={() => handleOpenBaul(baul)}>
-                    <div className="card-icon folder-icon">📁</div>
-                    <div className="card-details">
-                      <strong className="card-title" title={baul.plainName}>
-                        {baul.plainName}
-                      </strong>
-                      <span className="card-meta">Baúl virtual • Suelta aquí</span>
-                    </div>
+                  {/* Botón de 3 Puntos en la Esquina Superior Derecha del Mosaico */}
+                  <div className="card-menu-container" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      className={`item-btn btn-menu-trigger ${openMenuId === `baul-${baul.id}` ? 'active' : ''}`}
+                      title="Opciones de carpeta"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(openMenuId === `baul-${baul.id}` ? null : `baul-${baul.id}`);
+                      }}
+                    >
+                      ⋮
+                    </button>
+                    {openMenuId === `baul-${baul.id}` && (
+                      <div className="card-dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleOpenBaul(baul);
+                          }}
+                        >
+                          <span className="dropdown-icon">📂</span>
+                          <span>Abrir baúl</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleOpenRename('baul', baul);
+                          }}
+                        >
+                          <span className="dropdown-icon">✏️</span>
+                          <span>Renombrar</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleOpenMove('baul', baul);
+                          }}
+                        >
+                          <span className="dropdown-icon">📦</span>
+                          <span>Mover a...</span>
+                        </button>
+                        <div className="dropdown-divider"></div>
+                        <button
+                          type="button"
+                          className="dropdown-item dropdown-item-danger"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleDeleteItem('baul', baul);
+                          }}
+                        >
+                          <span className="dropdown-icon">🗑️</span>
+                          <span>Eliminar baúl</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="card-actions">
-                    <button
-                      className="item-btn"
-                      title="Entrar a esta carpeta"
-                      onClick={() => handleOpenBaul(baul)}
-                    >
-                      📂
-                    </button>
-                    <button
-                      className="item-btn"
-                      title="Renombrar"
-                      onClick={() => handleOpenRename('baul', baul)}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="item-btn"
-                      title="Mover"
-                      onClick={() => handleOpenMove('baul', baul)}
-                    >
-                      📦
-                    </button>
-                    <button
-                      className="item-btn delete-btn"
-                      title="Eliminar"
-                      onClick={() => handleDeleteItem('baul', baul)}
-                    >
-                      🗑️
-                    </button>
+                  <div className="card-icon-wrapper folder-icon">
+                    <span className="card-icon-symbol">📁</span>
                   </div>
+
+                  <span className="card-title" title={baul.plainName}>
+                    {baul.plainName}
+                  </span>
                 </div>
               );
             })}
@@ -691,64 +832,91 @@ export default function VaultExplorer({ onLogout }) {
                   draggable={true}
                   onDragStart={(e) => handleDragStart(e, 'tesoro', tesoro)}
                   onDragEnd={handleDragEnd}
-                  title="Arrastra este archivo a cualquier carpeta o miga de pan"
+                  onClick={() => setViewerTesoro(tesoro)}
+                  title={`${tesoro.plainName} (${formatBytes(tesoro.tamano_bytes)})`}
                 >
-                  <div className="card-main" onClick={() => setViewerTesoro(tesoro)}>
-                    <div className={`card-icon file-icon ${category.badgeClass}-icon`}>
-                      {category.icon}
-                    </div>
-                    <div className="card-details">
-                      <strong className="card-title" title={tesoro.plainName}>
-                        {tesoro.plainName}
-                      </strong>
-                      <div className="card-meta-line">
-                        <span className={`file-badge ${category.badgeClass}`}>
-                          {category.label}
-                        </span>
-                        <span className="file-size-text">
-                          {formatBytes(tesoro.tamano_bytes)}
-                        </span>
+                  {/* Botón de 3 Puntos en la Esquina Superior Derecha del Mosaico */}
+                  <div className="card-menu-container" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      className={`item-btn btn-menu-trigger ${openMenuId === `tesoro-${tesoro.id}` ? 'active' : ''}`}
+                      title="Opciones de archivo"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(openMenuId === `tesoro-${tesoro.id}` ? null : `tesoro-${tesoro.id}`);
+                      }}
+                    >
+                      ⋮
+                    </button>
+                    {openMenuId === `tesoro-${tesoro.id}` && (
+                      <div className="card-dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            setViewerTesoro(tesoro);
+                          }}
+                        >
+                          <span className="dropdown-icon">👁️</span>
+                          <span>Previsualizar</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleDownloadTesoro(tesoro);
+                          }}
+                        >
+                          <span className="dropdown-icon">⬇️</span>
+                          <span>Descargar descifrado</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleOpenRename('tesoro', tesoro);
+                          }}
+                        >
+                          <span className="dropdown-icon">✏️</span>
+                          <span>Renombrar</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleOpenMove('tesoro', tesoro);
+                          }}
+                        >
+                          <span className="dropdown-icon">📦</span>
+                          <span>Mover a...</span>
+                        </button>
+                        <div className="dropdown-divider"></div>
+                        <button
+                          type="button"
+                          className="dropdown-item dropdown-item-danger"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleDeleteItem('tesoro', tesoro);
+                          }}
+                        >
+                          <span className="dropdown-icon">🗑️</span>
+                          <span>Eliminar tesoro</span>
+                        </button>
                       </div>
-                    </div>
+                    )}
                   </div>
 
-                  <div className="card-actions">
-                    <button
-                      className="item-btn preview-action"
-                      title="Abrir y ver en navegador"
-                      onClick={() => setViewerTesoro(tesoro)}
-                    >
-                      👁️
-                    </button>
-                    <button
-                      className="item-btn download-action"
-                      title="Descargar copia descifrada"
-                      onClick={() => handleDownloadTesoro(tesoro)}
-                    >
-                      ⬇️
-                    </button>
-                    <button
-                      className="item-btn"
-                      title="Renombrar"
-                      onClick={() => handleOpenRename('tesoro', tesoro)}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="item-btn"
-                      title="Mover"
-                      onClick={() => handleOpenMove('tesoro', tesoro)}
-                    >
-                      📦
-                    </button>
-                    <button
-                      className="item-btn delete-btn"
-                      title="Eliminar"
-                      onClick={() => handleDeleteItem('tesoro', tesoro)}
-                    >
-                      🗑️
-                    </button>
+                  <div className={`card-icon-wrapper file-icon ${category.badgeClass}-icon`}>
+                    <span className="card-icon-symbol">{category.icon}</span>
                   </div>
+
+                  <span className="card-title" title={tesoro.plainName}>
+                    {tesoro.plainName}
+                  </span>
                 </div>
               );
             })}

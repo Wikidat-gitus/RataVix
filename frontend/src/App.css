@@ -666,58 +666,100 @@
    Estilos del Explorador de Baúl (VaultExplorer)
    ========================================================================== */
 .vault-explorer {
+  position: relative;
+  min-height: 420px;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   animation: fadeInModal 0.25s ease-out;
 }
 
-.explorer-topbar {
+/* Overlay de Dropzone Global desde el Sistema Operativo */
+.external-drop-overlay {
+  position: absolute;
+  inset: -8px;
+  background: rgba(13, 15, 26, 0.92);
+  backdrop-filter: blur(14px);
+  border: 2px dashed var(--accent-purple);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  box-shadow: inset 0 0 50px rgba(139, 92, 246, 0.25), 0 0 35px var(--accent-purple-glow);
+  animation: dropOverlayPulse 2s infinite alternate ease-in-out;
+  pointer-events: all;
+}
+
+@keyframes dropOverlayPulse {
+  0% {
+    border-color: var(--accent-purple);
+    box-shadow: inset 0 0 30px rgba(139, 92, 246, 0.25), 0 0 25px var(--accent-purple-glow);
+  }
+  100% {
+    border-color: var(--accent-cyan);
+    box-shadow: inset 0 0 60px rgba(6, 182, 212, 0.35), 0 0 40px var(--accent-cyan-glow);
+  }
+}
+
+.external-drop-content {
+  text-align: center;
+  padding: 2.5rem;
+  max-width: 460px;
+  pointer-events: none;
+}
+
+.drop-pulse-icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.85rem;
+  animation: bounceMagic 1.4s infinite ease-in-out;
+}
+
+@keyframes bounceMagic {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.external-drop-content h3 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.external-drop-content p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+.drop-badge {
+  display: inline-block;
+  padding: 0.4rem 1.1rem;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  color: #34d399;
+  font-weight: 600;
+}
+
+/* Barra Unificada de Navegación y Acciones Rápidas (Toolbar) */
+.explorer-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.85rem;
   background: var(--bg-glass-card);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  padding: 1rem 1.5rem;
+  border-radius: 14px;
+  padding: 0.65rem 1rem;
 }
 
-.vault-security-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.unlocked-pulse {
-  width: 12px;
-  height: 12px;
-  background: var(--accent-emerald);
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
-  animation: pulseEmerald 2s infinite;
-}
-
-@keyframes pulseEmerald {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-
-.vault-security-indicator strong {
-  display: block;
-  font-size: 0.95rem;
-  color: #ffffff;
-}
-
-.vault-security-indicator span {
-  font-size: 0.75rem;
-  color: var(--accent-emerald);
-}
-
-.topbar-actions {
+.toolbar-actions {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -773,21 +815,20 @@
   color: #f87171;
 }
 
-/* Breadcrumbs Bar */
+/* Breadcrumbs Bar (Integrado en el Toolbar) */
 .breadcrumbs-bar {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  padding: 0.6rem 1rem;
+  gap: 0.35rem;
   overflow-x: auto;
+  flex: 1;
+  min-width: 200px;
+  padding: 0.2rem 0;
 }
 
 .breadcrumbs-icon {
-  font-size: 1.1rem;
-  margin-right: 0.3rem;
+  font-size: 1.15rem;
+  margin-right: 0.35rem;
 }
 
 .breadcrumb-separator {
@@ -799,12 +840,13 @@
   background: transparent;
   border: none;
   color: var(--accent-cyan);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
+  padding: 0.25rem 0.55rem;
+  border-radius: 8px;
   transition: all var(--transition-fast);
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .breadcrumb-link:hover {
@@ -813,7 +855,7 @@
 
 .breadcrumb-link.current {
   color: #ffffff;
-  font-weight: 600;
+  font-weight: 700;
   cursor: default;
 }
 .breadcrumb-link.current:hover {
@@ -825,8 +867,7 @@
   min-height: 280px;
 }
 
-.vault-loading-state,
-.vault-empty-state {
+.vault-loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -839,104 +880,231 @@
   gap: 1rem;
 }
 
-.vault-empty-state .empty-icon {
-  font-size: 3rem;
-}
-.vault-empty-state h3 {
-  font-size: 1.25rem;
-  color: var(--text-main);
-}
-.vault-empty-state p {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  max-width: 440px;
-}
-.empty-actions {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-/* Grid de Tarjetas */
-.explorer-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-}
-
-.explorer-card {
-  background: var(--bg-glass-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  padding: 1rem;
+/* Estado Vacío con Pixel Art */
+.vault-empty-state {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 0.85rem;
-  transition: all var(--transition-fast);
-}
-
-.explorer-card:hover {
-  border-color: var(--accent-purple);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px var(--accent-purple-glow);
-  transform: translateY(-2px);
-}
-
-.card-main {
-  display: flex;
   align-items: center;
-  gap: 0.85rem;
-  cursor: pointer;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: var(--bg-glass-card);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 18px;
+  gap: 1.25rem;
+  position: relative;
+  overflow: hidden;
 }
 
-.card-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+.empty-pixel-art-container {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-.folder-icon {
-  background: rgba(139, 92, 246, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-}
-.file-icon {
-  background: rgba(6, 182, 212, 0.15);
-  border: 1px solid rgba(6, 182, 212, 0.3);
+  width: 200px;
+  height: 200px;
 }
 
-.card-details {
-  overflow: hidden;
+.empty-pixel-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  image-rendering: pixelated;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 25px rgba(139, 92, 246, 0.3);
+  border: 1px solid var(--border-glow);
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease;
 }
-.card-title {
+
+.empty-pixel-art-img:hover {
+  transform: scale(1.03);
+}
+
+.empty-pixel-glow {
+  position: absolute;
+  inset: -12px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.35) 0%, rgba(6, 182, 212, 0.15) 55%, transparent 75%);
+  border-radius: 50%;
+  filter: blur(14px);
+  z-index: 1;
+  pointer-events: none;
+  animation: magicPulse 3s infinite alternate ease-in-out;
+}
+
+@keyframes magicPulse {
+  0% { transform: scale(0.92); opacity: 0.7; }
+  100% { transform: scale(1.08); opacity: 1; }
+}
+
+.empty-pixel-hint {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+  max-width: 420px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Grid estilo Explorador de Escritorio (Windows Explorer) */
+.explorer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(105px, 125px));
+  gap: 1.25rem 0.85rem;
+  justify-content: flex-start;
+  align-items: start;
+}
+
+/* Mosaico Limpio y Transparente en reposo */
+.explorer-card {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 0.55rem 0.35rem 0.45rem 0.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  text-align: center;
+  width: 100%;
+  user-select: none;
+}
+
+/* Sombreado y Bordeado en forma de cuadrícula SOLO al pasar el puntero (Hover estilo Windows) */
+.explorer-card:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
+}
+
+.explorer-card.drop-hover {
+  background: rgba(139, 92, 246, 0.14);
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 20px var(--accent-purple-glow);
+  transform: scale(1.03);
+}
+
+.explorer-card.is-dragging {
+  opacity: 0.35;
+  transform: scale(0.92);
+}
+
+/* Icono Limpio sin fondo ni bordes fijos en reposo */
+.card-icon-wrapper {
+  position: relative;
+  width: 78px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  transition: all var(--transition-fast);
+}
+
+.card-icon-wrapper.folder-icon,
+.card-icon-wrapper.file-icon {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Símbolo / Emoji del Icono */
+.card-icon-symbol {
+  font-size: 3.15rem;
+  line-height: 1;
   display: block;
-  font-size: 0.92rem;
-  color: var(--text-main);
-  white-space: nowrap;
+  user-select: none;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+  transition: transform var(--transition-fast);
+}
+
+.explorer-card:hover .card-icon-symbol {
+  transform: scale(1.05);
+}
+
+/* Nombre Centrado Debajo del Icono (máximo 2 líneas legibles) */
+.card-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.35;
+  word-break: break-word;
+  max-width: 100%;
+  text-align: center;
+  padding: 0 0.2rem;
+  transition: color var(--transition-fast);
 }
-.card-meta {
-  font-size: 0.75rem;
+
+.explorer-card:hover .card-title {
+  color: #ffffff;
+}
+
+/* Botón de 3 Puntos en la Esquina Superior Derecha del Mosaico */
+.card-menu-container {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 20;
+}
+
+.btn-menu-trigger {
+  font-size: 1.15rem;
+  font-weight: bold;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   color: var(--text-muted);
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  opacity: 0.35;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.explorer-card:hover .btn-menu-trigger {
+  opacity: 0.85;
+  color: var(--text-main);
+}
+
+.btn-menu-trigger:hover,
+.btn-menu-trigger.active {
+  opacity: 1 !important;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 .card-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.35rem;
+  gap: 0.4rem;
   border-top: 1px solid var(--border-subtle);
-  padding-top: 0.6rem;
+  padding-top: 0.65rem;
 }
 
 .item-btn {
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.35rem 0.55rem;
   cursor: pointer;
   font-size: 0.9rem;
@@ -950,14 +1118,120 @@
   color: #ffffff;
 }
 
+/* Botón de Acción Rápida con Etiqueta (Abrir / Ver) */
+.btn-quick-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  border-radius: 8px;
+}
+
+.btn-quick-action:hover {
+  background: rgba(139, 92, 246, 0.18);
+  border-color: var(--accent-purple);
+  color: #ffffff;
+}
+
+.btn-quick-action.preview-action:hover {
+  background: rgba(6, 182, 212, 0.18);
+  border-color: var(--accent-cyan);
+  color: #ffffff;
+}
+
+.btn-label-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .item-btn.download-action:hover {
   background: rgba(6, 182, 212, 0.2);
   border-color: var(--accent-cyan);
+  color: #ffffff;
 }
 
 .item-btn.delete-btn:hover {
   background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+/* Menú Desplegable de 3 Puntos (⋮) */
+
+.card-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 175px;
+  background: rgba(18, 20, 32, 0.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glow);
+  border-radius: 12px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), 0 0 15px rgba(139, 92, 246, 0.25);
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  z-index: 60;
+  animation: dropdownFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.84rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.dropdown-item:hover {
+  background: rgba(139, 92, 246, 0.18);
+  color: #ffffff;
+}
+
+.dropdown-item-danger {
+  color: #f87171;
+}
+
+.dropdown-item-danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.dropdown-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 0.25rem 0;
 }
 
 /* Modales Flotantes */
@@ -1102,6 +1376,27 @@
   border: 1px solid rgba(245, 158, 11, 0.4);
   color: #fcd34d;
 }
+.badge-spreadsheet {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+.badge-word {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #93c5fd;
+}
+.badge-presentation {
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  color: #fdba74;
+}
+.badge-code {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: #c4b5fd;
+}
+.badge-general,
 .badge-binary {
   background: rgba(148, 163, 184, 0.15);
   border: 1px solid rgba(148, 163, 184, 0.4);
@@ -1227,6 +1522,20 @@
   background: rgba(139, 92, 246, 0.2);
   border-color: var(--accent-purple);
   color: #ffffff;
+}
+
+.btn-viewer-action.btn-pip {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: var(--accent-cyan);
+  color: #67e8f9;
+}
+
+.btn-viewer-action.btn-pip:hover,
+.btn-viewer-action.btn-pip.active {
+  background: var(--accent-cyan);
+  color: #0b0f19;
+  font-weight: 600;
+  box-shadow: 0 0 12px var(--accent-cyan-glow);
 }
 
 .btn-viewer-close {
