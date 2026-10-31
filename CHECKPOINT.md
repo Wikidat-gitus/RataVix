@@ -90,6 +90,10 @@
   * [x] **Feedback de Espera (Cold-Start):** Banner amigable de espera activa para el despertar de Render.
   * [x] **Limpieza Visual de Tarjetas:** Menú contextual `⋮` para acciones secundarias y acciones primarias destacadas.
   * [x] **Dropzone Global del SO:** Arrastre directo de archivos desde Windows/Mac al navegador con cifrado automático.
+  * [x] **Barra Unificada & Estado Vacío Pixel Art:** Botones `+Nuevo Baúl` y `Subir Tesoro` integrados en la barra de navegación; ilustración pixel art de baúl místico.
+  * [x] **Visor con Picture-in-Picture (PiP):** Botón directo `📺 Miniatura` nativo para reproducción de video en ventana flotante.
+  * [x] **Iconografía Completa por Formato:** Detección de tipos de archivo (Word, Excel, PPT, Código, Texto, Media, Zip, etc.) con emojis dedicados.
+  * [x] **Vista de Mosaico de Escritorio (Windows Explorer Style):** Mosaicos transparentes en reposo, resaltado de cuadrícula translúcida al pasar el puntero (`:hover`), icono libre y menú kebab `⋮` anclado a la esquina superior derecha del mosaico.
   * [ ] Pruebas de estrés con archivos de distintos pesos y formatos en la nube.
   * [ ] Vista alternativa (Cuadrícula ⊞ vs Lista ☰) y filtro rápido de búsqueda.
 * [ ] **Fase 5: Consolidación, Mantenimiento y Aprendizaje Profundo**
