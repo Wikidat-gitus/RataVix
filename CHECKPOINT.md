@@ -58,6 +58,7 @@
 | **CP-35** | 2026-10-30 | Usuario + @front_agent + @master_agent | **Mosaico Puro Transparente y Sombreado de Cuadrícula en Hover:** 1) Eliminados fondos y bordes fijos en iconos de baúles y tesoros en reposo (100% transparentes). 2) Eliminado sombreado oscuro circular en los 3 puntos `⋮` (limpios y discretos con realce dinámico). 3) Sombreado y bordeado translúcido rectangular en forma de cuadrícula de Windows Explorer activo únicamente al pasar el puntero (`:hover`). Compilación validada en Vite y push a rama `frontend`. |
 | **CP-36** | 2026-10-30 | Usuario + @front_agent + @master_agent | **Desacople y Ubicación del Menú Kebab en Esquina del Mosaico:** Se extrajo el contenedor de 3 puntos (`card-menu-container`) de la caja del icono para anclarlo directamente en la esquina superior derecha del mosaico rectangular completo (`top: 6px; right: 6px;`). El icono queda 100% centrado y libre de solapamientos, con excelente separación estética y margen. Compilación exitosa en Vite y push a rama `frontend`. |
 | **CP-37** | 2026-10-30 | Usuario + @master_agent | **Consolidación Oficial en `main` y Despliegue en Producción Vercel:** Fusión completa de la rama `frontend` en `main` sin conflictos. Integración oficial de: Dropzone global del SO con cifrado AES-GCM en RAM, ilustración pixel art de estado vacío, barra unificada con migas de pan y acciones, botón Picture-in-Picture (`[📺 Miniatura]`), iconografía multiformato, y cuadrícula de mosaicos estilo Windows Explorer con menú kebab desacoplado. Despliegue automático en Vercel (`baul-magico-2.vercel.app`). |
+| **CP-38** | 2026-10-31 | Usuario + @master_agent | **Definición de Arquitectura Dual (Modo Libre vs. Modo Secreto):** Reorientación estratégica de la experiencia de usuario hacia la máxima comodidad y versatilidad: 1) **`🔓 Modo Libre` (Por defecto):** Acceso inmediato tras login de Google sin pedir contraseña maestra; gestión ágil de archivos cotidianos almacenados de forma estándar en Google Drive (`Baúl Mágico - Mis Archivos`). 2) **`🔒 Modo Secreto`:** Activación bajo demanda de la Bóveda Zero-Knowledge con clave maestra en RAM (AES-GCM 256 bits) para privacidad extrema en Google Drive (`Baúl Mágico - Datos Cifrados`). Actualizado [docs/API_CONTRACT.md](file:///c:/Users/Wikid/SandBox/Proyectos/Baul-Magico-2/docs/API_CONTRACT.md) con soporte del atributo `es_cifrado` en baúles y tesoros. |
 
 ---
 
@@ -95,6 +96,12 @@
   * [x] **Visor con Picture-in-Picture (PiP):** Botón directo `📺 Miniatura` nativo para reproducción de video en ventana flotante.
   * [x] **Iconografía Completa por Formato:** Detección de tipos de archivo (Word, Excel, PPT, Código, Texto, Media, Zip, etc.) con emojis dedicados.
   * [x] **Vista de Mosaico de Escritorio (Windows Explorer Style):** Mosaicos transparentes en reposo, resaltado de cuadrícula translúcida al pasar el puntero (`:hover`), icono libre y menú kebab `⋮` anclado a la esquina superior derecha del mosaico.
+  * [ ] **Arquitectura Dual: `🔓 Modo Libre` vs. `🔒 Modo Secreto`:**
+    * [ ] Frontend: Selector de modo en cabecera / navegación; entrada directa a `Modo Libre` sin solicitar contraseña maestra.
+    * [ ] Frontend: Desbloqueo bajo demanda del `Modo Secreto` al pulsar la pestaña correspondiente.
+    * [ ] Backend & DB: Soporte de parámetro `es_cifrado` en endpoints y modelos de `baules` y `tesoros`.
+    * [ ] Google Drive: Separación de carpetas en nube (`Baúl Mágico - Mis Archivos` para Libre vs. `Baúl Mágico - Datos Cifrados` para Secreto).
+    * [ ] Puente de migración: Acción en menú `⋮` para *"🛡️ Enviar a Modo Secreto"* y *"🔓 Mover a Modo Libre"*.
   * [ ] Pruebas de estrés con archivos de distintos pesos y formatos en la nube.
   * [ ] Vista alternativa (Cuadrícula ⊞ vs Lista ☰) y filtro rápido de búsqueda.
 * [ ] **Fase 5: Consolidación, Mantenimiento y Aprendizaje Profundo**
