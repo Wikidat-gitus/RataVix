@@ -666,10 +666,83 @@
    Estilos del Explorador de Baúl (VaultExplorer)
    ========================================================================== */
 .vault-explorer {
+  position: relative;
+  min-height: 420px;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   animation: fadeInModal 0.25s ease-out;
+}
+
+/* Overlay de Dropzone Global desde el Sistema Operativo */
+.external-drop-overlay {
+  position: absolute;
+  inset: -8px;
+  background: rgba(13, 15, 26, 0.92);
+  backdrop-filter: blur(14px);
+  border: 2px dashed var(--accent-purple);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  box-shadow: inset 0 0 50px rgba(139, 92, 246, 0.25), 0 0 35px var(--accent-purple-glow);
+  animation: dropOverlayPulse 2s infinite alternate ease-in-out;
+  pointer-events: all;
+}
+
+@keyframes dropOverlayPulse {
+  0% {
+    border-color: var(--accent-purple);
+    box-shadow: inset 0 0 30px rgba(139, 92, 246, 0.25), 0 0 25px var(--accent-purple-glow);
+  }
+  100% {
+    border-color: var(--accent-cyan);
+    box-shadow: inset 0 0 60px rgba(6, 182, 212, 0.35), 0 0 40px var(--accent-cyan-glow);
+  }
+}
+
+.external-drop-content {
+  text-align: center;
+  padding: 2.5rem;
+  max-width: 460px;
+  pointer-events: none;
+}
+
+.drop-pulse-icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.85rem;
+  animation: bounceMagic 1.4s infinite ease-in-out;
+}
+
+@keyframes bounceMagic {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.external-drop-content h3 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.external-drop-content p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+.drop-badge {
+  display: inline-block;
+  padding: 0.4rem 1.1rem;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  color: #34d399;
+  font-weight: 600;
 }
 
 .explorer-topbar {
@@ -928,15 +1001,15 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.35rem;
+  gap: 0.4rem;
   border-top: 1px solid var(--border-subtle);
-  padding-top: 0.6rem;
+  padding-top: 0.65rem;
 }
 
 .item-btn {
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.35rem 0.55rem;
   cursor: pointer;
   font-size: 0.9rem;
@@ -950,14 +1023,139 @@
   color: #ffffff;
 }
 
+/* Botón de Acción Rápida con Etiqueta (Abrir / Ver) */
+.btn-quick-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  border-radius: 8px;
+}
+
+.btn-quick-action:hover {
+  background: rgba(139, 92, 246, 0.18);
+  border-color: var(--accent-purple);
+  color: #ffffff;
+}
+
+.btn-quick-action.preview-action:hover {
+  background: rgba(6, 182, 212, 0.18);
+  border-color: var(--accent-cyan);
+  color: #ffffff;
+}
+
+.btn-label-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .item-btn.download-action:hover {
   background: rgba(6, 182, 212, 0.2);
   border-color: var(--accent-cyan);
+  color: #ffffff;
 }
 
 .item-btn.delete-btn:hover {
   background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+/* Contenedor y Menú Desplegable de 3 Puntos (⋮) */
+.card-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-menu-trigger {
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.btn-menu-trigger:hover,
+.btn-menu-trigger.active {
+  background: rgba(139, 92, 246, 0.22);
+  border-color: var(--accent-purple);
+  color: #ffffff;
+}
+
+.card-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 175px;
+  background: rgba(18, 20, 32, 0.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glow);
+  border-radius: 12px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), 0 0 15px rgba(139, 92, 246, 0.25);
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  z-index: 60;
+  animation: dropdownFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.84rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.dropdown-item:hover {
+  background: rgba(139, 92, 246, 0.18);
+  color: #ffffff;
+}
+
+.dropdown-item-danger {
+  color: #f87171;
+}
+
+.dropdown-item-danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.dropdown-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 0.25rem 0;
 }
 
 /* Modales Flotantes */
