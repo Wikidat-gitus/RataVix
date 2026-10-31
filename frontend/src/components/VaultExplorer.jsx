@@ -745,70 +745,72 @@ export default function VaultExplorer({ onLogout }) {
                   onClick={() => handleOpenBaul(baul)}
                   title={baul.plainName}
                 >
-                  <div className="card-menu-container" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      className={`item-btn btn-menu-trigger ${openMenuId === `baul-${baul.id}` ? 'active' : ''}`}
-                      title="Opciones de carpeta"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenMenuId(openMenuId === `baul-${baul.id}` ? null : `baul-${baul.id}`);
-                      }}
-                    >
-                      ⋮
-                    </button>
-                    {openMenuId === `baul-${baul.id}` && (
-                      <div className="card-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleOpenBaul(baul);
-                          }}
-                        >
-                          <span className="dropdown-icon">📂</span>
-                          <span>Abrir baúl</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleOpenRename('baul', baul);
-                          }}
-                        >
-                          <span className="dropdown-icon">✏️</span>
-                          <span>Renombrar</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleOpenMove('baul', baul);
-                          }}
-                        >
-                          <span className="dropdown-icon">📦</span>
-                          <span>Mover a...</span>
-                        </button>
-                        <div className="dropdown-divider"></div>
-                        <button
-                          type="button"
-                          className="dropdown-item dropdown-item-danger"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleDeleteItem('baul', baul);
-                          }}
-                        >
-                          <span className="dropdown-icon">🗑️</span>
-                          <span>Eliminar baúl</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  <div className="card-icon-wrapper folder-icon">
+                    <div className="card-menu-container" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className={`item-btn btn-menu-trigger ${openMenuId === `baul-${baul.id}` ? 'active' : ''}`}
+                        title="Opciones de carpeta"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(openMenuId === `baul-${baul.id}` ? null : `baul-${baul.id}`);
+                        }}
+                      >
+                        ⋮
+                      </button>
+                      {openMenuId === `baul-${baul.id}` && (
+                        <div className="card-dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            className="dropdown-item"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              handleOpenBaul(baul);
+                            }}
+                          >
+                            <span className="dropdown-icon">📂</span>
+                            <span>Abrir baúl</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="dropdown-item"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              handleOpenRename('baul', baul);
+                            }}
+                          >
+                            <span className="dropdown-icon">✏️</span>
+                            <span>Renombrar</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="dropdown-item"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              handleOpenMove('baul', baul);
+                            }}
+                          >
+                            <span className="dropdown-icon">📦</span>
+                            <span>Mover a...</span>
+                          </button>
+                          <div className="dropdown-divider"></div>
+                          <button
+                            type="button"
+                            className="dropdown-item dropdown-item-danger"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              handleDeleteItem('baul', baul);
+                            }}
+                          >
+                            <span className="dropdown-icon">🗑️</span>
+                            <span>Eliminar baúl</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
 
-                  <div className="card-icon folder-icon">📁</div>
+                    <span className="card-icon-symbol">📁</span>
+                  </div>
 
                   <span className="card-title" title={baul.plainName}>
                     {baul.plainName}
@@ -832,82 +834,82 @@ export default function VaultExplorer({ onLogout }) {
                   onClick={() => setViewerTesoro(tesoro)}
                   title={`${tesoro.plainName} (${formatBytes(tesoro.tamano_bytes)})`}
                 >
-                  <div className="card-menu-container" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      className={`item-btn btn-menu-trigger ${openMenuId === `tesoro-${tesoro.id}` ? 'active' : ''}`}
-                      title="Opciones de archivo"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenMenuId(openMenuId === `tesoro-${tesoro.id}` ? null : `tesoro-${tesoro.id}`);
-                      }}
-                    >
-                      ⋮
-                    </button>
-                    {openMenuId === `tesoro-${tesoro.id}` && (
-                      <div className="card-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            setViewerTesoro(tesoro);
-                          }}
-                        >
-                          <span className="dropdown-icon">👁️</span>
-                          <span>Previsualizar</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleDownloadTesoro(tesoro);
-                          }}
-                        >
-                          <span className="dropdown-icon">⬇️</span>
-                          <span>Descargar descifrado</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleOpenRename('tesoro', tesoro);
-                          }}
-                        >
-                          <span className="dropdown-icon">✏️</span>
-                          <span>Renombrar</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleOpenMove('tesoro', tesoro);
-                          }}
-                        >
-                          <span className="dropdown-icon">📦</span>
-                          <span>Mover a...</span>
-                        </button>
-                        <div className="dropdown-divider"></div>
-                        <button
-                          type="button"
-                          className="dropdown-item dropdown-item-danger"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleDeleteItem('tesoro', tesoro);
-                          }}
-                        >
-                          <span className="dropdown-icon">🗑️</span>
-                          <span>Eliminar tesoro</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  <div className={`card-icon-wrapper file-icon ${category.badgeClass}-icon`}>
+                    <div className="card-menu-container" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className={`item-btn btn-menu-trigger ${openMenuId === `tesoro-${tesoro.id}` ? 'active' : ''}`}
+                        title="Opciones de archivo"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(openMenuId === `tesoro-${tesoro.id}` ? null : `tesoro-${tesoro.id}`);
+                        }}
+                      >
+                        ⋮
+                      </button>
+                      {openMenuId === `tesoro-${tesoro.id}` && (
+                        <div className="card-dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            className="dropdown-item"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              setViewerTesoro(tesoro);
+                            }}
+                          >
+                            <span className="dropdown-icon">👁️</span>
+                            <span>Previsualizar</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="dropdown-item"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              handleDownloadTesoro(tesoro);
+                            }}
+                          >
+                            <span className="dropdown-icon">⬇️</span>
+                            <span>Descargar descifrado</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="dropdown-item"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              handleOpenRename('tesoro', tesoro);
+                            }}
+                          >
+                            <span className="dropdown-icon">✏️</span>
+                            <span>Renombrar</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="dropdown-item"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              handleOpenMove('tesoro', tesoro);
+                            }}
+                          >
+                            <span className="dropdown-icon">📦</span>
+                            <span>Mover a...</span>
+                          </button>
+                          <div className="dropdown-divider"></div>
+                          <button
+                            type="button"
+                            className="dropdown-item dropdown-item-danger"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              handleDeleteItem('tesoro', tesoro);
+                            }}
+                          >
+                            <span className="dropdown-icon">🗑️</span>
+                            <span>Eliminar tesoro</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
 
-                  <div className={`card-icon file-icon ${category.badgeClass}-icon`}>
-                    {category.icon}
+                    <span className="card-icon-symbol">{category.icon}</span>
                   </div>
 
                   <span className="card-title" title={tesoro.plainName}>

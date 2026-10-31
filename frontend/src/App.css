@@ -950,24 +950,23 @@
 /* Grid estilo Explorador de Escritorio (Windows Explorer) */
 .explorer-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 130px));
-  gap: 1.25rem 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(105px, 125px));
+  gap: 1.5rem 1rem;
   justify-content: flex-start;
   align-items: start;
 }
 
 .explorer-card {
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  padding: 0.85rem 0.5rem 0.65rem;
+  border: none;
+  padding: 0.35rem 0.2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: 0.55rem;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: transform var(--transition-fast);
   position: relative;
   text-align: center;
   width: 100%;
@@ -975,86 +974,120 @@
 }
 
 .explorer-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(139, 92, 246, 0.3);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), 0 0 12px rgba(139, 92, 246, 0.15);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
-.explorer-card.drop-hover {
-  background: rgba(139, 92, 246, 0.15);
+.explorer-card.drop-hover .card-icon-wrapper {
   border-color: var(--accent-purple);
-  box-shadow: 0 0 15px var(--accent-purple-glow);
+  box-shadow: 0 0 20px var(--accent-purple-glow);
+  transform: scale(1.05);
 }
 
 .explorer-card.is-dragging {
   opacity: 0.4;
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 
-/* Icono Grande Centrado */
-.card-icon {
-  width: 68px;
-  height: 68px;
-  border-radius: 16px;
+/* Icono con Borde Translúcido (Caja Principal) */
+.card-icon-wrapper {
+  position: relative;
+  width: 82px;
+  height: 82px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.75rem;
-  flex-shrink: 0;
-  transition: transform var(--transition-fast);
-  margin-top: 0.2rem;
-}
-
-.explorer-card:hover .card-icon {
-  transform: scale(1.06);
-}
-
-.folder-icon {
-  background: rgba(234, 179, 8, 0.12);
-  border: 1px solid rgba(234, 179, 8, 0.25);
-  filter: drop-shadow(0 4px 10px rgba(234, 179, 8, 0.2));
-}
-
-.file-icon {
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+  transition: all var(--transition-fast);
 }
 
-/* Nombre Centrado estilo Windows (máximo 2 líneas legibles) */
+.card-icon-wrapper.folder-icon {
+  background: rgba(234, 179, 8, 0.1);
+  border-color: rgba(234, 179, 8, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 12px rgba(234, 179, 8, 0.1);
+}
+
+.card-icon-wrapper.folder-icon:hover,
+.explorer-card:hover .card-icon-wrapper.folder-icon {
+  background: rgba(234, 179, 8, 0.18);
+  border-color: rgba(234, 179, 8, 0.55);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 22px rgba(234, 179, 8, 0.25);
+}
+
+.card-icon-wrapper.file-icon {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.card-icon-wrapper.file-icon:hover,
+.explorer-card:hover .card-icon-wrapper.file-icon {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.45);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 22px rgba(139, 92, 246, 0.2);
+}
+
+/* Símbolo / Emoji dentro de la caja */
+.card-icon-symbol {
+  font-size: 2.85rem;
+  line-height: 1;
+  display: block;
+  user-select: none;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  transition: transform var(--transition-fast);
+}
+
+.explorer-card:hover .card-icon-symbol {
+  transform: scale(1.05);
+}
+
+/* Nombre Centrado Debajo del Icono (máximo 2 líneas legibles) */
 .card-title {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 500;
   color: var(--text-main);
   line-height: 1.35;
   word-break: break-word;
   max-width: 100%;
   text-align: center;
+  padding: 0 0.2rem;
+  transition: color var(--transition-fast);
 }
 
-/* Botón de 3 Puntos en la Esquina Superior Derecha */
+.explorer-card:hover .card-title {
+  color: #ffffff;
+}
+
+/* Botón de 3 Puntos en la Esquina Superior Derecha del Icono */
 .card-menu-container {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  z-index: 10;
+  top: 3px;
+  right: 3px;
+  z-index: 20;
 }
 
 .btn-menu-trigger {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: bold;
-  padding: 0.1rem 0.4rem;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
   color: var(--text-muted);
   border-radius: 6px;
-  background: rgba(18, 20, 32, 0.7);
-  border: 1px solid transparent;
+  background: rgba(13, 15, 26, 0.65);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   opacity: 0.6;
   transition: all var(--transition-fast);
 }
@@ -1062,7 +1095,7 @@
 .explorer-card:hover .btn-menu-trigger,
 .btn-menu-trigger.active {
   opacity: 1;
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(139, 92, 246, 0.35);
   border-color: var(--accent-purple);
   color: #ffffff;
 }
