@@ -1322,6 +1322,27 @@
   border: 1px solid rgba(245, 158, 11, 0.4);
   color: #fcd34d;
 }
+.badge-spreadsheet {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+.badge-word {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #93c5fd;
+}
+.badge-presentation {
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  color: #fdba74;
+}
+.badge-code {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: #c4b5fd;
+}
+.badge-general,
 .badge-binary {
   background: rgba(148, 163, 184, 0.15);
   border: 1px solid rgba(148, 163, 184, 0.4);
@@ -1447,6 +1468,20 @@
   background: rgba(139, 92, 246, 0.2);
   border-color: var(--accent-purple);
   color: #ffffff;
+}
+
+.btn-viewer-action.btn-pip {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: var(--accent-cyan);
+  color: #67e8f9;
+}
+
+.btn-viewer-action.btn-pip:hover,
+.btn-viewer-action.btn-pip.active {
+  background: var(--accent-cyan);
+  color: #0b0f19;
+  font-weight: 600;
+  box-shadow: 0 0 12px var(--accent-cyan-glow);
 }
 
 .btn-viewer-close {

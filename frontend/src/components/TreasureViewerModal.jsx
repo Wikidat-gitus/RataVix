@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
 import { downloadEncryptedFileFromDrive } from '../services/googleDrive';
@@ -13,6 +13,9 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
   const [blobUrl, setBlobUrl] = useState(null);
   const [textContent, setTextContent] = useState('');
   const [copied, setCopied] = useState(false);
+  const [isPiPActive, setIsPiPActive] = useState(false);
+
+  const videoRef = useRef(null);
 
   const category = getFileCategory(tesoro.plainName, tesoro.tipo_mime);
 
@@ -85,6 +88,39 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
     };
   }, [tesoro, decryptFileBlob, category.type]);
 
+  // Listener para sincronizar estado de Picture-in-Picture
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleEnterPiP = () => setIsPiPActive(true);
+    const handleLeavePiP = () => setIsPiPActive(false);
+
+    video.addEventListener('enterpictureinpicture', handleEnterPiP);
+    video.addEventListener('leavepictureinpicture', handleLeavePiP);
+
+    return () => {
+      video.removeEventListener('enterpictureinpicture', handleEnterPiP);
+      video.removeEventListener('leavepictureinpicture', handleLeavePiP);
+    };
+  }, [blobUrl, category.type]);
+
+  // Alternar Picture-in-Picture nativo
+  const handleTogglePiP = async () => {
+    if (!videoRef.current) return;
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsPiPActive(false);
+      } else {
+        await videoRef.current.requestPictureInPicture();
+        setIsPiPActive(true);
+      }
+    } catch (err) {
+      console.warn('Error al activar Picture-in-Picture:', err);
+    }
+  };
+
   const handleCopyText = async () => {
     try {
       await navigator.clipboard.writeText(textContent);
@@ -122,6 +158,18 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
           </div>
 
           <div className="viewer-header-actions">
+            {/* Botón directo de Miniatura (Picture-in-Picture) para Videos */}
+            {category.type === 'video' && blobUrl && document.pictureInPictureEnabled && (
+              <button
+                type="button"
+                className={`btn-viewer-action btn-pip ${isPiPActive ? 'active' : ''}`}
+                onClick={handleTogglePiP}
+                title="Reproducir en ventana miniatura flotante (Picture-in-Picture)"
+              >
+                {isPiPActive ? '📺 Salir de Miniatura' : '📺 Miniatura'}
+              </button>
+            )}
+
             {category.type === 'text' && !loading && !error && (
               <button
                 type="button"
@@ -209,7 +257,7 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
               {/* 5. Video */}
               {category.type === 'video' && blobUrl && (
                 <div className="viewer-video-wrap">
-                  <video controls src={blobUrl} className="viewer-video-player" />
+                  <video ref={videoRef} controls src={blobUrl} className="viewer-video-player" />
                 </div>
               )}
 
