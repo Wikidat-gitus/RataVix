@@ -745,52 +745,21 @@
   font-weight: 600;
 }
 
-.explorer-topbar {
+/* Barra Unificada de Navegación y Acciones Rápidas (Toolbar) */
+.explorer-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.85rem;
   background: var(--bg-glass-card);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  padding: 1rem 1.5rem;
+  border-radius: 14px;
+  padding: 0.65rem 1rem;
 }
 
-.vault-security-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.unlocked-pulse {
-  width: 12px;
-  height: 12px;
-  background: var(--accent-emerald);
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
-  animation: pulseEmerald 2s infinite;
-}
-
-@keyframes pulseEmerald {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-
-.vault-security-indicator strong {
-  display: block;
-  font-size: 0.95rem;
-  color: #ffffff;
-}
-
-.vault-security-indicator span {
-  font-size: 0.75rem;
-  color: var(--accent-emerald);
-}
-
-.topbar-actions {
+.toolbar-actions {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -846,21 +815,20 @@
   color: #f87171;
 }
 
-/* Breadcrumbs Bar */
+/* Breadcrumbs Bar (Integrado en el Toolbar) */
 .breadcrumbs-bar {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  padding: 0.6rem 1rem;
+  gap: 0.35rem;
   overflow-x: auto;
+  flex: 1;
+  min-width: 200px;
+  padding: 0.2rem 0;
 }
 
 .breadcrumbs-icon {
-  font-size: 1.1rem;
-  margin-right: 0.3rem;
+  font-size: 1.15rem;
+  margin-right: 0.35rem;
 }
 
 .breadcrumb-separator {
@@ -872,12 +840,13 @@
   background: transparent;
   border: none;
   color: var(--accent-cyan);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
+  padding: 0.25rem 0.55rem;
+  border-radius: 8px;
   transition: all var(--transition-fast);
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .breadcrumb-link:hover {
@@ -886,7 +855,7 @@
 
 .breadcrumb-link.current {
   color: #ffffff;
-  font-weight: 600;
+  font-weight: 700;
   cursor: default;
 }
 .breadcrumb-link.current:hover {
@@ -898,8 +867,7 @@
   min-height: 280px;
 }
 
-.vault-loading-state,
-.vault-empty-state {
+.vault-loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -912,22 +880,71 @@
   gap: 1rem;
 }
 
-.vault-empty-state .empty-icon {
-  font-size: 3rem;
-}
-.vault-empty-state h3 {
-  font-size: 1.25rem;
-  color: var(--text-main);
-}
-.vault-empty-state p {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  max-width: 440px;
-}
-.empty-actions {
+/* Estado Vacío con Pixel Art */
+.vault-empty-state {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: var(--bg-glass-card);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 18px;
+  gap: 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.empty-pixel-art-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+}
+
+.empty-pixel-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  image-rendering: pixelated;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 25px rgba(139, 92, 246, 0.3);
+  border: 1px solid var(--border-glow);
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease;
+}
+
+.empty-pixel-art-img:hover {
+  transform: scale(1.03);
+}
+
+.empty-pixel-glow {
+  position: absolute;
+  inset: -12px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.35) 0%, rgba(6, 182, 212, 0.15) 55%, transparent 75%);
+  border-radius: 50%;
+  filter: blur(14px);
+  z-index: 1;
+  pointer-events: none;
+  animation: magicPulse 3s infinite alternate ease-in-out;
+}
+
+@keyframes magicPulse {
+  0% { transform: scale(0.92); opacity: 0.7; }
+  100% { transform: scale(1.08); opacity: 1; }
+}
+
+.empty-pixel-hint {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+  max-width: 420px;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Grid de Tarjetas */
@@ -941,25 +958,26 @@
   background: var(--bg-glass-card);
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
-  padding: 1rem;
+  padding: 1.1rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: 0.85rem;
+  cursor: pointer;
   transition: all var(--transition-fast);
+  position: relative;
 }
 
 .explorer-card:hover {
   border-color: var(--accent-purple);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px var(--accent-purple-glow);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), 0 0 15px var(--accent-purple-glow);
   transform: translateY(-2px);
 }
 
-.card-main {
+.card-top-row {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.85rem;
-  cursor: pointer;
+  width: 100%;
 }
 
 .card-icon {
@@ -983,17 +1001,21 @@
 
 .card-details {
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 .card-title {
   display: block;
-  font-size: 0.92rem;
+  font-size: 0.94rem;
+  font-weight: 600;
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .card-meta {
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   color: var(--text-muted);
 }
 

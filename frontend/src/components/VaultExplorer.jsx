@@ -11,6 +11,7 @@ import { getFileCategory } from '../utils/fileTypes';
 import TreasureViewerModal from './TreasureViewerModal';
 import ConfirmModal from './ConfirmModal';
 import UploadProgressModal from './UploadProgressModal';
+import baulPixelArt from '../assets/baul-pixel-art.jpg';
 
 export default function VaultExplorer({ onLogout }) {
   const { lockVault, encryptName, decryptName, encryptFileBlob, decryptFileBlob } = useCrypto();
@@ -635,22 +636,49 @@ export default function VaultExplorer({ onLogout }) {
         </div>
       )}
 
-      {/* Barra Superior de Acciones y Seguridad */}
-      <div className="explorer-topbar">
-        <div className="vault-security-indicator">
-          <span className="unlocked-pulse"></span>
-          <div>
-            <strong>Baúl Abierto</strong>
-            <span>Arrastra para organizar o suelta archivos desde tu PC</span>
-          </div>
-        </div>
+      {/* Barra Unificada de Navegación y Acciones Rápidas */}
+      <div className="explorer-toolbar">
+        {/* Migas de Pan (Breadcrumbs) con soporte para Drop Target */}
+        <nav className="breadcrumbs-bar">
+          <span className="breadcrumbs-icon">🧭</span>
+          {breadcrumbs.map((crumb, idx) => {
+            const isCurrent = idx === breadcrumbs.length - 1;
+            const targetKey = crumb.id || 'root';
+            const isOver = dragOverTargetId === targetKey;
 
-        <div className="topbar-actions">
+            return (
+              <React.Fragment key={crumb.id || 'root'}>
+                {idx > 0 && <span className="breadcrumb-separator">/</span>}
+                <button
+                  type="button"
+                  className={`breadcrumb-link ${isCurrent ? 'current' : ''} ${isOver ? 'drop-hover' : ''}`}
+                  onClick={() => handleNavigateBreadcrumb(idx)}
+                  onDragOver={(e) => {
+                    if (!isCurrent) handleDragOver(e, targetKey);
+                  }}
+                  onDragLeave={(e) => {
+                    if (!isCurrent) handleDragLeave(e, targetKey);
+                  }}
+                  onDrop={(e) => {
+                    if (!isCurrent) handleDrop(e, crumb.id, crumb.name);
+                  }}
+                  title={!isCurrent ? `Arrastra aquí para mover a "${crumb.name}"` : undefined}
+                >
+                  {crumb.name}
+                </button>
+              </React.Fragment>
+            );
+          })}
+        </nav>
+
+        {/* Botones de Acción en la misma sección de Raíz del Baúl */}
+        <div className="toolbar-actions">
           <button
             type="button"
             className="btn-action btn-new-folder"
             onClick={handleOpenCreateFolder}
             disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
+            title="Crear un nuevo baúl virtual"
           >
             <span>📁+</span>
             <span>Nuevo Baúl</span>
@@ -661,6 +689,7 @@ export default function VaultExplorer({ onLogout }) {
             className="btn-action btn-upload"
             onClick={handleTriggerUpload}
             disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
+            title="Subir y cifrar un archivo con AES-GCM 256 bits"
           >
             <span>⬆️</span>
             <span>Subir Tesoro</span>
@@ -676,39 +705,6 @@ export default function VaultExplorer({ onLogout }) {
         </div>
       </div>
 
-      {/* Migas de Pan (Breadcrumbs) con soporte para Drop Target */}
-      <nav className="breadcrumbs-bar">
-        <span className="breadcrumbs-icon">🧭</span>
-        {breadcrumbs.map((crumb, idx) => {
-          const isCurrent = idx === breadcrumbs.length - 1;
-          const targetKey = crumb.id || 'root';
-          const isOver = dragOverTargetId === targetKey;
-
-          return (
-            <React.Fragment key={crumb.id || 'root'}>
-              {idx > 0 && <span className="breadcrumb-separator">/</span>}
-              <button
-                type="button"
-                className={`breadcrumb-link ${isCurrent ? 'current' : ''} ${isOver ? 'drop-hover' : ''}`}
-                onClick={() => handleNavigateBreadcrumb(idx)}
-                onDragOver={(e) => {
-                  if (!isCurrent) handleDragOver(e, targetKey);
-                }}
-                onDragLeave={(e) => {
-                  if (!isCurrent) handleDragLeave(e, targetKey);
-                }}
-                onDrop={(e) => {
-                  if (!isCurrent) handleDrop(e, crumb.id, crumb.name);
-                }}
-                title={!isCurrent ? `Arrastra aquí para mover a "${crumb.name}"` : undefined}
-              >
-                {crumb.name}
-              </button>
-            </React.Fragment>
-          );
-        })}
-      </nav>
-
       {/* Contenido: Listado de Baúles y Tesoros */}
       <div className="explorer-content">
         {loading ? (
@@ -718,13 +714,15 @@ export default function VaultExplorer({ onLogout }) {
           </div>
         ) : baules.length === 0 && tesoros.length === 0 ? (
           <div className="vault-empty-state">
-            <div className="empty-icon">✨</div>
-            <h3>Este baúl está esperando tus tesoros</h3>
-            <p>Crea una subcarpeta con <strong>"Nuevo Baúl"</strong> o añade tu primer archivo protegido con <strong>"Subir Tesoro"</strong>.</p>
-            <div className="empty-actions">
-              <button className="btn-action btn-new-folder" onClick={handleOpenCreateFolder}>📁 Crear Baúl</button>
-              <button className="btn-action btn-upload" onClick={handleTriggerUpload}>⬆️ Subir Archivo</button>
+            <div className="empty-pixel-art-container">
+              <img
+                src={baulPixelArt}
+                alt="Baúl Mágico"
+                className="empty-pixel-art-img"
+              />
+              <div className="empty-pixel-glow"></div>
             </div>
+            <p className="empty-pixel-hint">Tu baúl está vacío y protegido con Conocimiento Cero</p>
           </div>
         ) : (
           <div className="explorer-grid">
@@ -744,34 +742,17 @@ export default function VaultExplorer({ onLogout }) {
                   onDragLeave={(e) => handleDragLeave(e, baul.id)}
                   onDrop={(e) => handleDrop(e, baul.id, baul.plainName)}
                   onDoubleClick={() => handleOpenBaul(baul)}
-                  title="Arrastra para mover o suelta aquí para guardar dentro"
+                  onClick={() => handleOpenBaul(baul)}
+                  title="Haz clic para abrir • Arrastra para mover"
                 >
-                  <div className="card-main" onClick={() => handleOpenBaul(baul)}>
+                  <div className="card-top-row">
                     <div className="card-icon folder-icon">📁</div>
-                    <div className="card-details">
-                      <strong className="card-title" title={baul.plainName}>
-                        {baul.plainName}
-                      </strong>
-                      <span className="card-meta">Baúl virtual • Suelta aquí</span>
-                    </div>
-                  </div>
 
-                  <div className="card-actions">
-                    <button
-                      type="button"
-                      className="item-btn btn-quick-action"
-                      title="Entrar a esta carpeta"
-                      onClick={() => handleOpenBaul(baul)}
-                    >
-                      <span>📂</span>
-                      <span className="btn-label-text">Abrir</span>
-                    </button>
-
-                    <div className="card-menu-container">
+                    <div className="card-menu-container" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         className={`item-btn btn-menu-trigger ${openMenuId === `baul-${baul.id}` ? 'active' : ''}`}
-                        title="Más opciones de carpeta"
+                        title="Opciones de carpeta"
                         onClick={(e) => {
                           e.stopPropagation();
                           setOpenMenuId(openMenuId === `baul-${baul.id}` ? null : `baul-${baul.id}`);
@@ -830,6 +811,13 @@ export default function VaultExplorer({ onLogout }) {
                       )}
                     </div>
                   </div>
+
+                  <div className="card-details">
+                    <strong className="card-title" title={baul.plainName}>
+                      {baul.plainName}
+                    </strong>
+                    <span className="card-meta">Baúl virtual</span>
+                  </div>
                 </div>
               );
             })}
@@ -846,51 +834,19 @@ export default function VaultExplorer({ onLogout }) {
                   draggable={true}
                   onDragStart={(e) => handleDragStart(e, 'tesoro', tesoro)}
                   onDragEnd={handleDragEnd}
-                  title="Arrastra este archivo a cualquier carpeta o miga de pan"
+                  onClick={() => setViewerTesoro(tesoro)}
+                  title="Haz clic para previsualizar • Arrastra para mover"
                 >
-                  <div className="card-main" onClick={() => setViewerTesoro(tesoro)}>
+                  <div className="card-top-row">
                     <div className={`card-icon file-icon ${category.badgeClass}-icon`}>
                       {category.icon}
                     </div>
-                    <div className="card-details">
-                      <strong className="card-title" title={tesoro.plainName}>
-                        {tesoro.plainName}
-                      </strong>
-                      <div className="card-meta-line">
-                        <span className={`file-badge ${category.badgeClass}`}>
-                          {category.label}
-                        </span>
-                        <span className="file-size-text">
-                          {formatBytes(tesoro.tamano_bytes)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="card-actions">
-                    <button
-                      type="button"
-                      className="item-btn btn-quick-action preview-action"
-                      title="Abrir y ver en navegador"
-                      onClick={() => setViewerTesoro(tesoro)}
-                    >
-                      <span>👁️</span>
-                      <span className="btn-label-text">Ver</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="item-btn download-action"
-                      title="Descargar copia descifrada"
-                      onClick={() => handleDownloadTesoro(tesoro)}
-                    >
-                      ⬇️
-                    </button>
-
-                    <div className="card-menu-container">
+                    <div className="card-menu-container" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         className={`item-btn btn-menu-trigger ${openMenuId === `tesoro-${tesoro.id}` ? 'active' : ''}`}
-                        title="Más opciones de archivo"
+                        title="Opciones de archivo"
                         onClick={(e) => {
                           e.stopPropagation();
                           setOpenMenuId(openMenuId === `tesoro-${tesoro.id}` ? null : `tesoro-${tesoro.id}`);
@@ -958,6 +914,20 @@ export default function VaultExplorer({ onLogout }) {
                           </button>
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  <div className="card-details">
+                    <strong className="card-title" title={tesoro.plainName}>
+                      {tesoro.plainName}
+                    </strong>
+                    <div className="card-meta-line">
+                      <span className={`file-badge ${category.badgeClass}`}>
+                        {category.label}
+                      </span>
+                      <span className="file-size-text">
+                        {formatBytes(tesoro.tamano_bytes)}
+                      </span>
                     </div>
                   </div>
                 </div>
