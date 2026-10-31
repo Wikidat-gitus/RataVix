@@ -36,6 +36,9 @@ function AppContent() {
     return sessionStorage.getItem('baul_local_mock') === 'true';
   });
 
+  // Selector de Modo: 'libre' (por defecto) o 'secreto' (Zero-Knowledge)
+  const [currentMode, setCurrentMode] = useState('libre');
+
   const [showResetModal, setShowResetModal] = useState(false);
   const [activeTab, setActiveTab] = useState('vault'); // 'vault' | 'admin' | 'crypto' | 'architecture'
   const [backendStatus, setBackendStatus] = useState('checking'); // 'online' | 'offline' | 'checking'
@@ -101,6 +104,7 @@ function AppContent() {
     disconnectGoogleDrive();
     setIsLocalMock(false);
     sessionStorage.removeItem('baul_local_mock');
+    setCurrentMode('libre');
   };
 
   return (
@@ -195,10 +199,32 @@ function AppContent() {
                 </span>
               </div>
 
-              {/* Badge de Seguridad Dinámico */}
-              <div className={`security-badge ${isUnlocked ? 'unlocked-badge' : 'locked-badge'}`}>
-                <span className={isUnlocked ? 'unlocked-pulse' : 'pulse-dot'}></span>
-                <span>{isUnlocked ? '🔓 Baúl Abierto (RAM)' : '🔒 Baúl Bloqueado'}</span>
+              {/* Badge de Seguridad Dinámico según el Modo Activo */}
+              <div
+                className={`security-badge ${
+                  currentMode === 'libre'
+                    ? 'free-mode-badge'
+                    : isUnlocked
+                    ? 'unlocked-badge'
+                    : 'locked-badge'
+                }`}
+              >
+                <span
+                  className={
+                    currentMode === 'libre'
+                      ? 'free-mode-dot'
+                      : isUnlocked
+                      ? 'unlocked-pulse'
+                      : 'pulse-dot'
+                  }
+                ></span>
+                <span>
+                  {currentMode === 'libre'
+                    ? '🔓 Modo Libre Activo'
+                    : isUnlocked
+                    ? '✨ Modo Secreto (RAM)'
+                    : '🔒 Modo Secreto Bloqueado'}
+                </span>
               </div>
 
               {/* ÚNICO BOTÓN: Cerrar Sesión */}
@@ -235,7 +261,41 @@ function AppContent() {
 
       {/* Contenido Principal */}
       <main className="main-content">
-        {/* 1. Vista de Usuario: Mi Baúl Virtual (O pestaña 'vault' en modo dev) */}
+        {/* Selector de Modo: Modo Libre vs. Modo Secreto (Solo con sesión iniciada) */}
+        {isSessionStarted && (activeTab === 'vault' || !isDevMode) && (
+          <div className="mode-selector-container">
+            <div className="mode-selector-pills">
+              <button
+                type="button"
+                className={`mode-pill-btn ${currentMode === 'libre' ? 'active-libre' : ''}`}
+                onClick={() => setCurrentMode('libre')}
+              >
+                <span className="mode-pill-icon">🔓</span>
+                <div className="mode-pill-info">
+                  <span className="mode-pill-title">Modo Libre</span>
+                  <span className="mode-pill-subtitle">Archivos estándar • Sin clave</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className={`mode-pill-btn ${currentMode === 'secreto' ? 'active-secreto' : ''}`}
+                onClick={() => setCurrentMode('secreto')}
+              >
+                <span className="mode-pill-icon">{isUnlocked ? '✨' : '🔒'}</span>
+                <div className="mode-pill-info">
+                  <span className="mode-pill-title">Modo Secreto</span>
+                  <span className="mode-pill-subtitle">
+                    {isUnlocked ? 'Bóveda abierta en RAM' : 'Zero-Knowledge (AES-256)'}
+                  </span>
+                </div>
+                {isUnlocked && <span className="mode-unlocked-dot"></span>}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 1. Vista de Usuario: Explorador Virtual (O pestaña 'vault' en modo dev) */}
         {(activeTab === 'vault' || !isDevMode) && (
           <div className="tab-pane">
             {!isSessionStarted ? (
@@ -246,11 +306,20 @@ function AppContent() {
                   sessionStorage.setItem('baul_local_mock', 'true');
                 }}
               />
+            ) : currentMode === 'libre' ? (
+              /* MODO LIBRE: Acceso inmediato, sin contraseña maestra */
+              <VaultExplorer
+                onLogout={handleLogout}
+                mode="libre"
+                onSwitchMode={() => setCurrentMode('secreto')}
+              />
             ) : !isUnlocked ? (
+              /* MODO SECRETO: Requiere contraseña maestra en RAM */
               !userHasMasterKey ? (
                 /* Flujo A: Usuario Nuevo sin contraseña maestra */
                 <CreateMasterKeyModal
                   onLogout={handleLogout}
+                  onBackToFreeMode={() => setCurrentMode('libre')}
                   isLocalMock={isLocalMock}
                   showDevTools={isDevMode}
                 />
@@ -259,13 +328,18 @@ function AppContent() {
                 <UnlockVaultModal
                   onLogout={handleLogout}
                   onForgotPassword={() => setShowResetModal(true)}
+                  onBackToFreeMode={() => setCurrentMode('libre')}
                   isLocalMock={isLocalMock}
                   showDevTools={isDevMode}
                 />
               )
             ) : (
-              /* Flujo C: Baúl Abierto con clave en RAM */
-              <VaultExplorer onLogout={handleLogout} />
+              /* Flujo C: Modo Secreto Desbloqueado con clave en RAM */
+              <VaultExplorer
+                onLogout={handleLogout}
+                mode="secreto"
+                onSwitchMode={() => setCurrentMode('libre')}
+              />
             )}
           </div>
         )}

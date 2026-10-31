@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+﻿import React, { createContext, useContext, useState, useCallback } from 'react';
 import { deriveKeyFromPassword, generateSalt } from '../crypto/pbkdf2.js';
 import { encryptText, decryptText, encryptBinary, decryptBinary } from '../crypto/aesGcm.js';
 import { api } from '../services/api';

@@ -2,7 +2,12 @@ import React, { useState } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
 
-export default function CreateMasterKeyModal({ onLogout, isLocalMock, showDevTools = false }) {
+export default function CreateMasterKeyModal({
+  onLogout,
+  onBackToFreeMode,
+  isLocalMock,
+  showDevTools = false,
+}) {
   const { setupInitialKey, unlocking, error } = useCrypto();
   const { isGoogleConnected, googleUser, updateBackendUser } = useGoogleAuth();
 
@@ -156,6 +161,17 @@ export default function CreateMasterKeyModal({ onLogout, isLocalMock, showDevToo
               </>
             )}
           </button>
+
+          {onBackToFreeMode && (
+            <button
+              type="button"
+              className="btn-back-free-mode"
+              onClick={onBackToFreeMode}
+              disabled={unlocking}
+            >
+              ← Volver a Modo Libre (Sin Clave)
+            </button>
+          )}
         </form>
 
         {/* Acceso rápido de prueba para desarrollo (Solo en Modo Dev / Admin) */}

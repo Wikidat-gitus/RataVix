@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Utilidades para detección automática de tipos de archivos
  * Clasifica archivos por MIME Type y extensión para visualización nativa e iconografía
  */
