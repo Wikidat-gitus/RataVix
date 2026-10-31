@@ -9,6 +9,7 @@ Prueba:
 6. Configuración de clave maestra Zero-Knowledge (salt + canario).
 7. Purga total y reseteo de baúl (olvido de contraseña).
 """
+import uuid
 from fastapi.testclient import TestClient
 from app.main import app
 from app.db.init_db import init_db
@@ -26,8 +27,9 @@ def run_tests():
     print("✅ Health check exitoso:", res.json())
     
     # 3. Autenticación y Control de Sesión Única
+    test_email = f"test_{uuid.uuid4().hex[:8]}@baulmagico.local"
     print("\n--- PRUEBA DE CONTROL DE SESIÓN ÚNICA ---")
-    auth_res1 = client.post("/api/auth/google", json={"code": "auth_code_1", "email": "test_user_autonomia@baulmagico.local"})
+    auth_res1 = client.post("/api/auth/google", json={"code": "auth_code_1", "email": test_email})
     assert auth_res1.status_code == 200, f"Auth 1 falló: {auth_res1.text}"
     user_data = auth_res1.json()["usuario"]
     token_1 = auth_res1.json()["access_token"]
@@ -41,7 +43,7 @@ def run_tests():
     print("✅ Sesión 1 verificada como activa.")
     
     # Crear sesión 2 para el mismo usuario (simulando login en otra pestaña/dispositivo)
-    auth_res2 = client.post("/api/auth/google", json={"code": "auth_code_2", "email": "test_user_autonomia@baulmagico.local"})
+    auth_res2 = client.post("/api/auth/google", json={"code": "auth_code_2", "email": test_email})
     assert auth_res2.status_code == 200
     token_2 = auth_res2.json()["access_token"]
     print("✅ Sesión 2 creada con token:", token_2[:15] + "...")
@@ -77,30 +79,68 @@ def run_tests():
 
     # 5. CRUD de Baúles (Carpetas)
     print("\n--- PRUEBA DE CRUD DE BAÚLES ---")
-    create_baul_res = client.post(
-        "/api/baules",
-        json={
-            "nombre_cifrado": "RG9jdW1lbnRvcyBTZWNyZXRvcw==",
-            "iv": "MTIzNDU2Nzg5MDEy",
-            "baul_padre_id": None
-        },
-        headers=headers
-    )
+    # Crear un baúl secreto y un baúl libre
+    create_baul_res = client.post("/api/baules", json={
+        "nombre_cifrado": "YmF1bF9zZWNyZXRv",
+        "iv": "aXZfc2VjcmV0b18xMjg=",
+        "es_cifrado": True,
+        "baul_padre_id": None
+    }, headers=headers)
     assert create_baul_res.status_code == 201
-    baul_raiz = create_baul_res.json()
-    baul_raiz_id = baul_raiz["id"]
-    print("✅ Baúl raíz creado con ID:", baul_raiz_id)
+    baul_secreto = create_baul_res.json()
+    assert baul_secreto["es_cifrado"] is True
+    print("✅ Baúl secreto creado con ID:", baul_secreto["id"])
+
+    create_libre_res = client.post("/api/baules", json={
+        "nombre_cifrado": "Carpeta Fotos Libres",
+        "iv": None,
+        "es_cifrado": False,
+        "baul_padre_id": None
+    }, headers=headers)
+    assert create_libre_res.status_code == 201
+    baul_libre = create_libre_res.json()
+    assert baul_libre["es_cifrado"] is False
+    print("✅ Baúl libre creado con ID:", baul_libre["id"])
+
+    # Verificar filtrado estricto por es_cifrado
+    list_secretos = client.get("/api/baules?es_cifrado=true", headers=headers).json()
+    assert len(list_secretos) == 1
+    assert list_secretos[0]["id"] == baul_secreto["id"]
+
+    list_libres = client.get("/api/baules?es_cifrado=false", headers=headers).json()
+    assert len(list_libres) == 1
+    assert list_libres[0]["id"] == baul_libre["id"]
+    print("✅ Filtrado estricto de baúles por Modo Libre / Modo Secreto verificado.")
     
-    # Crear un tesoro
+    # Crear un tesoro secreto y un tesoro libre
     client.post("/api/tesoros", json={
-        "baul_id": baul_raiz_id,
+        "baul_id": baul_secreto["id"],
         "drive_file_id": "gdrive-test-reset-999",
         "nombre_cifrado": "dGVzb3JvX3BhcmFfcHVyZ2E=",
         "iv": "aXZfZXhhbXBsZV85Ng==",
+        "es_cifrado": True,
         "tamano_bytes": 1024,
         "tipo_mime": "text/plain"
     }, headers=headers)
-    print("✅ Tesoro de prueba creado.")
+
+    client.post("/api/tesoros", json={
+        "baul_id": baul_libre["id"],
+        "drive_file_id": "gdrive-test-libre-111",
+        "nombre_cifrado": "mi_foto.jpg",
+        "iv": None,
+        "es_cifrado": False,
+        "tamano_bytes": 2048,
+        "tipo_mime": "image/jpeg"
+    }, headers=headers)
+
+    tesoros_secretos = client.get(f"/api/tesoros?baul_id={baul_secreto['id']}&es_cifrado=true", headers=headers).json()
+    assert len(tesoros_secretos) == 1
+    assert tesoros_secretos[0]["es_cifrado"] is True
+
+    tesoros_libres = client.get(f"/api/tesoros?baul_id={baul_libre['id']}&es_cifrado=false", headers=headers).json()
+    assert len(tesoros_libres) == 1
+    assert tesoros_libres[0]["es_cifrado"] is False
+    print("✅ Tesoros en Modo Secreto y Modo Libre aislados y verificados.")
 
     # 6. Prueba de Purga y Reseteo Total del Baúl
     print("\n--- PRUEBA DE RESETEO Y PURGA DE BAÚL ---")
@@ -115,7 +155,7 @@ def run_tests():
     print("✅ Purga y reseteo completado. Drive IDs devueltos:", reset_data["deleted_drive_file_ids"])
 
     # Verificar que el usuario volvió a quedar sin clave y sin baúles
-    auth_check_after_reset = client.post("/api/auth/google", json={"email": "test_user_autonomia@baulmagico.local"})
+    auth_check_after_reset = client.post("/api/auth/google", json={"email": test_email})
     assert auth_check_after_reset.json()["usuario"]["tiene_clave_maestra"] is False
     token_3 = auth_check_after_reset.json()["access_token"]
     list_baules_after = client.get("/api/baules", headers={"Authorization": f"Bearer {token_3}"})

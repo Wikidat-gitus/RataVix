@@ -17,24 +17,26 @@ def init_db() -> None:
         Base.metadata.create_all(bind=engine)
         logger.info("Tablas de base de datos creadas/verificadas con éxito.")
 
-        # Migración ligera segura de columnas para usuarios existentes
+        # Migración ligera segura de columnas para usuarios existentes y arquitectura dual
         with engine.connect() as conn:
             is_postgres = "postgres" in str(engine.url)
             columns = [
-                ("salt_cifrado", "VARCHAR(255)"),
-                ("canary_cifrado", "VARCHAR(512)"),
-                ("canary_iv", "VARCHAR(255)"),
+                ("usuarios", "salt_cifrado", "VARCHAR(255)"),
+                ("usuarios", "canary_cifrado", "VARCHAR(512)"),
+                ("usuarios", "canary_iv", "VARCHAR(255)"),
+                ("baules", "es_cifrado", "BOOLEAN DEFAULT TRUE"),
+                ("tesoros", "es_cifrado", "BOOLEAN DEFAULT TRUE"),
             ]
-            for col_name, col_type in columns:
+            for table_name, col_name, col_type in columns:
                 try:
                     if is_postgres:
                         conn.execute(
-                            text(f"ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS {col_name} {col_type};")
+                            text(f"ALTER TABLE {table_name} ADD COLUMN IF NOT EXISTS {col_name} {col_type};")
                         )
                     else:
                         # SQLite no soporta IF NOT EXISTS en ADD COLUMN; capturamos si ya existe
                         conn.execute(
-                            text(f"ALTER TABLE usuarios ADD COLUMN {col_name} {col_type};")
+                            text(f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type};")
                         )
                     conn.commit()
                 except Exception:

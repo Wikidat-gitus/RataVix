@@ -8,7 +8,8 @@ class TesoroBase(BaseModel):
     baul_id: Optional[UUID] = None
     drive_file_id: str
     nombre_cifrado: str
-    iv: str
+    iv: Optional[str] = None
+    es_cifrado: bool = True
     tamano_bytes: int
     tipo_mime: str
 

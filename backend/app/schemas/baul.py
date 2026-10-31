@@ -6,7 +6,8 @@ from pydantic import BaseModel, ConfigDict
 
 class BaulBase(BaseModel):
     nombre_cifrado: str
-    iv: str
+    iv: Optional[str] = None
+    es_cifrado: bool = True
     baul_padre_id: Optional[UUID] = None
 
 

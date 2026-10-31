@@ -21,16 +21,21 @@ router = APIRouter(prefix="/baules", tags=["Baúles (Carpetas Virtuales)"])
 async def list_baules(
     baul_padre_id: Optional[UUID] = Query(default=None),
     todos: bool = Query(default=False),
+    es_cifrado: Optional[bool] = Query(default=None),
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Lista baúles virtuales pertenecientes al usuario autenticado.
+    - Si es_cifrado no es None: filtra por Modo Secreto (True) o Modo Libre (False).
     - Si todos=True: lista todos los baúles del usuario (para resolver árboles y rutas).
     - Si todos=False y baul_padre_id=None: lista solo los baúles raíz.
     - Si todos=False y baul_padre_id={uuid}: lista los subbaúles hijos directos.
     """
     query = db.query(Baul).filter(Baul.usuario_id == current_user.id)
+    if es_cifrado is not None:
+        query = query.filter(Baul.es_cifrado == es_cifrado)
+
     if todos:
         return query.order_by(Baul.creado_en.asc()).all()
 
@@ -49,7 +54,7 @@ async def create_baul(
     db: Session = Depends(get_db),
 ):
     """
-    Crea un nuevo baúl virtual cifrado en la base de datos para el usuario autenticado.
+    Crea un nuevo baúl virtual en la base de datos para el usuario autenticado (Modo Libre o Secreto).
     """
     if payload.baul_padre_id:
         padre = (
@@ -69,7 +74,8 @@ async def create_baul(
     nuevo_baul = Baul(
         usuario_id=current_user.id,
         nombre_cifrado=payload.nombre_cifrado,
-        iv=payload.iv,
+        iv=payload.iv or "",
+        es_cifrado=payload.es_cifrado,
         baul_padre_id=payload.baul_padre_id,
     )
     db.add(nuevo_baul)

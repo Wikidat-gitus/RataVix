@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, TYPE_CHECKING
-from sqlalchemy import String, DateTime, Uuid, ForeignKey, BigInteger
+from sqlalchemy import String, DateTime, Uuid, ForeignKey, BigInteger, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
@@ -27,12 +27,16 @@ class Tesoro(Base):
     drive_file_id: Mapped[str] = mapped_column(
         String(255), nullable=False, index=True
     )
-    # Metadatos Cifrados en Cliente (Zero-Knowledge)
+    # Metadatos (Zero-Knowledge en Modo Secreto o texto plano en Modo Libre)
     nombre_cifrado: Mapped[str] = mapped_column(
         String(512), nullable=False
     )
-    iv: Mapped[str] = mapped_column(
-        String(128), nullable=False
+    iv: Mapped[Optional[str]] = mapped_column(
+        String(128), nullable=True
+    )
+    # Arquitectura Dual: True para Modo Secreto (Zero-Knowledge), False para Modo Libre
+    es_cifrado: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False, server_default="true"
     )
     tamano_bytes: Mapped[int] = mapped_column(
         BigInteger, nullable=False, default=0

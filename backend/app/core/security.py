@@ -1,4 +1,4 @@
-import secrets
+﻿import secrets
 from typing import Optional
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials

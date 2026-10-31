@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional, TYPE_CHECKING
-from sqlalchemy import String, DateTime, Uuid, ForeignKey
+from sqlalchemy import String, DateTime, Uuid, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
@@ -20,11 +20,16 @@ class Baul(Base):
         Uuid, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False, index=True
     )
     # Cero Conocimiento: el servidor almacena solo el texto cifrado en Base64 y su IV
+    # En Modo Libre (es_cifrado=False): almacena el nombre en plano y el IV puede ser nulo o vacío
     nombre_cifrado: Mapped[str] = mapped_column(
         String(512), nullable=False
     )
-    iv: Mapped[str] = mapped_column(
-        String(128), nullable=False
+    iv: Mapped[Optional[str]] = mapped_column(
+        String(128), nullable=True
+    )
+    # Arquitectura Dual: True para Modo Secreto (Zero-Knowledge), False para Modo Libre
+    es_cifrado: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False, server_default="true"
     )
     # Jerarquía virtual: baul_padre_id es null para la raíz o el UUID del baúl contenedor
     baul_padre_id: Mapped[Optional[uuid.UUID]] = mapped_column(

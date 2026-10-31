@@ -20,13 +20,18 @@ router = APIRouter(prefix="/tesoros", tags=["Tesoros (Archivos Virtuales en Driv
 @router.get("", response_model=List[TesoroResponse])
 async def list_tesoros(
     baul_id: Optional[UUID] = Query(default=None),
+    es_cifrado: Optional[bool] = Query(default=None),
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Lista metadatos de archivos cifrados asociados a un baúl (o a la raíz si baul_id es None).
+    Lista metadatos de archivos asociados a un baúl (o a la raíz si baul_id es None).
+    - Si es_cifrado no es None: filtra por Modo Secreto (True) o Modo Libre (False).
     """
     query = db.query(Tesoro).filter(Tesoro.usuario_id == current_user.id)
+    if es_cifrado is not None:
+        query = query.filter(Tesoro.es_cifrado == es_cifrado)
+
     if baul_id is not None:
         baul = (
             db.query(Baul)
@@ -49,8 +54,8 @@ async def create_tesoro(
     db: Session = Depends(get_db),
 ):
     """
-    Registra el metadato del archivo subido a Google Drive (Zero-Knowledge).
-    Soporta archivos en un baúl específico o directamente en la raíz de la bóveda.
+    Registra el metadato del archivo subido a Google Drive (Zero-Knowledge o Modo Libre).
+    Soporta archivos en un baúl específico o directamente en la raíz.
     """
     if payload.baul_id is not None:
         baul = (
@@ -69,7 +74,8 @@ async def create_tesoro(
         baul_id=payload.baul_id,
         drive_file_id=payload.drive_file_id,
         nombre_cifrado=payload.nombre_cifrado,
-        iv=payload.iv,
+        iv=payload.iv or "",
+        es_cifrado=payload.es_cifrado,
         tamano_bytes=payload.tamano_bytes,
         tipo_mime=payload.tipo_mime,
     )
