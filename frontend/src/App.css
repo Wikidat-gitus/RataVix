@@ -1169,26 +1169,7 @@
   color: #fca5a5;
 }
 
-/* Contenedor y Menú Desplegable de 3 Puntos (⋮) */
-.card-menu-container {
-  position: relative;
-  display: inline-block;
-}
-
-.btn-menu-trigger {
-  font-size: 1.15rem;
-  font-weight: 700;
-  padding: 0.25rem 0.6rem;
-  line-height: 1;
-  color: var(--text-muted);
-}
-
-.btn-menu-trigger:hover,
-.btn-menu-trigger.active {
-  background: rgba(139, 92, 246, 0.22);
-  border-color: var(--accent-purple);
-  color: #ffffff;
-}
+/* Menú Desplegable de 3 Puntos (⋮) */
 
 .card-dropdown-menu {
   position: absolute;
