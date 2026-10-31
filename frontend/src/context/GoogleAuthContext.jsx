@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchGoogleUserInfo } from '../services/googleDrive';
 import { api } from '../services/api';
 
@@ -120,15 +120,13 @@ export function GoogleAuthProvider({ children }) {
 
           if (response.access_token) {
             const token = response.access_token;
-            setGoogleAccessToken(token);
             sessionStorage.setItem('baul_google_access_token', token);
 
             try {
               const userInfo = await fetchGoogleUserInfo(token);
-              setGoogleUser(userInfo);
               sessionStorage.setItem('baul_google_user', JSON.stringify(userInfo));
 
-              // Sincronizar sesión activa en el backend FastAPI y capturar estado de clave maestra
+              // Sincronizar sesión activa en el backend FastAPI ANTES de activar el estado
               if (userInfo?.email) {
                 const res = await api.loginGoogle({
                   email: userInfo.email,
@@ -140,8 +138,13 @@ export function GoogleAuthProvider({ children }) {
                   sessionStorage.setItem('baul_backend_user', JSON.stringify(res.usuario));
                 }
               }
+
+              // Una vez asegurado el token del backend, activar estados en React
+              setGoogleUser(userInfo);
+              setGoogleAccessToken(token);
             } catch (err) {
               console.warn('No se pudo obtener datos del perfil o sincronizar backend:', err);
+              setGoogleAccessToken(token);
             }
           }
         },

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Cliente de API Real para Baúl Mágico 2
  * Conecta el Frontend con el Backend FastAPI en http://localhost:8000/api
  * Arquitectura Zero-Knowledge: Solo viajan metadatos cifrados e IVs.

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Simulación de API (Mock Service) para Baúl Mágico 2
  * Cumple 100% con las rutas y esquemas definidos en docs/API_CONTRACT.md
  * Soporta CRUD completo (Crear, Leer, Actualizar/Mover/Renombrar, Eliminar)

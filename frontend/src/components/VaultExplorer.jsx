@@ -17,7 +17,7 @@ import baulPixelArt from '../assets/baul-pixel-art.jpg';
 
 export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode }) {
   const { lockVault, encryptName, decryptName, encryptFileBlob, decryptFileBlob } = useCrypto();
-  const { isGoogleConnected, googleAccessToken } = useGoogleAuth();
+  const { isGoogleConnected, googleAccessToken, googleUser } = useGoogleAuth();
 
   // Navegación
   const isEncryptedMode = mode === 'secreto';
@@ -139,6 +139,18 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
   const loadVaultContent = useCallback(async () => {
     setLoading(true);
     try {
+      // Garantizar que la sesión de backend esté activa antes de solicitar datos
+      if (isGoogleConnected && googleAccessToken && !api.getToken()) {
+        try {
+          await api.loginGoogle({
+            email: googleUser?.email || 'usuario@baulmagico.local',
+            code: googleAccessToken,
+          });
+        } catch (e) {
+          console.warn('Sincronización de sesión previa en explorador:', e);
+        }
+      }
+
       const [rawBaules, rawTesoros, allAvailable] = await Promise.all([
         api.getBaules(currentBaulId, isEncryptedMode),
         api.getTesoros(currentBaulId, isEncryptedMode),
