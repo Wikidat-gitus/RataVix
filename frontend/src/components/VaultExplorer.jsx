@@ -4,6 +4,8 @@ import { useGoogleAuth } from '../context/GoogleAuthContext';
 import {
   uploadEncryptedFileToDrive,
   downloadEncryptedFileFromDrive,
+  uploadPlainFileToDrive,
+  downloadPlainFileFromDrive,
   deleteFileFromDrive,
 } from '../services/googleDrive';
 import { api } from '../services/api';
@@ -13,13 +15,22 @@ import ConfirmModal from './ConfirmModal';
 import UploadProgressModal from './UploadProgressModal';
 import baulPixelArt from '../assets/baul-pixel-art.jpg';
 
-export default function VaultExplorer({ onLogout }) {
+export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode }) {
   const { lockVault, encryptName, decryptName, encryptFileBlob, decryptFileBlob } = useCrypto();
   const { isGoogleConnected, googleAccessToken } = useGoogleAuth();
 
   // Navegación
+  const isEncryptedMode = mode === 'secreto';
+  const rootName = isEncryptedMode ? 'Raíz del Baúl Secreto' : 'Raíz de Mis Archivos';
+
   const [currentBaulId, setCurrentBaulId] = useState(null);
-  const [breadcrumbs, setBreadcrumbs] = useState([{ id: null, name: 'Raíz del Baúl' }]);
+  const [breadcrumbs, setBreadcrumbs] = useState([{ id: null, name: rootName }]);
+
+  // Sincronizar migas de pan y limpiar nivel cuando cambia el modo
+  useEffect(() => {
+    setCurrentBaulId(null);
+    setBreadcrumbs([{ id: null, name: rootName }]);
+  }, [mode, rootName]);
 
   // Datos
   const [baules, setBaules] = useState([]);
@@ -123,48 +134,79 @@ export default function VaultExplorer({ onLogout }) {
   }, []);
 
   /**
-   * Carga y descifra los baúles y tesoros del nivel actual
+   * Carga y procesa los baúles y tesoros del nivel actual según el modo activo
    */
   const loadVaultContent = useCallback(async () => {
     setLoading(true);
     try {
       const [rawBaules, rawTesoros, allAvailable] = await Promise.all([
-        api.getBaules(currentBaulId),
-        api.getTesoros(currentBaulId),
-        api.getAllBaules()
+        api.getBaules(currentBaulId, isEncryptedMode),
+        api.getTesoros(currentBaulId, isEncryptedMode),
+        api.getAllBaules(isEncryptedMode)
       ]);
 
-      const decryptedBaules = await Promise.all(
-        rawBaules.map(async (b) => {
-          const plainName = await decryptName(b.nombre_cifrado, b.iv);
-          return { ...b, plainName };
-        })
-      );
+      // Aislamiento defensivo en cliente: garantizar separación total entre Modo Libre y Secreto
+      const filteredBaules = isEncryptedMode
+        ? rawBaules.filter(b => b.es_cifrado !== false && Boolean(b.iv && b.iv.trim()))
+        : rawBaules.filter(b => b.es_cifrado === false || !b.iv || !b.iv.trim());
 
-      const decryptedTesoros = await Promise.all(
-        rawTesoros.map(async (t) => {
-          const plainName = await decryptName(t.nombre_cifrado, t.iv);
-          return { ...t, plainName };
-        })
-      );
+      const filteredTesoros = isEncryptedMode
+        ? rawTesoros.filter(t => t.es_cifrado !== false && Boolean(t.iv && t.iv.trim()))
+        : rawTesoros.filter(t => t.es_cifrado === false || !t.iv || !t.iv.trim());
 
-      const decryptedAll = await Promise.all(
-        allAvailable.map(async (b) => {
-          const plainName = await decryptName(b.nombre_cifrado, b.iv);
-          return { ...b, plainName };
-        })
-      );
+      const filteredAll = isEncryptedMode
+        ? allAvailable.filter(b => b.es_cifrado !== false && Boolean(b.iv && b.iv.trim()))
+        : allAvailable.filter(b => b.es_cifrado === false || !b.iv || !b.iv.trim());
+
+      const decryptedBaules = isEncryptedMode
+        ? await Promise.all(
+            filteredBaules.map(async (b) => {
+              try {
+                const plainName = await decryptName(b.nombre_cifrado, b.iv);
+                return { ...b, plainName };
+              } catch {
+                return { ...b, plainName: 'Elemento Cifrado' };
+              }
+            })
+          )
+        : filteredBaules.map((b) => ({ ...b, plainName: b.nombre_cifrado }));
+
+      const decryptedTesoros = isEncryptedMode
+        ? await Promise.all(
+            filteredTesoros.map(async (t) => {
+              try {
+                const plainName = await decryptName(t.nombre_cifrado, t.iv);
+                return { ...t, plainName };
+              } catch {
+                return { ...t, plainName: 'Tesoro Cifrado' };
+              }
+            })
+          )
+        : filteredTesoros.map((t) => ({ ...t, plainName: t.nombre_cifrado }));
+
+      const decryptedAll = isEncryptedMode
+        ? await Promise.all(
+            filteredAll.map(async (b) => {
+              try {
+                const plainName = await decryptName(b.nombre_cifrado, b.iv);
+                return { ...b, plainName };
+              } catch {
+                return { ...b, plainName: 'Elemento Cifrado' };
+              }
+            })
+          )
+        : filteredAll.map((b) => ({ ...b, plainName: b.nombre_cifrado }));
 
       setBaules(decryptedBaules);
       setTesoros(decryptedTesoros);
       setAllBaulesList(decryptedAll);
     } catch (err) {
-      console.error('Error al cargar contenido del baúl:', err);
-      addToast('Error al cargar elementos del baúl', 'error');
+      console.error('Error al cargar contenido:', err);
+      addToast('Error al cargar elementos', 'error');
     } finally {
       setLoading(false);
     }
-  }, [currentBaulId, decryptName]);
+  }, [currentBaulId, decryptName, isEncryptedMode]);
 
   useEffect(() => {
     loadVaultContent();
@@ -319,18 +361,29 @@ export default function VaultExplorer({ onLogout }) {
 
     setActionLoading(true);
     try {
-      const { nombre_cifrado, iv } = await encryptName(inputValue.trim());
-      await api.createBaul({
-        nombre_cifrado,
-        iv,
-        baul_padre_id: currentBaulId
-      });
-      addToast(`Baúl "${inputValue.trim()}" creado y cifrado`);
+      if (isEncryptedMode) {
+        const { nombre_cifrado, iv } = await encryptName(inputValue.trim());
+        await api.createBaul({
+          nombre_cifrado,
+          iv,
+          es_cifrado: true,
+          baul_padre_id: currentBaulId
+        });
+        addToast(`Baúl secreto "${inputValue.trim()}" creado y blindado`);
+      } else {
+        await api.createBaul({
+          nombre_cifrado: inputValue.trim(),
+          iv: null,
+          es_cifrado: false,
+          baul_padre_id: currentBaulId
+        });
+        addToast(`Carpeta "${inputValue.trim()}" creada`);
+      }
       setModalMode(null);
       await loadVaultContent();
     } catch (err) {
-      console.error('Error al crear baúl:', err);
-      addToast('No se pudo crear el baúl', 'error');
+      console.error('Error al crear carpeta:', err);
+      addToast('No se pudo crear la carpeta', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -356,67 +409,127 @@ export default function VaultExplorer({ onLogout }) {
 
     const formattedSize = formatBytes(file.size);
     setActionLoading(true);
-    setUploadProgress({
-      isOpen: true,
-      fileName: file.name,
-      fileSize: formattedSize,
-      stage: 'encrypting',
-      statusMessage: 'Cifrando bytes con AES-GCM (256 bits) en memoria RAM...'
-    });
 
-    try {
-      addToast(`Cifrando "${file.name}" con AES-GCM 256 bits...`, 'info');
-
-      const { encryptedBuffer, iv: fileIv } = await encryptFileBlob(file);
-      const { nombre_cifrado, iv: nameIv } = await encryptName(file.name);
-
-      setUploadProgress((prev) => ({
-        ...prev,
-        stage: 'uploading',
-        statusMessage: isGoogleConnected && googleAccessToken
-          ? "Subiendo blob cifrado (.enc) a Google Drive..."
-          : "Guardando en almacenamiento local simulado..."
-      }));
-
-      let drive_file_id;
-      if (isGoogleConnected && googleAccessToken) {
-        addToast(`Subiendo a carpeta 'Baúl Mágico - Datos Cifrados' en Google Drive...`, 'info');
-        const driveRes = await uploadEncryptedFileToDrive({
-          encryptedBuffer,
-          fileIv,
-          accessToken: googleAccessToken,
-        });
-        drive_file_id = driveRes.drive_file_id;
-      } else {
-        const mockRes = await api.uploadDriveMock(encryptedBuffer, fileIv);
-        drive_file_id = mockRes.drive_file_id;
-      }
-
-      setUploadProgress((prev) => ({
-        ...prev,
-        stage: 'saving',
-        statusMessage: 'Registrando metadatos blindados en el Baúl...'
-      }));
-
-      await api.createTesoro({
-        baul_id: currentBaulId,
-        drive_file_id,
-        nombre_cifrado,
-        iv: nameIv,
-        tamano_bytes: file.size,
-        tipo_mime: file.type || 'application/octet-stream'
+    if (isEncryptedMode) {
+      setUploadProgress({
+        isOpen: true,
+        fileName: file.name,
+        fileSize: formattedSize,
+        stage: 'encrypting',
+        statusMessage: 'Cifrando bytes con AES-GCM (256 bits) en memoria RAM...'
       });
 
-      addToast(`Tesoro "${file.name}" blindado y guardado`);
-      await loadVaultContent();
-    } catch (err) {
-      console.error('Error al subir archivo:', err);
-      addToast(err.message || 'Error al cifrar y subir el archivo', 'error');
-    } finally {
-      setActionLoading(false);
-      setUploadProgress((prev) => ({ ...prev, isOpen: false }));
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      try {
+        addToast(`Cifrando "${file.name}" con AES-GCM 256 bits...`, 'info');
+
+        const { encryptedBuffer, iv: fileIv } = await encryptFileBlob(file);
+        const { nombre_cifrado, iv: nameIv } = await encryptName(file.name);
+
+        setUploadProgress((prev) => ({
+          ...prev,
+          stage: 'uploading',
+          statusMessage: isGoogleConnected && googleAccessToken
+            ? "Subiendo blob cifrado (.enc) a Google Drive..."
+            : "Guardando en almacenamiento local simulado..."
+        }));
+
+        let drive_file_id;
+        if (isGoogleConnected && googleAccessToken) {
+          addToast(`Subiendo a carpeta 'Baúl Mágico - Datos Cifrados' en Google Drive...`, 'info');
+          const driveRes = await uploadEncryptedFileToDrive({
+            encryptedBuffer,
+            fileIv,
+            accessToken: googleAccessToken,
+          });
+          drive_file_id = driveRes.drive_file_id;
+        } else {
+          const mockRes = await api.uploadDriveMock(encryptedBuffer, fileIv, true);
+          drive_file_id = mockRes.drive_file_id;
+        }
+
+        setUploadProgress((prev) => ({
+          ...prev,
+          stage: 'saving',
+          statusMessage: 'Registrando metadatos blindados en el Baúl Secreto...'
+        }));
+
+        await api.createTesoro({
+          baul_id: currentBaulId,
+          drive_file_id,
+          nombre_cifrado,
+          iv: nameIv,
+          es_cifrado: true,
+          tamano_bytes: file.size,
+          tipo_mime: file.type || 'application/octet-stream'
+        });
+
+        addToast(`Tesoro "${file.name}" blindado y guardado`);
+        await loadVaultContent();
+      } catch (err) {
+        console.error('Error al subir archivo cifrado:', err);
+        addToast(err.message || 'Error al cifrar y subir el archivo', 'error');
+      } finally {
+        setActionLoading(false);
+        setUploadProgress((prev) => ({ ...prev, isOpen: false }));
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    } else {
+      // MODO LIBRE: Subida directa sin cifrado
+      setUploadProgress({
+        isOpen: true,
+        fileName: file.name,
+        fileSize: formattedSize,
+        stage: 'uploading',
+        statusMessage: isGoogleConnected && googleAccessToken
+          ? "Subiendo archivo a 'Baúl Mágico - Mis Archivos' en Google Drive..."
+          : "Guardando en almacenamiento local simulado..."
+      });
+
+      try {
+        addToast(`Subiendo "${file.name}" a Mis Archivos...`, 'info');
+
+        let drive_file_id;
+        if (isGoogleConnected && googleAccessToken) {
+          const driveRes = await uploadPlainFileToDrive({
+            file,
+            accessToken: googleAccessToken,
+          });
+          drive_file_id = driveRes.drive_file_id;
+        } else {
+          const fileBuffer = await file.arrayBuffer();
+          const mockRes = await api.uploadDriveMock(fileBuffer, null, false);
+          drive_file_id = mockRes.drive_file_id;
+        }
+
+        setUploadProgress((prev) => ({
+          ...prev,
+          stage: 'saving',
+          statusMessage: 'Registrando archivo en Mis Archivos...'
+        }));
+
+        await api.createTesoro({
+          baul_id: currentBaulId,
+          drive_file_id,
+          nombre_cifrado: file.name,
+          iv: null,
+          es_cifrado: false,
+          tamano_bytes: file.size,
+          tipo_mime: file.type || 'application/octet-stream'
+        });
+
+        addToast(`Archivo "${file.name}" guardado exitosamente`);
+        await loadVaultContent();
+      } catch (err) {
+        console.error('Error al subir archivo en Modo Libre:', err);
+        addToast(err.message || 'Error al subir el archivo', 'error');
+      } finally {
+        setActionLoading(false);
+        setUploadProgress((prev) => ({ ...prev, isOpen: false }));
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
     }
   };
@@ -431,34 +544,44 @@ export default function VaultExplorer({ onLogout }) {
   const handleDownloadTesoro = async (tesoro) => {
     setActionLoading(true);
     try {
-      addToast(`Descifrando "${tesoro.plainName}" en RAM...`, 'info');
+      const isEncrypted = tesoro.es_cifrado === true || (tesoro.es_cifrado !== false && Boolean(tesoro.iv && tesoro.iv.trim()));
+      addToast(isEncrypted ? `Descifrando "${tesoro.plainName}" en RAM...` : `Descargando "${tesoro.plainName}"...`, 'info');
 
       let buffer;
       let fileIv;
 
       if (tesoro.drive_file_id.startsWith('gdrive-mock-')) {
         const driveRecord = await api.downloadDriveMock(tesoro.drive_file_id);
-        buffer = driveRecord.encryptedBuffer || driveRecord;
+        buffer = driveRecord.encryptedBuffer || driveRecord.buffer || driveRecord;
         fileIv = driveRecord.fileIv || tesoro.iv;
       } else {
         if (!isGoogleConnected || !googleAccessToken) {
-          addToast('Debes conectar tu Google Drive para descargar este tesoro', 'error');
+          addToast('Debes conectar tu Google Drive para descargar este archivo', 'error');
           return;
         }
-        addToast(`Descargando blob cifrado desde Google Drive...`, 'info');
-        const driveRecord = await downloadEncryptedFileFromDrive({
-          driveFileId: tesoro.drive_file_id,
-          accessToken: googleAccessToken,
-          fallbackIv: tesoro.iv,
-        });
-        buffer = driveRecord.encryptedBuffer;
-        fileIv = driveRecord.fileIv || tesoro.iv;
+        if (isEncrypted) {
+          addToast(`Descargando blob cifrado desde Google Drive...`, 'info');
+          const driveRecord = await downloadEncryptedFileFromDrive({
+            driveFileId: tesoro.drive_file_id,
+            accessToken: googleAccessToken,
+            fallbackIv: tesoro.iv,
+          });
+          buffer = driveRecord.encryptedBuffer;
+          fileIv = driveRecord.fileIv || tesoro.iv;
+        } else {
+          addToast(`Descargando archivo desde Google Drive...`, 'info');
+          buffer = await downloadPlainFileFromDrive({
+            driveFileId: tesoro.drive_file_id,
+            accessToken: googleAccessToken,
+          });
+        }
       }
 
+      const finalArrayBuffer = isEncrypted
+        ? await decryptFileBlob(buffer, fileIv)
+        : buffer;
 
-      const decryptedArrayBuffer = await decryptFileBlob(buffer, fileIv);
-
-      const blob = new Blob([decryptedArrayBuffer], { type: tesoro.tipo_mime || 'application/octet-stream' });
+      const blob = new Blob([finalArrayBuffer], { type: tesoro.tipo_mime || 'application/octet-stream' });
       const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
@@ -470,8 +593,8 @@ export default function VaultExplorer({ onLogout }) {
 
       addToast(`"${tesoro.plainName}" descargado intacto.`);
     } catch (err) {
-      console.error('Error al descargar/descifrar tesoro:', err);
-      addToast('No se pudo descifrar el archivo.', 'error');
+      console.error('Error al descargar archivo:', err);
+      addToast('No se pudo descargar el archivo.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -490,14 +613,22 @@ export default function VaultExplorer({ onLogout }) {
 
     setActionLoading(true);
     try {
-      const { nombre_cifrado, iv } = await encryptName(inputValue.trim());
+      const isEncrypted = activeItem.item.es_cifrado !== false;
+      let payload;
+
+      if (isEncrypted) {
+        const { nombre_cifrado, iv } = await encryptName(inputValue.trim());
+        payload = { nombre_cifrado, iv };
+      } else {
+        payload = { nombre_cifrado: inputValue.trim(), iv: null };
+      }
 
       if (activeItem.type === 'baul') {
-        await api.updateBaul(activeItem.item.id, { nombre_cifrado, iv });
-        addToast(`Baúl renombrado a "${inputValue.trim()}"`);
+        await api.updateBaul(activeItem.item.id, payload);
+        addToast(`Carpeta renombrada a "${inputValue.trim()}"`);
       } else {
-        await api.updateTesoro(activeItem.item.id, { nombre_cifrado, iv });
-        addToast(`Tesoro renombrado a "${inputValue.trim()}"`);
+        await api.updateTesoro(activeItem.item.id, payload);
+        addToast(`Archivo renombrado a "${inputValue.trim()}"`);
       }
 
       setModalMode(null);
@@ -671,17 +802,17 @@ export default function VaultExplorer({ onLogout }) {
           })}
         </nav>
 
-        {/* Botones de Acción en la misma sección de Raíz del Baúl */}
+        {/* Botones de Acción en la barra de herramientas */}
         <div className="toolbar-actions">
           <button
             type="button"
             className="btn-action btn-new-folder"
             onClick={handleOpenCreateFolder}
             disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
-            title="Crear un nuevo baúl virtual"
+            title={isEncryptedMode ? "Crear un nuevo baúl virtual blindado" : "Crear una nueva carpeta"}
           >
             <span>📁+</span>
-            <span>Nuevo Baúl</span>
+            <span>{isEncryptedMode ? "Nuevo Baúl" : "Nueva Carpeta"}</span>
           </button>
 
           <button
@@ -689,10 +820,10 @@ export default function VaultExplorer({ onLogout }) {
             className="btn-action btn-upload"
             onClick={handleTriggerUpload}
             disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
-            title="Subir y cifrar un archivo con AES-GCM 256 bits"
+            title={isEncryptedMode ? "Subir y cifrar un archivo con AES-GCM 256 bits" : "Subir un archivo a Google Drive"}
           >
             <span>⬆️</span>
-            <span>Subir Tesoro</span>
+            <span>{isEncryptedMode ? "Subir Tesoro" : "Subir Archivo"}</span>
           </button>
 
           <input
@@ -710,7 +841,7 @@ export default function VaultExplorer({ onLogout }) {
         {loading ? (
           <div className="vault-loading-state">
             <span className="spinner-dot"></span>
-            <p>Descifrando metadatos en tu navegador...</p>
+            <p>{isEncryptedMode ? "Descifrando metadatos en tu navegador..." : "Cargando tus archivos..."}</p>
           </div>
         ) : baules.length === 0 && tesoros.length === 0 ? (
           <div className="vault-empty-state">
@@ -722,7 +853,11 @@ export default function VaultExplorer({ onLogout }) {
               />
               <div className="empty-pixel-glow"></div>
             </div>
-            <p className="empty-pixel-hint">Tu baúl está vacío y protegido con Conocimiento Cero</p>
+            <p className="empty-pixel-hint">
+              {isEncryptedMode
+                ? "Tu baúl secreto está vacío y blindado con Conocimiento Cero"
+                : "No tienes archivos en esta carpeta de Google Drive"}
+            </p>
           </div>
         ) : (
           <div className="explorer-grid">
@@ -870,7 +1005,7 @@ export default function VaultExplorer({ onLogout }) {
                           }}
                         >
                           <span className="dropdown-icon">⬇️</span>
-                          <span>Descargar descifrado</span>
+                          <span>{isEncryptedMode ? "Descargar descifrado" : "Descargar archivo"}</span>
                         </button>
                         <button
                           type="button"

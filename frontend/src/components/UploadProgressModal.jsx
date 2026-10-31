@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 /**
  * Modal y Overlay bloqueante durante el proceso de Cifrado y Subida de Tesoros.

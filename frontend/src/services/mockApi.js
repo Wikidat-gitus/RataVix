@@ -69,23 +69,30 @@ export const mockApi = {
   },
 
   // 2. Baúles (Carpetas)
-  async getBaules(baulPadreId = null) {
-    return mockBaules.filter(b => b.baul_padre_id === (baulPadreId || null));
+  async getBaules(baulPadreId = null, esCifrado = null) {
+    return mockBaules.filter(b => {
+      const matchPadre = b.baul_padre_id === (baulPadreId || null);
+      if (esCifrado === null || esCifrado === undefined) return matchPadre;
+      const bCifrado = b.es_cifrado !== false;
+      return matchPadre && bCifrado === Boolean(esCifrado);
+    });
   },
 
-  async getAllBaules() {
-    return [...mockBaules];
+  async getAllBaules(esCifrado = null) {
+    if (esCifrado === null || esCifrado === undefined) return [...mockBaules];
+    return mockBaules.filter(b => (b.es_cifrado !== false) === Boolean(esCifrado));
   },
 
   async getBaulById(id) {
     return mockBaules.find(b => b.id === id) || null;
   },
 
-  async createBaul({ nombre_cifrado, iv, baul_padre_id = null }) {
+  async createBaul({ nombre_cifrado, iv = null, es_cifrado = true, baul_padre_id = null }) {
     const nuevoBaul = {
       id: `baul-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       nombre_cifrado,
-      iv,
+      iv: iv || '',
+      es_cifrado: Boolean(es_cifrado),
       baul_padre_id: baul_padre_id || null,
       creado_en: new Date().toISOString()
     };
@@ -130,17 +137,23 @@ export const mockApi = {
   },
 
   // 3. Tesoros (Archivos)
-  async getTesoros(baulId) {
-    return mockTesoros.filter(t => t.baul_id === (baulId || null));
+  async getTesoros(baulId, esCifrado = null) {
+    return mockTesoros.filter(t => {
+      const matchBaul = t.baul_id === (baulId || null);
+      if (esCifrado === null || esCifrado === undefined) return matchBaul;
+      const tCifrado = t.es_cifrado !== false;
+      return matchBaul && tCifrado === Boolean(esCifrado);
+    });
   },
 
-  async createTesoro({ baul_id, drive_file_id, nombre_cifrado, iv, tamano_bytes, tipo_mime }) {
+  async createTesoro({ baul_id, drive_file_id, nombre_cifrado, iv = null, es_cifrado = true, tamano_bytes, tipo_mime }) {
     const nuevoTesoro = {
       id: `tesoro-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       baul_id: baul_id || null,
       drive_file_id,
       nombre_cifrado,
-      iv,
+      iv: iv || '',
+      es_cifrado: Boolean(es_cifrado),
       tamano_bytes,
       tipo_mime: tipo_mime || 'application/octet-stream',
       creado_en: new Date().toISOString()

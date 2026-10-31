@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Módulo Criptográfico AES-GCM (256 bits)
  * Cifrado y descifrado autenticado de textos y binarios en cliente
  */

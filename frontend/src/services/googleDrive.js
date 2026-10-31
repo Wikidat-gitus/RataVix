@@ -15,7 +15,9 @@ const DRIVE_API_URL = 'https://www.googleapis.com/drive/v3/files';
 const DRIVE_UPLOAD_URL = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
 const IV_LENGTH_BYTES = 12;
 
+const FREE_FOLDER_NAME = 'Baúl Mágico - Mis Archivos';
 let cachedFolderId = null;
+let cachedFreeFolderId = null;
 
 /**
  * Obtiene o crea automáticamente la carpeta contenedora en Google Drive
@@ -62,6 +64,51 @@ export async function getOrCreateVaultFolder(accessToken) {
   const createdFolder = await createRes.json();
   cachedFolderId = createdFolder.id;
   return cachedFolderId;
+}
+
+/**
+ * Obtiene o crea automáticamente la carpeta de Modo Libre en Google Drive
+ */
+export async function getOrCreateFreeFolder(accessToken) {
+  if (cachedFreeFolderId) return cachedFreeFolderId;
+
+  const query = encodeURIComponent(`name = '${FREE_FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
+  const searchRes = await fetch(`${DRIVE_API_URL}?q=${query}&fields=files(id,name)`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!searchRes.ok) {
+    const errorData = await searchRes.json().catch(() => ({}));
+    throw new Error(`Error al buscar carpeta libre en Drive: ${errorData.error?.message || searchRes.statusText}`);
+  }
+
+  const data = await searchRes.json();
+  if (data.files && data.files.length > 0) {
+    cachedFreeFolderId = data.files[0].id;
+    return cachedFreeFolderId;
+  }
+
+  const createRes = await fetch(DRIVE_API_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: FREE_FOLDER_NAME,
+      mimeType: 'application/vnd.google-apps.folder',
+      description: 'Carpeta de archivos estándar de Baúl Mágico 2 (Modo Libre).',
+    }),
+  });
+
+  if (!createRes.ok) {
+    const errorData = await createRes.json().catch(() => ({}));
+    throw new Error(`Error al crear carpeta libre en Drive: ${errorData.error?.message || createRes.statusText}`);
+  }
+
+  const createdFolder = await createRes.json();
+  cachedFreeFolderId = createdFolder.id;
+  return cachedFreeFolderId;
 }
 
 /**
@@ -119,6 +166,76 @@ export async function uploadEncryptedFileToDrive({ encryptedBuffer, fileIv, acce
 
   const result = await response.json();
   return { drive_file_id: result.id };
+}
+
+/**
+ * Sube un archivo binario sin cifrar directamente a Google Drive en la carpeta de Modo Libre
+ */
+export async function uploadPlainFileToDrive({ file, accessToken }) {
+  if (!accessToken) {
+    throw new Error('Token de Google Drive no disponible. Por favor conecta tu cuenta de Google.');
+  }
+
+  const folderId = await getOrCreateFreeFolder(accessToken);
+  const boundary = `-------BaulMagicoLibre${Date.now()}`;
+  const metadata = JSON.stringify({
+    name: file.name,
+    parents: [folderId],
+    mimeType: file.type || 'application/octet-stream',
+    description: 'Archivo estándar de Baúl Mágico 2 (Modo Libre).',
+  });
+
+  const fileBuffer = await file.arrayBuffer();
+  const bodyParts = [
+    `--${boundary}\r\n`,
+    'Content-Type: application/json; charset=UTF-8\r\n\r\n',
+    metadata,
+    `\r\n--${boundary}\r\n`,
+    `Content-Type: ${file.type || 'application/octet-stream'}\r\n\r\n`,
+    new Uint8Array(fileBuffer),
+    `\r\n--${boundary}--`,
+  ];
+
+  const multipartBlob = new Blob(bodyParts);
+
+  const response = await fetch(DRIVE_UPLOAD_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': `multipart/related; boundary=${boundary}`,
+    },
+    body: multipartBlob,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(`Error al subir a Google Drive (Modo Libre): ${errorData.error?.message || response.statusText}`);
+  }
+
+  const result = await response.json();
+  return { drive_file_id: result.id };
+}
+
+/**
+ * Descarga un archivo directamente desde Google Drive sin procesamiento criptográfico (Modo Libre)
+ */
+export async function downloadPlainFileFromDrive({ driveFileId, accessToken }) {
+  if (!accessToken) {
+    throw new Error('Token de Google Drive no disponible.');
+  }
+
+  const response = await fetch(`${DRIVE_API_URL}/${encodeURIComponent(driveFileId)}?alt=media`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(`Error al descargar de Google Drive: ${errorData.error?.message || response.statusText}`);
+  }
+
+  return await response.arrayBuffer();
 }
 
 /**

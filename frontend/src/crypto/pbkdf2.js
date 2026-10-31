@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Módulo de Derivación de Clave Maestra (PBKDF2)
  * Arquitectura Zero-Knowledge: La contraseña nunca se transmite ni almacena.
  */

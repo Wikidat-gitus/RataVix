@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
-import { downloadEncryptedFileFromDrive } from '../services/googleDrive';
+import { downloadEncryptedFileFromDrive, downloadPlainFileFromDrive } from '../services/googleDrive';
 import { api } from '../services/api';
 import { getFileCategory } from '../utils/fileTypes';
 
@@ -18,6 +18,7 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
   const videoRef = useRef(null);
 
   const category = getFileCategory(tesoro.plainName, tesoro.tipo_mime);
+  const isEncrypted = tesoro.es_cifrado === true || (tesoro.es_cifrado !== false && Boolean(tesoro.iv && tesoro.iv.trim()));
 
   useEffect(() => {
     let activeUrl = null;
@@ -26,36 +27,42 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
       setLoading(true);
       setError(null);
       try {
-        // 1. Obtener buffer cifrado y vector de inicialización desde el almacenamiento persistente de Drive
         let buffer;
         let fileIv;
 
         if (tesoro.drive_file_id.startsWith('gdrive-mock-')) {
           const driveRecord = await api.downloadDriveMock(tesoro.drive_file_id);
-          buffer = driveRecord.encryptedBuffer || driveRecord;
+          buffer = driveRecord.encryptedBuffer || driveRecord.buffer || driveRecord;
           fileIv = driveRecord.fileIv || tesoro.iv;
         } else {
           if (!isGoogleConnected || !googleAccessToken) {
             throw new Error('Debes conectar tu cuenta de Google Drive para visualizar este archivo.');
           }
-          const driveRecord = await downloadEncryptedFileFromDrive({
-            driveFileId: tesoro.drive_file_id,
-            accessToken: googleAccessToken,
-            fallbackIv: tesoro.iv,
-          });
-          buffer = driveRecord.encryptedBuffer;
-          fileIv = driveRecord.fileIv || tesoro.iv;
+          if (isEncrypted) {
+            const driveRecord = await downloadEncryptedFileFromDrive({
+              driveFileId: tesoro.drive_file_id,
+              accessToken: googleAccessToken,
+              fallbackIv: tesoro.iv,
+            });
+            buffer = driveRecord.encryptedBuffer;
+            fileIv = driveRecord.fileIv || tesoro.iv;
+          } else {
+            buffer = await downloadPlainFileFromDrive({
+              driveFileId: tesoro.drive_file_id,
+              accessToken: googleAccessToken,
+            });
+          }
         }
 
-
-
-        // 2. Descifrar en memoria RAM del navegador
-        const decryptedArrayBuffer = await decryptFileBlob(buffer, fileIv);
+        // Descifrar solo si el archivo es cifrado
+        const finalBuffer = isEncrypted
+          ? await decryptFileBlob(buffer, fileIv)
+          : buffer;
 
         // 3. Procesar según la categoría
         if (category.type === 'text') {
           const decoder = new TextDecoder('utf-8');
-          const text = decoder.decode(decryptedArrayBuffer);
+          const text = decoder.decode(finalBuffer);
           setTextContent(text);
         } else {
           // Generar Blob con el tipo MIME adecuado
@@ -66,7 +73,7 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
             else if (category.type === 'audio') mime = 'audio/mpeg';
             else if (category.type === 'video') mime = 'video/mp4';
           }
-          const blob = new Blob([decryptedArrayBuffer], { type: mime });
+          const blob = new Blob([finalBuffer], { type: mime });
           activeUrl = URL.createObjectURL(blob);
           setBlobUrl(activeUrl);
         }

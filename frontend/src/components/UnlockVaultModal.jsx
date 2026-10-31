@@ -6,6 +6,7 @@ import { api } from '../services/api';
 export default function UnlockVaultModal({
   onLogout,
   onForgotPassword,
+  onBackToFreeMode,
   isLocalMock,
   showDevTools = false,
 }) {
@@ -121,6 +122,17 @@ export default function UnlockVaultModal({
               </>
             )}
           </button>
+
+          {onBackToFreeMode && (
+            <button
+              type="button"
+              className="btn-back-free-mode"
+              onClick={onBackToFreeMode}
+              disabled={unlocking}
+            >
+              ← Volver a Modo Libre (Sin Clave)
+            </button>
+          )}
         </form>
 
         {/* Enlace para restablecimiento de emergencia en caso de olvido */}

@@ -140,13 +140,18 @@ export const api = {
   },
 
   // --- 2. Baúles (Carpetas Virtuales) ---
-  async getBaules(baulPadreId = null) {
-    const query = baulPadreId ? `?baul_padre_id=${encodeURIComponent(baulPadreId)}` : '';
+  async getBaules(baulPadreId = null, esCifrado = null) {
+    const params = new URLSearchParams();
+    if (baulPadreId) params.append('baul_padre_id', baulPadreId);
+    if (esCifrado !== null && esCifrado !== undefined) params.append('es_cifrado', String(esCifrado));
+    const query = params.toString() ? `?${params.toString()}` : '';
     return this.request(`/baules${query}`, { method: 'GET' });
   },
 
-  async getAllBaules() {
-    return this.request('/baules?todos=true', { method: 'GET' });
+  async getAllBaules(esCifrado = null) {
+    const params = new URLSearchParams({ todos: 'true' });
+    if (esCifrado !== null && esCifrado !== undefined) params.append('es_cifrado', String(esCifrado));
+    return this.request(`/baules?${params.toString()}`, { method: 'GET' });
   },
 
   async getBaulById(id) {
@@ -154,12 +159,13 @@ export const api = {
     return todos.find((b) => b.id === id) || null;
   },
 
-  async createBaul({ nombre_cifrado, iv, baul_padre_id = null }) {
+  async createBaul({ nombre_cifrado, iv = null, es_cifrado = true, baul_padre_id = null }) {
     return this.request('/baules', {
       method: 'POST',
       body: {
         nombre_cifrado,
-        iv,
+        iv: iv || '',
+        es_cifrado: Boolean(es_cifrado),
         baul_padre_id: baul_padre_id || null,
       },
     });
@@ -179,21 +185,25 @@ export const api = {
   },
 
   // --- 3. Tesoros (Metadatos de Archivos Virtuales) ---
-  async getTesoros(baulId = null) {
-    const query = baulId ? `?baul_id=${encodeURIComponent(baulId)}` : '';
+  async getTesoros(baulId = null, esCifrado = null) {
+    const params = new URLSearchParams();
+    if (baulId) params.append('baul_id', baulId);
+    if (esCifrado !== null && esCifrado !== undefined) params.append('es_cifrado', String(esCifrado));
+    const query = params.toString() ? `?${params.toString()}` : '';
     return this.request(`/tesoros${query}`, {
       method: 'GET',
     });
   },
 
-  async createTesoro({ baul_id, drive_file_id, nombre_cifrado, iv, tamano_bytes, tipo_mime }) {
+  async createTesoro({ baul_id, drive_file_id, nombre_cifrado, iv = null, es_cifrado = true, tamano_bytes, tipo_mime }) {
     return this.request('/tesoros', {
       method: 'POST',
       body: {
         baul_id: baul_id || null,
         drive_file_id,
         nombre_cifrado,
-        iv,
+        iv: iv || '',
+        es_cifrado: Boolean(es_cifrado),
         tamano_bytes,
         tipo_mime: tipo_mime || 'application/octet-stream',
       },

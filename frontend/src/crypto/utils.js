@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Utilidades de conversión y generación criptográfica
  * Web Crypto API nativa
  */

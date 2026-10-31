@@ -4,9 +4,11 @@
 
 ---
 
-## 🔒 Regla de Oro: Arquitectura de Conocimiento Cero (Zero-Knowledge)
-1. El backend **nunca** recibe texto plano de nombres de baúles o tesoros.
-2. El backend **nunca** recibe la contraseña maestra del usuario.
+## 🔒 Regla de Oro y Modos de Operación (Modo Libre vs. Modo Secreto)
+1. **Arquitectura Dual:**
+   * **Modo Libre (`es_cifrado = false`):** Gestión ágil de archivos cotidianos sin contraseña maestra. Nombres en texto plano, archivos regulares en Google Drive y cero fricción de acceso.
+   * **Modo Secreto (`es_cifrado = true`):** Arquitectura Zero-Knowledge estricta. Cifrado AES-GCM (256 bits) en RAM del cliente con clave maestra, nombres e IVs cifrados, y almacenamiento en Google Drive como blobs `.enc`.
+2. En **Modo Secreto**, el backend **nunca** recibe texto plano de nombres de baúles o tesoros ni la contraseña maestra.
 3. El backend almacena punteros a Google Drive (`drive_file_id`), pero nunca el contenido ni la clave para descifrarlo.
 4. El backend gestiona el refresco de tokens OAuth para Google Drive.
 5. El backend almacena el `salt_cifrado` y el `canary_cifrado` (con su IV) para la verificación de clave en el cliente, pero nunca la clave en sí.
@@ -77,14 +79,18 @@
 
 ### 2. Baúles (Carpetas Virtuales)
 * **`GET /api/baules`**
-  * **Query params:** `?baul_padre_id={uuid}` (opcional, para subcarpetas; omitir para baúles raíz) o `?todos=true` (para listar todo el árbol del usuario).
+  * **Query params:** 
+    * `?es_cifrado=true|false` (opcional; por defecto `true` para Modo Secreto, `false` para Modo Libre).
+    * `?baul_padre_id={uuid}` (opcional, para subcarpetas; omitir para baúles raíz).
+    * `?todos=true` (opcional, para listar todo el árbol del usuario en el modo correspondiente).
   * **Backend responde:**
     ```json
     [
       {
         "id": "uuid",
-        "nombre_cifrado": "base64_string",
-        "iv": "base64_string",
+        "nombre_cifrado": "base64_string (o texto plano si es_cifrado es false)",
+        "iv": "base64_string o null",
+        "es_cifrado": true,
         "baul_padre_id": null,
         "creado_en": "ISO8601"
       }
@@ -94,8 +100,9 @@
   * **Frontend envía:**
     ```json
     {
-      "nombre_cifrado": "base64_string",
-      "iv": "base64_string",
+      "nombre_cifrado": "base64_string (o texto plano si es_cifrado es false)",
+      "iv": "base64_string o null",
+      "es_cifrado": true,
       "baul_padre_id": "uuid o null"
     }
     ```
@@ -106,7 +113,7 @@
     ```json
     {
       "nombre_cifrado": "base64_string",
-      "iv": "base64_string",
+      "iv": "base64_string o null",
       "baul_padre_id": "uuid o null"
     }
     ```
@@ -124,9 +131,11 @@
 
 ---
 
-### 3. Tesoros (Metadatos de Archivos Cifrados en Google Drive)
+### 3. Tesoros (Metadatos de Archivos en Google Drive)
 * **`GET /api/tesoros`**
-  * **Query params:** `?baul_id={uuid}`
+  * **Query params:** 
+    * `?es_cifrado=true|false` (opcional; por defecto `true` para Modo Secreto, `false` para Modo Libre).
+    * `?baul_id={uuid}` (opcional).
   * **Backend responde:**
     ```json
     [
@@ -134,8 +143,9 @@
         "id": "uuid",
         "baul_id": "uuid",
         "drive_file_id": "string",
-        "nombre_cifrado": "base64_string",
-        "iv": "base64_string",
+        "nombre_cifrado": "base64_string (o texto plano si es_cifrado es false)",
+        "iv": "base64_string o null",
+        "es_cifrado": true,
         "tamano_bytes": 1048576,
         "tipo_mime": "application/octet-stream",
         "creado_en": "ISO8601"
@@ -143,14 +153,15 @@
     ]
     ```
 * **`POST /api/tesoros`**
-  * **Nota:** El archivo binario cifrado se sube directamente desde el navegador a Google Drive. Una vez que Google Drive confirma la subida y entrega el `drive_file_id`, el frontend registra el tesoro en el backend con este endpoint.
+  * **Nota:** En **Modo Secreto**, el archivo binario cifrado (.enc) se sube a Google Drive (`Baúl Mágico - Datos Cifrados`). En **Modo Libre**, el archivo original se sube a Google Drive (`Baúl Mágico - Mis Archivos`). Una vez confirmado en Drive, se registra en el backend.
   * **Frontend envía:**
     ```json
     {
-      "baul_id": "uuid",
+      "baul_id": "uuid o null",
       "drive_file_id": "string",
-      "nombre_cifrado": "base64_string",
-      "iv": "base64_string",
+      "nombre_cifrado": "base64_string (o texto plano si es_cifrado es false)",
+      "iv": "base64_string o null",
+      "es_cifrado": true,
       "tamano_bytes": 1048576,
       "tipo_mime": "application/octet-stream"
     }
