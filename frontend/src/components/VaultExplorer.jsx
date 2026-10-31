@@ -145,9 +145,22 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         api.getAllBaules(isEncryptedMode)
       ]);
 
+      // Aislamiento defensivo en cliente: garantizar separación total entre Modo Libre y Secreto
+      const filteredBaules = isEncryptedMode
+        ? rawBaules.filter(b => b.es_cifrado !== false && Boolean(b.iv && b.iv.trim()))
+        : rawBaules.filter(b => b.es_cifrado === false || !b.iv || !b.iv.trim());
+
+      const filteredTesoros = isEncryptedMode
+        ? rawTesoros.filter(t => t.es_cifrado !== false && Boolean(t.iv && t.iv.trim()))
+        : rawTesoros.filter(t => t.es_cifrado === false || !t.iv || !t.iv.trim());
+
+      const filteredAll = isEncryptedMode
+        ? allAvailable.filter(b => b.es_cifrado !== false && Boolean(b.iv && b.iv.trim()))
+        : allAvailable.filter(b => b.es_cifrado === false || !b.iv || !b.iv.trim());
+
       const decryptedBaules = isEncryptedMode
         ? await Promise.all(
-            rawBaules.map(async (b) => {
+            filteredBaules.map(async (b) => {
               try {
                 const plainName = await decryptName(b.nombre_cifrado, b.iv);
                 return { ...b, plainName };
@@ -156,11 +169,11 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
               }
             })
           )
-        : rawBaules.map((b) => ({ ...b, plainName: b.nombre_cifrado }));
+        : filteredBaules.map((b) => ({ ...b, plainName: b.nombre_cifrado }));
 
       const decryptedTesoros = isEncryptedMode
         ? await Promise.all(
-            rawTesoros.map(async (t) => {
+            filteredTesoros.map(async (t) => {
               try {
                 const plainName = await decryptName(t.nombre_cifrado, t.iv);
                 return { ...t, plainName };
@@ -169,11 +182,11 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
               }
             })
           )
-        : rawTesoros.map((t) => ({ ...t, plainName: t.nombre_cifrado }));
+        : filteredTesoros.map((t) => ({ ...t, plainName: t.nombre_cifrado }));
 
       const decryptedAll = isEncryptedMode
         ? await Promise.all(
-            allAvailable.map(async (b) => {
+            filteredAll.map(async (b) => {
               try {
                 const plainName = await decryptName(b.nombre_cifrado, b.iv);
                 return { ...b, plainName };
@@ -182,7 +195,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
               }
             })
           )
-        : allAvailable.map((b) => ({ ...b, plainName: b.nombre_cifrado }));
+        : filteredAll.map((b) => ({ ...b, plainName: b.nombre_cifrado }));
 
       setBaules(decryptedBaules);
       setTesoros(decryptedTesoros);
@@ -531,7 +544,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
   const handleDownloadTesoro = async (tesoro) => {
     setActionLoading(true);
     try {
-      const isEncrypted = tesoro.es_cifrado !== false;
+      const isEncrypted = tesoro.es_cifrado === true || (tesoro.es_cifrado !== false && Boolean(tesoro.iv && tesoro.iv.trim()));
       addToast(isEncrypted ? `Descifrando "${tesoro.plainName}" en RAM...` : `Descargando "${tesoro.plainName}"...`, 'info');
 
       let buffer;

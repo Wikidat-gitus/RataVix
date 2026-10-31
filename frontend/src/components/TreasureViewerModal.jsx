@@ -18,7 +18,7 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
   const videoRef = useRef(null);
 
   const category = getFileCategory(tesoro.plainName, tesoro.tipo_mime);
-  const isEncrypted = tesoro.es_cifrado !== false;
+  const isEncrypted = tesoro.es_cifrado === true || (tesoro.es_cifrado !== false && Boolean(tesoro.iv && tesoro.iv.trim()));
 
   useEffect(() => {
     let activeUrl = null;
