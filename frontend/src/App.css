@@ -1052,11 +1052,11 @@
   color: #ffffff;
 }
 
-/* Botón de 3 Puntos en la Esquina Superior Derecha (Limpio, sin sombreado circular en reposo) */
+/* Botón de 3 Puntos en la Esquina Superior Derecha del Mosaico */
 .card-menu-container {
   position: absolute;
-  top: -2px;
-  right: -2px;
+  top: 6px;
+  right: 6px;
   z-index: 20;
 }
 
