@@ -2044,46 +2044,99 @@
   margin-bottom: 0.5rem;
 }
 
-.cloud-orb {
-  background: rgba(6, 182, 212, 0.15) !important;
-  border-color: rgba(6, 182, 212, 0.4) !important;
-  box-shadow: 0 0 25px rgba(6, 182, 212, 0.4) !important;
-  animation: pulseOrbCyan 2.5s infinite ease-in-out;
+/* ==========================================================================
+   Pantalla de Inicio de Sesión / Entrada Limpia (GoogleAuthGate)
+   ========================================================================== */
+.auth-gate-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 160px);
+  padding: 2rem 1rem;
 }
 
-.google-action-box {
+.auth-gate-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: fadeInModal 0.25s ease-out;
+}
+
+.auth-gate-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+
+.auth-gate-icon {
+  font-size: 2.2rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  margin-bottom: 1rem;
+}
+
+.auth-gate-header h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.auth-gate-header p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.auth-gate-action {
   width: 100%;
-  margin: 1.25rem 0 0.5rem 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .btn-google-primary {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   width: 100%;
-  padding: 0.85rem 1.5rem;
+  padding: 0.75rem 1.25rem;
   background: #ffffff;
   color: #1f2937;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25), 0 0 20px rgba(66, 133, 244, 0.3);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease;
 }
 
 .btn-google-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.35), 0 0 30px rgba(66, 133, 244, 0.5);
   background: #f8fafc;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
 .btn-google-primary:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
@@ -2092,42 +2145,33 @@
   flex-shrink: 0;
 }
 
-.auth-security-pills {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  width: 100%;
-  margin: 1.25rem 0 0.5rem 0;
-}
-
-.auth-pill-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: rgba(18, 20, 32, 0.6);
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  text-align: left;
-}
-
-.auth-pill-item .pill-icon {
-  font-size: 1.2rem;
-  line-height: 1.2;
-}
-
-.auth-pill-item strong {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--text-main);
-  margin-bottom: 0.2rem;
-}
-
-.auth-pill-item p {
+.auth-gate-footnote {
   font-size: 0.78rem;
+  color: var(--text-subtle);
+  margin-top: 1.5rem;
+  line-height: 1.4;
+}
+
+.auth-gate-dev {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+  width: 100%;
+}
+
+.btn-link-muted {
+  background: transparent;
+  border: none;
   color: var(--text-muted);
-  margin: 0;
-  line-height: 1.35;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.15s;
+}
+
+.btn-link-muted:hover {
+  color: var(--text-main);
+  text-decoration: underline;
 }
 
 /* Chip de Cuenta Conectada en UnlockVaultModal (Paso 2) */

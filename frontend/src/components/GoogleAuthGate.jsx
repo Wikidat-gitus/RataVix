@@ -1,30 +1,27 @@
-﻿import React from 'react';
+import React from 'react';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
 
 /**
- * Puerta de Entrada (Paso 1):
- * Autenticación mediante Google OAuth 2.0 antes de solicitar la clave de cifrado.
+ * Pantalla de Bienvenida / Inicio de Sesión:
+ * Simple, directa, sobria y sin sobrecarga visual.
  */
 export default function GoogleAuthGate({ onContinueLocal, showDevTools = false }) {
   const { connectGoogleDrive, isLoadingAuth, authError } = useGoogleAuth();
 
   return (
-    <div className="unlock-container">
-      <div className="unlock-card google-auth-card">
-        {/* Encabezado con Icono Pulsante de Nube */}
-        <div className="unlock-header">
-          <div className="vault-lock-orb cloud-orb">
-            <span className="lock-icon">☁️</span>
-          </div>
-          <span className="auth-step-pill">Paso 1 de 2 • Acceso a la Nube</span>
-          <h2>Conecta tu Cuenta de Google</h2>
+    <div className="auth-gate-container">
+      <div className="auth-gate-card">
+        {/* Cabecera limpia y directa */}
+        <div className="auth-gate-header">
+          <div className="auth-gate-icon">📦</div>
+          <h2>Bienvenido a Baúl Mágico</h2>
           <p>
-            Baúl Mágico 2 utiliza tu <strong>Google Drive personal</strong> para almacenar tus archivos cifrados bajo tu propiedad absoluta.
+            Almacena, organiza y protege tus archivos en tu propio Google Drive.
           </p>
         </div>
 
-        {/* Botón Principal de Inicio con Google */}
-        <div className="google-action-box">
+        {/* Botón Principal Oficial de Google */}
+        <div className="auth-gate-action">
           <button
             type="button"
             className="btn-google-primary"
@@ -56,61 +53,36 @@ export default function GoogleAuthGate({ onContinueLocal, showDevTools = false }
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span>Iniciar Sesión con Google</span>
+                <span>Continuar con Google</span>
               </>
             )}
           </button>
 
           {authError && (
-            <div className="unlock-error-banner" style={{ marginTop: '1rem' }}>
+            <div className="unlock-error-banner" style={{ marginTop: '0.85rem' }}>
               ⚠️ {authError}
             </div>
           )}
         </div>
 
-        {/* Pilares de Seguridad Zero-Knowledge */}
-        <div className="auth-security-pills">
-          <div className="auth-pill-item">
-            <span className="pill-icon">🛡️</span>
-            <div>
-              <strong>Cero Conocimiento</strong>
-              <p>Tus archivos se cifran en tu navegador con AES-256 antes de viajar a Google.</p>
-            </div>
-          </div>
+        {/* Garantía y Privacidad directa */}
+        <p className="auth-gate-footnote">
+          🔒 Tus archivos se guardan directamente en tu cuenta de Google. Privacidad y control total.
+        </p>
 
-          <div className="auth-pill-item">
-            <span className="pill-icon">🔒</span>
-            <div>
-              <strong>Google no puede ver tus datos</strong>
-              <p>A tu Drive solo llegan archivos inaccesibles (.enc). Google nunca ve tus nombres ni contenidos.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Acceso Alternativo de Modo Local Simulado */}
+        {/* Acceso local de pruebas si aplica */}
         {showDevTools && onContinueLocal && (
-          <div className="dev-shortcut-box" style={{ marginTop: '1.5rem' }}>
-            <span className="dev-badge">Modo de Pruebas</span>
-            <p>¿No quieres vincular Google Drive ahora?</p>
+          <div className="auth-gate-dev">
             <button
               type="button"
-              className="btn-shortcut"
+              className="btn-link-muted"
               onClick={onContinueLocal}
             >
-              💾 Continuar en Modo Simulado (Local)
+              Continuar en modo de pruebas local →
             </button>
           </div>
         )}
-
-        {/* Footer Informativo */}
-        <div className="zk-guarantee-footer">
-          <span className="shield-icon">✨</span>
-          <p>
-            Al autenticarte, accederás al <strong>Paso 2</strong> para desbloquear la bóveda con tu contraseña maestra.
-          </p>
-        </div>
       </div>
     </div>
   );
 }
-
