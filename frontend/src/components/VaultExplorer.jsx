@@ -1140,19 +1140,33 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
           </div>
         ) : baules.length === 0 && tesoros.length === 0 ? (
           <div className="vault-empty-state">
-            <div className="empty-pixel-art-container">
-              <img
-                src={baulPixelArt}
-                alt="Baúl Mágico"
-                className="empty-pixel-art-img"
-              />
-              <div className="empty-pixel-glow"></div>
-            </div>
-            <p className="empty-pixel-hint">
+            <div className="empty-state-icon">📂</div>
+            <h3>{isEncryptedMode ? "Bóveda secreta vacía" : "Esta carpeta está vacía"}</h3>
+            <p className="empty-state-hint">
               {isEncryptedMode
-                ? "Tu baúl secreto está vacío y blindado con Conocimiento Cero"
-                : "No tienes archivos en esta carpeta de Google Drive"}
+                ? "Sube archivos o arrástralos aquí para blindarlos con cifrado AES-256."
+                : "Arrastra archivos aquí desde tu explorador o usa las acciones rápidas."}
             </p>
+            <div className="empty-state-actions">
+              <button
+                type="button"
+                className="btn-action btn-upload"
+                onClick={handleTriggerUpload}
+                disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
+              >
+                <span>⬆️</span>
+                <span>{isEncryptedMode ? "Subir Tesoro" : "Subir Archivo"}</span>
+              </button>
+              <button
+                type="button"
+                className="btn-action btn-new-folder"
+                onClick={handleOpenCreateFolder}
+                disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
+              >
+                <span>📁+</span>
+                <span>{isEncryptedMode ? "Nuevo Baúl" : "Nueva Carpeta"}</span>
+              </button>
+            </div>
           </div>
         ) : (
           <div className="explorer-grid">

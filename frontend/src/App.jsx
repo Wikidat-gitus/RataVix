@@ -237,26 +237,26 @@ function AppContent() {
       {/* Header Principal de la Aplicación */}
       <header className="app-header">
         <div className="brand-badge">
-          <div className="brand-icon">🧙‍♂️</div>
+          <div className="brand-icon">📦</div>
           <div className="brand-text">
-            <h1>Baúl Mágico 2</h1>
-            <p>Almacenamiento Zero-Knowledge en Google Drive</p>
+            <h1>Baúl Mágico</h1>
+            <p>Almacenamiento en Google Drive</p>
           </div>
         </div>
 
         <div className="header-right">
           {isSessionStarted && (
             <>
-              {/* Badge de Cuenta Conectada */}
+              {/* Usuario Conectado */}
               <div
-                className="security-badge unlocked-badge"
-                title="Cuenta autenticada en esta sesión"
+                className="user-account-chip"
+                title="Cuenta activa en esta sesión"
               >
-                <span className="unlocked-pulse"></span>
-                <span>
+                <span className="user-account-dot"></span>
+                <span className="user-account-email">
                   {isGoogleConnected
-                    ? `☁️ ${googleUser?.email || 'Google Drive Conectado'}`
-                                        : '💾 Modo Simulado'}
+                    ? (googleUser?.email || 'Google Drive Conectado')
+                    : 'Modo Local Simulado'}
                 </span>
               </div>
 
@@ -284,35 +284,7 @@ function AppContent() {
                 </div>
               )}
 
-              {/* Badge de Seguridad Dinámico según el Modo Activo */}
-              <div
-                className={`security-badge ${
-                  currentMode === 'libre'
-                    ? 'free-mode-badge'
-                    : isUnlocked
-                    ? 'unlocked-badge'
-                    : 'locked-badge'
-                }`}
-              >
-                <span
-                  className={
-                    currentMode === 'libre'
-                      ? 'free-mode-dot'
-                      : isUnlocked
-                      ? 'unlocked-pulse'
-                      : 'pulse-dot'
-                  }
-                ></span>
-                <span>
-                  {currentMode === 'libre'
-                    ? '🔓 Modo Libre Activo'
-                    : isUnlocked
-                    ? '✨ Modo Secreto (RAM)'
-                    : '🔒 Modo Secreto Bloqueado'}
-                </span>
-              </div>
-
-              {/* ÚNICO BOTÓN: Cerrar Sesión */}
+              {/* Botón Salir / Cerrar Sesión */}
               <button
                 type="button"
                 className="btn-shortcut btn-logout-header"
@@ -346,43 +318,39 @@ function AppContent() {
 
       {/* Contenido Principal */}
       <main className="main-content">
-        {/* Selector de Modo: Modo Libre vs. Modo Secreto (Solo con sesión iniciada) */}
+        {/* Selector de Modo Segmentado Compacto */}
         {isSessionStarted && (activeTab === 'vault' || !isDevMode) && (
-          <div className="mode-selector-container">
-            <div className="mode-selector-pills">
+          <div className="mode-segmented-wrapper">
+            <div className="mode-segmented-control" role="tablist">
               <button
                 type="button"
-                className={`mode-pill-btn ${currentMode === 'libre' ? 'active-libre' : ''} ${dragTargetMode === 'libre' ? 'pill-drop-hover' : ''}`}
+                role="tab"
+                aria-selected={currentMode === 'libre'}
+                className={`segmented-tab ${currentMode === 'libre' ? 'active-libre' : ''} ${dragTargetMode === 'libre' ? 'pill-drop-hover' : ''}`}
                 onClick={() => setCurrentMode('libre')}
                 onDragOver={(e) => handlePillDragOver(e, 'libre')}
                 onDragLeave={(e) => handlePillDragLeave(e, 'libre')}
                 onDrop={(e) => handlePillDrop(e, 'libre')}
-                title={currentMode !== 'libre' ? "Suelta aquí para mover este tesoro a Modo Libre" : undefined}
+                title={currentMode !== 'libre' ? "Suelta aquí para mover este archivo a Modo Libre" : "Archivos cotidianos en Google Drive"}
               >
-                <span className="mode-pill-icon">🔓</span>
-                <div className="mode-pill-info">
-                  <span className="mode-pill-title">Modo Libre</span>
-                  <span className="mode-pill-subtitle">Archivos estándar • Sin clave</span>
-                </div>
+                <span className="tab-icon">🔓</span>
+                <span className="tab-label">Modo Libre</span>
               </button>
 
               <button
                 type="button"
-                className={`mode-pill-btn ${currentMode === 'secreto' ? 'active-secreto' : ''} ${dragTargetMode === 'secreto' ? 'pill-drop-hover pill-drop-hover-secreto' : ''}`}
+                role="tab"
+                aria-selected={currentMode === 'secreto'}
+                className={`segmented-tab ${currentMode === 'secreto' ? 'active-secreto' : ''} ${dragTargetMode === 'secreto' ? 'pill-drop-hover pill-drop-hover-secreto' : ''}`}
                 onClick={() => setCurrentMode('secreto')}
                 onDragOver={(e) => handlePillDragOver(e, 'secreto')}
                 onDragLeave={(e) => handlePillDragLeave(e, 'secreto')}
                 onDrop={(e) => handlePillDrop(e, 'secreto')}
-                title={currentMode !== 'secreto' ? "Suelta aquí para blindar este archivo con Conocimiento Cero" : undefined}
+                title={currentMode !== 'secreto' ? "Suelta aquí para blindar con Cero Conocimiento" : "Bóveda Zero-Knowledge (AES-256)"}
               >
-                <span className="mode-pill-icon">{isUnlocked ? '✨' : '🔒'}</span>
-                <div className="mode-pill-info">
-                  <span className="mode-pill-title">Modo Secreto</span>
-                  <span className="mode-pill-subtitle">
-                    {isUnlocked ? 'Bóveda abierta en RAM' : 'Zero-Knowledge (AES-256)'}
-                  </span>
-                </div>
-                {isUnlocked && <span className="mode-unlocked-dot"></span>}
+                <span className="tab-icon">{isUnlocked ? '🗝️' : '🔒'}</span>
+                <span className="tab-label">Modo Secreto</span>
+                {isUnlocked && <span className="tab-unlocked-dot" title="Bóveda abierta en RAM"></span>}
               </button>
             </div>
           </div>

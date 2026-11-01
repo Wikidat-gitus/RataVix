@@ -44,36 +44,12 @@ export default function UnlockVaultModal({
   return (
     <div className="unlock-container">
       <div className="unlock-card">
-        {/* Encabezado Mágico */}
+        {/* Cabecera Limpia */}
         <div className="unlock-header">
-          <div className="vault-lock-orb">
-            <span className="lock-icon">🔒</span>
-          </div>
-          <span className="auth-step-pill">Paso 2 de 2 • Desbloqueo Zero-Knowledge</span>
-
-          {/* Chip de Identidad Conectada */}
-          <div className="account-connected-chip">
-            <span className="account-dot"></span>
-            <span className="account-email">
-              {isGoogleConnected
-                ? `☁️ ${googleUser?.email || 'Google Drive Conectado'}`
-                : '💾 Modo de Prueba Local'}
-            </span>
-            {onLogout && (
-              <button
-                type="button"
-                className="account-logout-link"
-                onClick={onLogout}
-                title="Cerrar sesión y cambiar de cuenta"
-              >
-                Cerrar sesión
-              </button>
-            )}
-          </div>
-
-          <h2>Desbloquea tu Baúl Mágico</h2>
+          <div className="auth-gate-icon">🔒</div>
+          <h2>Desbloquear Modo Secreto</h2>
           <p>
-            Ingresa tu <strong>Contraseña Maestra</strong> para derivar tu clave criptográfica de 256 bits en memoria volátil (RAM).
+            Ingresa tu contraseña maestra para acceder a tus archivos cifrados.
           </p>
         </div>
 
@@ -162,13 +138,10 @@ export default function UnlockVaultModal({
           </div>
         )}
 
-        {/* Garantía Zero-Knowledge */}
-        <div className="zk-guarantee-footer">
-          <span className="shield-icon">🛡️</span>
-          <p>
-            <strong>Garantía Zero-Knowledge:</strong> Esta clave <em>nunca</em> se guarda en cookies, ni en almacenamiento persistente, ni se envía a internet. Al cerrar o recargar la pestaña, se destruye automáticamente.
-          </p>
-        </div>
+        {/* Garantía Zero-Knowledge Directa */}
+        <p className="auth-gate-footnote">
+          🛡️ Tu clave se procesa en memoria volátil y nunca se envía a ningún servidor.
+        </p>
       </div>
     </div>
   );
