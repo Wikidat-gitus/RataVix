@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import { CryptoProvider, useCrypto } from './context/CryptoContext';
 import { GoogleAuthProvider, useGoogleAuth } from './context/GoogleAuthContext';
@@ -47,6 +47,30 @@ function AppContent() {
 
   // Selector de Modo: 'libre' (por defecto) o 'secreto' (Zero-Knowledge)
   const [currentMode, setCurrentMode] = useState('libre');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
+  // Cerrar menú de perfil al hacer clic fuera o pulsar Escape
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsUserMenuOpen(false);
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isUserMenuOpen]);
 
   const [showResetModal, setShowResetModal] = useState(false);
   const [activeTab, setActiveTab] = useState('vault'); // 'vault' | 'admin' | 'crypto' | 'architecture'
@@ -247,20 +271,7 @@ function AppContent() {
         <div className="header-right">
           {isSessionStarted && (
             <>
-              {/* Usuario Conectado */}
-              <div
-                className="user-account-chip"
-                title="Cuenta activa en esta sesión"
-              >
-                <span className="user-account-dot"></span>
-                <span className="user-account-email">
-                  {isGoogleConnected
-                    ? (googleUser?.email || 'Google Drive Conectado')
-                    : 'Modo Local Simulado'}
-                </span>
-              </div>
-
-              {/* Widget de Cuota de Almacenamiento en Google Drive */}
+              {/* Widget de Almacenamiento al costado del perfil */}
               {isGoogleConnected && storageQuota && (
                 <div
                   className="header-storage-widget"
@@ -284,15 +295,55 @@ function AppContent() {
                 </div>
               )}
 
-              {/* Botón Salir / Cerrar Sesión */}
-              <button
-                type="button"
-                className="btn-shortcut btn-logout-header"
-                onClick={handleLogout}
-                title="Cerrar sesión de forma segura y destruir clave en RAM"
-              >
-                🚪 Cerrar Sesión
-              </button>
+              {/* Icono de Perfil con Menú Desplegable */}
+              <div className="user-profile-menu-container" ref={userMenuRef}>
+                <button
+                  type="button"
+                  className={`user-profile-btn ${isUserMenuOpen ? 'active' : ''}`}
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  aria-expanded={isUserMenuOpen}
+                  title="Cuenta de usuario"
+                >
+                  {googleUser?.picture ? (
+                    <img src={googleUser.picture} alt="Avatar" className="user-profile-avatar-img" />
+                  ) : (
+                    <span className="user-profile-avatar-fallback">
+                      {(googleUser?.name?.[0] || googleUser?.email?.[0] || 'U').toUpperCase()}
+                    </span>
+                  )}
+                  <span className="user-profile-chevron">▾</span>
+                </button>
+
+                {isUserMenuOpen && (
+                  <div className="user-dropdown-menu">
+                    <div className="user-dropdown-header">
+                      <div className="user-dropdown-avatar">
+                        {googleUser?.picture ? (
+                          <img src={googleUser.picture} alt="Avatar" />
+                        ) : (
+                          <span>{(googleUser?.name?.[0] || googleUser?.email?.[0] || 'U').toUpperCase()}</span>
+                        )}
+                      </div>
+                      <div className="user-dropdown-info">
+                        <span className="user-dropdown-name">{googleUser?.name || 'Usuario'}</span>
+                        <span className="user-dropdown-email">{googleUser?.email || 'Modo Local Simulado'}</span>
+                      </div>
+                    </div>
+                    <div className="user-dropdown-divider"></div>
+                    <button
+                      type="button"
+                      className="user-dropdown-item user-dropdown-logout"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        handleLogout();
+                      }}
+                    >
+                      <span className="dropdown-icon">🚪</span>
+                      <span>Cerrar Sesión</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
