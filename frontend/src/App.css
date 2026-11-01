@@ -3677,3 +3677,103 @@
   font-weight: 700;
   color: #ffffff;
 }
+
+
+/* =========================================================================
+   BARRA DE PROGRESO GAMER HUD PARA CARGA / DESCARGA EN VISOR (VIEWER MODAL)
+   ========================================================================= */
+
+.zk-tag.zk-plain {
+  background: rgba(56, 189, 248, 0.12) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+}
+
+.zk-tag.zk-encrypted {
+  background: rgba(168, 85, 247, 0.15) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+}
+
+.viewer-loading-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 480px;
+  margin: 3rem auto;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.viewer-hud-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.viewer-hud-num {
+  font-size: 3.8rem;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+  line-height: 1;
+  background: linear-gradient(180deg, #ffffff 0%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+}
+
+.viewer-hud-sym {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #38bdf8;
+  font-family: 'Courier New', monospace;
+}
+
+.viewer-hud-status {
+  margin: 0.5rem 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.viewer-gamer-bar-container {
+  width: 100%;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.viewer-gamer-bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  position: relative;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.viewer-gamer-bar-fill.plain {
+  background: linear-gradient(90deg, #0284c7, #38bdf8, #7dd3fc);
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.85);
+}
+
+.viewer-gamer-bar-fill.encrypted {
+  background: linear-gradient(90deg, #7c3aed, #a855f7, #c084fc);
+  box-shadow: 0 0 22px rgba(168, 85, 247, 0.85);
+}
+
+.viewer-telemetry-hud {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  width: 100%;
+}

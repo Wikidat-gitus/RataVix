@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
 import { downloadEncryptedFileFromDrive, downloadPlainFileFromDrive } from '../services/googleDrive';
@@ -15,10 +15,28 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
   const [copied, setCopied] = useState(false);
   const [isPiPActive, setIsPiPActive] = useState(false);
 
-  const videoRef = useRef(null);
-
-  const category = getFileCategory(tesoro.plainName, tesoro.tipo_mime);
   const isEncrypted = tesoro.es_cifrado === true || (tesoro.es_cifrado !== false && Boolean(tesoro.iv && tesoro.iv.trim()));
+
+  // Telemetría de progreso de descarga / carga en memoria
+  const [downloadProgress, setDownloadProgress] = useState({
+    percent: 0,
+    bytesTransferred: '',
+    speed: '',
+    eta: '',
+    status: isEncrypted ? 'Descargando blob cifrado desde Google Drive...' : 'Cargando archivo desde Google Drive...',
+  });
+
+  const videoRef = useRef(null);
+  const category = getFileCategory(tesoro.plainName, tesoro.tipo_mime);
+
+  // Formato legible de tamaño
+  const formatBytes = (bytes) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
 
   useEffect(() => {
     let activeUrl = null;
@@ -26,11 +44,20 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
     async function loadAndDecrypt() {
       setLoading(true);
       setError(null);
+      setDownloadProgress({
+        percent: 0,
+        bytesTransferred: '',
+        speed: '',
+        eta: '',
+        status: isEncrypted ? 'Descargando blob cifrado desde Google Drive...' : 'Cargando archivo desde Google Drive...',
+      });
+
       try {
         let buffer;
         let fileIv;
 
         if (tesoro.drive_file_id.startsWith('gdrive-mock-')) {
+          setDownloadProgress((prev) => ({ ...prev, status: 'Cargando desde almacenamiento local...' }));
           const driveRecord = await api.downloadDriveMock(tesoro.drive_file_id);
           buffer = driveRecord.encryptedBuffer || driveRecord.buffer || driveRecord;
           fileIv = driveRecord.fileIv || tesoro.iv;
@@ -38,18 +65,45 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
           if (!isGoogleConnected || !googleAccessToken) {
             throw new Error('Debes conectar tu cuenta de Google Drive para visualizar este archivo.');
           }
+
           if (isEncrypted) {
             const driveRecord = await downloadEncryptedFileFromDrive({
               driveFileId: tesoro.drive_file_id,
               accessToken: googleAccessToken,
               fallbackIv: tesoro.iv,
+              onProgress: ({ percent, loaded, total, speedMBs, etaSec }) => {
+                setDownloadProgress((prev) => ({
+                  ...prev,
+                  percent: Math.min(95, percent),
+                  bytesTransferred: `${formatBytes(loaded)} / ${formatBytes(total)}`,
+                  speed: speedMBs ? `${speedMBs} MB/s` : prev.speed,
+                  eta: etaSec !== null ? (etaSec > 60 ? `~${Math.ceil(etaSec / 60)} min` : `~${etaSec} seg`) : null,
+                  status: `Descargando blob cifrado (${percent}%)...`,
+                }));
+              },
             });
             buffer = driveRecord.encryptedBuffer;
             fileIv = driveRecord.fileIv || tesoro.iv;
+
+            setDownloadProgress((prev) => ({
+              ...prev,
+              percent: 96,
+              status: 'Descifrando archivo con AES-GCM (256 bits) en memoria RAM...',
+            }));
           } else {
             buffer = await downloadPlainFileFromDrive({
               driveFileId: tesoro.drive_file_id,
               accessToken: googleAccessToken,
+              onProgress: ({ percent, loaded, total, speedMBs, etaSec }) => {
+                setDownloadProgress((prev) => ({
+                  ...prev,
+                  percent,
+                  bytesTransferred: `${formatBytes(loaded)} / ${formatBytes(total)}`,
+                  speed: speedMBs ? `${speedMBs} MB/s` : prev.speed,
+                  eta: etaSec !== null ? (etaSec > 60 ? `~${Math.ceil(etaSec / 60)} min` : `~${etaSec} seg`) : null,
+                  status: `Cargando archivo desde Google Drive (${percent}%)...`,
+                }));
+              },
             });
           }
         }
@@ -58,6 +112,12 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
         const finalBuffer = isEncrypted
           ? await decryptFileBlob(buffer, fileIv)
           : buffer;
+
+        setDownloadProgress((prev) => ({
+          ...prev,
+          percent: 100,
+          status: 'Preparando reproductor multimedia...',
+        }));
 
         // 3. Procesar según la categoría
         if (category.type === 'text') {
@@ -78,8 +138,12 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
           setBlobUrl(activeUrl);
         }
       } catch (err) {
-        console.error('Error al abrir y descifrar el tesoro:', err);
-        setError('No se pudo descifrar este archivo. Comprueba tu clave maestra.');
+        console.error('Error al abrir el tesoro:', err);
+        setError(
+          isEncrypted
+            ? `No se pudo descifrar este archivo secreto. (${err.message || 'Comprueba tu clave maestra'})`
+            : `No se pudo cargar el archivo desde Google Drive. (${err.message || 'Comprueba tu conexión'})`
+        );
       } finally {
         setLoading(false);
       }
@@ -93,7 +157,7 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
         URL.revokeObjectURL(activeUrl);
       }
     };
-  }, [tesoro, decryptFileBlob, category.type]);
+  }, [tesoro, decryptFileBlob, category.type, isEncrypted, isGoogleConnected, googleAccessToken]);
 
   // Listener para sincronizar estado de Picture-in-Picture
   useEffect(() => {
@@ -138,15 +202,6 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
     }
   };
 
-  // Formato legible de tamaño
-  const formatBytes = (bytes) => {
-    if (!bytes || bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  };
-
   return (
     <div className="viewer-backdrop">
       <div className="viewer-window">
@@ -159,7 +214,9 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
               <div className="viewer-meta-tags">
                 <span className={`file-badge ${category.badgeClass}`}>{category.label}</span>
                 <span className="file-size-tag">{formatBytes(tesoro.tamano_bytes)}</span>
-                <span className="zk-tag">🔓 Descifrado en RAM</span>
+                <span className={`zk-tag ${isEncrypted ? 'zk-encrypted' : 'zk-plain'}`}>
+                  {isEncrypted ? '🔐 Descifrado en RAM' : '☁️ Modo Libre'}
+                </span>
               </div>
             </div>
           </div>
@@ -211,9 +268,46 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
         {/* Cuerpo del Visor */}
         <div className="viewer-body">
           {loading ? (
-            <div className="viewer-loading">
-              <span className="spinner-dot"></span>
-              <p>Descifrando archivo con AES-GCM en la memoria RAM...</p>
+            <div className="viewer-loading-hud">
+              <div className="viewer-hud-counter">
+                <span className="viewer-hud-num">{downloadProgress.percent}</span>
+                <span className="viewer-hud-sym">%</span>
+              </div>
+              <p className="viewer-hud-status">{downloadProgress.status}</p>
+
+              {/* Barra Gamer de Carga / Descarga */}
+              <div className="viewer-gamer-bar-container">
+                <div
+                  className={`viewer-gamer-bar-fill ${isEncrypted ? 'encrypted' : 'plain'}`}
+                  style={{ width: `${downloadProgress.percent}%` }}
+                >
+                  <div className="gamer-bar-glow-beam"></div>
+                </div>
+              </div>
+
+              {/* Telemetría en Vivo */}
+              {(downloadProgress.speed || downloadProgress.bytesTransferred || downloadProgress.eta) && (
+                <div className="viewer-telemetry-hud">
+                  {downloadProgress.speed && (
+                    <div className="telemetry-pill">
+                      <span className="telemetry-label">⚡ Velocidad</span>
+                      <strong className="telemetry-value">{downloadProgress.speed}</strong>
+                    </div>
+                  )}
+                  {downloadProgress.bytesTransferred && (
+                    <div className="telemetry-pill">
+                      <span className="telemetry-label">📦 Descargado</span>
+                      <strong className="telemetry-value">{downloadProgress.bytesTransferred}</strong>
+                    </div>
+                  )}
+                  {downloadProgress.eta && (
+                    <div className="telemetry-pill">
+                      <span className="telemetry-label">⏱️ Restante</span>
+                      <strong className="telemetry-value">{downloadProgress.eta}</strong>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : error ? (
             <div className="viewer-error">
@@ -281,7 +375,7 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
                     className="btn-confirm"
                     onClick={() => onDownload(tesoro)}
                   >
-                    ⬇️ Descargar archivo descifrado
+                    ⬇️ Descargar archivo
                   </button>
                 </div>
               )}

@@ -266,47 +266,84 @@ export async function uploadPlainFileToDrive({ file, accessToken, onProgress }) 
 }
 
 /**
+ * Helper interno: Descarga un archivo binario desde Google Drive reportando progreso en tiempo real
+ */
+function downloadBinaryWithProgress({ url, accessToken, onProgress }) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+    xhr.responseType = 'arraybuffer';
+
+    const startTime = performance.now();
+
+    if (onProgress) {
+      xhr.onprogress = (event) => {
+        if (event.lengthComputable && event.total > 0) {
+          const now = performance.now();
+          const percent = Math.min(99, Math.round((event.loaded / event.total) * 100));
+          const elapsedSec = (now - startTime) / 1000;
+          const avgSpeedMBs = elapsedSec > 0 ? (event.loaded / (1024 * 1024)) / elapsedSec : 0;
+          const remainingBytes = event.total - event.loaded;
+          const etaSec = avgSpeedMBs > 0 ? Math.round(remainingBytes / (avgSpeedMBs * 1024 * 1024)) : null;
+
+          onProgress({
+            loaded: event.loaded,
+            total: event.total,
+            percent,
+            speedMBs: avgSpeedMBs > 0 ? avgSpeedMBs.toFixed(1) : '0.0',
+            etaSec,
+          });
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        if (onProgress) {
+          onProgress({
+            loaded: xhr.response.byteLength,
+            total: xhr.response.byteLength,
+            percent: 100,
+            speedMBs: null,
+            etaSec: 0,
+          });
+        }
+        resolve(xhr.response);
+      } else {
+        reject(new Error(`Error al descargar de Google Drive (HTTP ${xhr.status})`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Error de conexión de red al descargar de Google Drive.'));
+    xhr.ontimeout = () => reject(new Error('Tiempo de espera agotado al descargar de Google Drive.'));
+
+    xhr.send();
+  });
+}
+
+/**
  * Descarga un archivo directamente desde Google Drive sin procesamiento criptográfico (Modo Libre)
  */
-export async function downloadPlainFileFromDrive({ driveFileId, accessToken }) {
+export async function downloadPlainFileFromDrive({ driveFileId, accessToken, onProgress }) {
   if (!accessToken) {
     throw new Error('Token de Google Drive no disponible.');
   }
 
-  const response = await fetch(`${DRIVE_API_URL}/${encodeURIComponent(driveFileId)}?alt=media`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(`Error al descargar de Google Drive: ${errorData.error?.message || response.statusText}`);
-  }
-
-  return await response.arrayBuffer();
+  const url = `${DRIVE_API_URL}/${encodeURIComponent(driveFileId)}?alt=media`;
+  return downloadBinaryWithProgress({ url, accessToken, onProgress });
 }
 
 /**
  * Descarga el ArrayBuffer de un blob cifrado directamente desde Google Drive y extrae su IV
  */
-export async function downloadEncryptedFileFromDrive({ driveFileId, accessToken, fallbackIv = null }) {
+export async function downloadEncryptedFileFromDrive({ driveFileId, accessToken, fallbackIv = null, onProgress }) {
   if (!accessToken) {
     throw new Error('Token de Google Drive no disponible.');
   }
 
-  const response = await fetch(`${DRIVE_API_URL}/${encodeURIComponent(driveFileId)}?alt=media`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(`Error al descargar de Google Drive: ${errorData.error?.message || response.statusText}`);
-  }
-
-  const fullBuffer = await response.arrayBuffer();
+  const url = `${DRIVE_API_URL}/${encodeURIComponent(driveFileId)}?alt=media`;
+  const fullBuffer = await downloadBinaryWithProgress({ url, accessToken, onProgress });
 
   // Si el buffer tiene al menos 12 bytes de cabecera para el IV
   if (fullBuffer.byteLength > IV_LENGTH_BYTES) {

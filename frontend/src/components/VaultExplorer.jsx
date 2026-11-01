@@ -580,13 +580,24 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
     await processFileUpload(file);
   };
 
-  // 3. DESCARGAR Y DESCIFRAR TESORO
+  // 3. DESCARGAR Y DESCIFRAR TESORO (CON TELEMETRÍA EN VIVO)
   const handleDownloadTesoro = async (tesoro) => {
     setActionLoading(true);
-    try {
-      const isEncrypted = tesoro.es_cifrado === true || (tesoro.es_cifrado !== false && Boolean(tesoro.iv && tesoro.iv.trim()));
-      addToast(isEncrypted ? `Descifrando "${tesoro.plainName}" en RAM...` : `Descargando "${tesoro.plainName}"...`, 'info');
+    const isEncrypted = tesoro.es_cifrado === true || (tesoro.es_cifrado !== false && Boolean(tesoro.iv && tesoro.iv.trim()));
 
+    setUploadProgress({
+      isOpen: true,
+      fileName: tesoro.plainName,
+      fileSize: formatBytes(tesoro.tamano_bytes),
+      stage: 'uploading',
+      statusMessage: isEncrypted ? 'Descargando blob cifrado desde Google Drive...' : 'Descargando archivo desde Google Drive...',
+      percent: 0,
+      bytesTransferred: '',
+      speed: '',
+      eta: '',
+    });
+
+    try {
       let buffer;
       let fileIv;
 
@@ -600,22 +611,53 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
           return;
         }
         if (isEncrypted) {
-          addToast(`Descargando blob cifrado desde Google Drive...`, 'info');
           const driveRecord = await downloadEncryptedFileFromDrive({
             driveFileId: tesoro.drive_file_id,
             accessToken: googleAccessToken,
             fallbackIv: tesoro.iv,
+            onProgress: ({ percent, loaded, total, speedMBs, etaSec }) => {
+              setUploadProgress((prev) => ({
+                ...prev,
+                percent: Math.min(95, percent),
+                bytesTransferred: `${formatBytes(loaded)} / ${formatBytes(total)}`,
+                speed: speedMBs ? `${speedMBs} MB/s` : prev.speed,
+                eta: etaSec !== null ? (etaSec > 60 ? `~${Math.ceil(etaSec / 60)} min` : `~${etaSec} seg`) : null,
+                statusMessage: `Descargando blob cifrado (${percent}%)...`,
+              }));
+            },
           });
           buffer = driveRecord.encryptedBuffer;
           fileIv = driveRecord.fileIv || tesoro.iv;
+
+          setUploadProgress((prev) => ({
+            ...prev,
+            stage: 'encrypting',
+            percent: 96,
+            statusMessage: 'Descifrando archivo con AES-GCM (256 bits) en memoria RAM...',
+          }));
         } else {
-          addToast(`Descargando archivo desde Google Drive...`, 'info');
           buffer = await downloadPlainFileFromDrive({
             driveFileId: tesoro.drive_file_id,
             accessToken: googleAccessToken,
+            onProgress: ({ percent, loaded, total, speedMBs, etaSec }) => {
+              setUploadProgress((prev) => ({
+                ...prev,
+                percent,
+                bytesTransferred: `${formatBytes(loaded)} / ${formatBytes(total)}`,
+                speed: speedMBs ? `${speedMBs} MB/s` : prev.speed,
+                eta: etaSec !== null ? (etaSec > 60 ? `~${Math.ceil(etaSec / 60)} min` : `~${etaSec} seg`) : null,
+                statusMessage: `Descargando desde Google Drive (${percent}%)...`,
+              }));
+            },
           });
         }
       }
+
+      setUploadProgress((prev) => ({
+        ...prev,
+        percent: 100,
+        statusMessage: 'Guardando archivo en tu equipo...',
+      }));
 
       const finalArrayBuffer = isEncrypted
         ? await decryptFileBlob(buffer, fileIv)
@@ -637,6 +679,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
       addToast('No se pudo descargar el archivo.', 'error');
     } finally {
       setActionLoading(false);
+      setUploadProgress((prev) => ({ ...prev, isOpen: false }));
     }
   };
 
