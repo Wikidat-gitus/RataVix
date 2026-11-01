@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { CryptoProvider, useCrypto } from './context/CryptoContext';
 import { GoogleAuthProvider, useGoogleAuth } from './context/GoogleAuthContext';
@@ -105,6 +105,58 @@ function AppContent() {
     setIsLocalMock(false);
     sessionStorage.removeItem('baul_local_mock');
     setCurrentMode('libre');
+  };
+
+  // Control de Arrastre entre Modos (Puente Mágico sobre los Selector Pills)
+  const [dragTargetMode, setDragTargetMode] = useState(null);
+
+  const handlePillDragOver = (e, targetMode) => {
+    if (targetMode === currentMode) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragTargetMode !== targetMode) {
+      setDragTargetMode(targetMode);
+    }
+  };
+
+  const handlePillDragLeave = (e, targetMode) => {
+    if (dragTargetMode === targetMode) {
+      setDragTargetMode(null);
+    }
+  };
+
+  const handlePillDrop = (e, targetMode) => {
+    e.preventDefault();
+    setDragTargetMode(null);
+    try {
+      const rawData = e.dataTransfer.getData('text/plain');
+      if (!rawData) return;
+      const data = JSON.parse(rawData);
+      if (data.type === 'baul') {
+        window.dispatchEvent(
+          new CustomEvent('baul:toast', {
+            detail: {
+              message: 'Solo se pueden transferir archivos individuales (tesoros), no carpetas.',
+              type: 'warning',
+            },
+          })
+        );
+        return;
+      }
+      if (data.type === 'tesoro') {
+        if (currentMode === targetMode) return;
+        window.dispatchEvent(
+          new CustomEvent('baul:migrate-tesoro', {
+            detail: {
+              tesoro: data.item,
+              targetMode,
+            },
+          })
+        );
+      }
+    } catch (err) {
+      console.warn('Error al procesar drop en selector de modo:', err);
+    }
   };
 
   return (
@@ -267,8 +319,12 @@ function AppContent() {
             <div className="mode-selector-pills">
               <button
                 type="button"
-                className={`mode-pill-btn ${currentMode === 'libre' ? 'active-libre' : ''}`}
+                className={`mode-pill-btn ${currentMode === 'libre' ? 'active-libre' : ''} ${dragTargetMode === 'libre' ? 'pill-drop-hover' : ''}`}
                 onClick={() => setCurrentMode('libre')}
+                onDragOver={(e) => handlePillDragOver(e, 'libre')}
+                onDragLeave={(e) => handlePillDragLeave(e, 'libre')}
+                onDrop={(e) => handlePillDrop(e, 'libre')}
+                title={currentMode !== 'libre' ? "Suelta aquí para mover este tesoro a Modo Libre" : undefined}
               >
                 <span className="mode-pill-icon">🔓</span>
                 <div className="mode-pill-info">
@@ -279,8 +335,12 @@ function AppContent() {
 
               <button
                 type="button"
-                className={`mode-pill-btn ${currentMode === 'secreto' ? 'active-secreto' : ''}`}
+                className={`mode-pill-btn ${currentMode === 'secreto' ? 'active-secreto' : ''} ${dragTargetMode === 'secreto' ? 'pill-drop-hover pill-drop-hover-secreto' : ''}`}
                 onClick={() => setCurrentMode('secreto')}
+                onDragOver={(e) => handlePillDragOver(e, 'secreto')}
+                onDragLeave={(e) => handlePillDragLeave(e, 'secreto')}
+                onDrop={(e) => handlePillDrop(e, 'secreto')}
+                title={currentMode !== 'secreto' ? "Suelta aquí para blindar este archivo con Conocimiento Cero" : undefined}
               >
                 <span className="mode-pill-icon">{isUnlocked ? '✨' : '🔒'}</span>
                 <div className="mode-pill-info">

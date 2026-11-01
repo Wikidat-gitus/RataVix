@@ -1,4 +1,4 @@
-﻿/* Estilos para el contenedor principal App */
+/* Estilos para el contenedor principal App */
 
 .app-container {
   min-height: 100vh;
@@ -2975,4 +2975,31 @@
   background: rgba(255, 255, 255, 0.05);
   color: #38bdf8;
   border-color: rgba(56, 189, 248, 0.35);
+}
+
+/* =========================================================================
+   PUENTE MÁGICO: Drag & Drop Hover Target en Selector de Modo
+   ========================================================================= */
+.mode-pill-btn.pill-drop-hover {
+  transform: translateY(-2px) scale(1.02);
+  outline: 2px dashed #38bdf8;
+  outline-offset: 3px;
+  background: rgba(56, 189, 248, 0.16) !important;
+  color: #38bdf8 !important;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.45);
+}
+
+.mode-pill-btn.pill-drop-hover .mode-pill-subtitle {
+  color: #7dd3fc !important;
+}
+
+.mode-pill-btn.pill-drop-hover-secreto {
+  outline-color: #c084fc;
+  background: rgba(168, 85, 247, 0.22) !important;
+  color: #c084fc !important;
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+}
+
+.mode-pill-btn.pill-drop-hover-secreto .mode-pill-subtitle {
+  color: #d8b4fe !important;
 }

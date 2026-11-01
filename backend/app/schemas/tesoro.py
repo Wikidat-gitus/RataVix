@@ -21,6 +21,8 @@ class TesoroCreate(TesoroBase):
 class TesoroUpdate(BaseModel):
     nombre_cifrado: Optional[str] = None
     iv: Optional[str] = None
+    drive_file_id: Optional[str] = None
+    es_cifrado: Optional[bool] = None
     baul_id: Optional[UUID] = None
 
 

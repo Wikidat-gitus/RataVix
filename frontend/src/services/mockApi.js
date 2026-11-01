@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Simulación de API (Mock Service) para Baúl Mágico 2
  * Cumple 100% con las rutas y esquemas definidos en docs/API_CONTRACT.md
  * Soporta CRUD completo (Crear, Leer, Actualizar/Mover/Renombrar, Eliminar)
@@ -168,8 +168,10 @@ export const mockApi = {
 
     mockTesoros[index] = {
       ...mockTesoros[index],
-      ...(updates.nombre_cifrado && { nombre_cifrado: updates.nombre_cifrado }),
-      ...(updates.iv && { iv: updates.iv }),
+      ...(updates.nombre_cifrado !== undefined && { nombre_cifrado: updates.nombre_cifrado }),
+      ...(updates.iv !== undefined && { iv: updates.iv }),
+      ...(updates.drive_file_id !== undefined && { drive_file_id: updates.drive_file_id }),
+      ...(updates.es_cifrado !== undefined && { es_cifrado: updates.es_cifrado }),
       ...(updates.baul_id !== undefined && { baul_id: updates.baul_id }),
       actualizado_en: new Date().toISOString()
     };

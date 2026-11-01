@@ -173,7 +173,7 @@ export function GoogleAuthProvider({ children }) {
         console.warn('Error al revocar token:', e);
       }
     }
-    api.logout().catch(() => {});
+    api.logout().catch(() => { });
     setGoogleAccessToken(null);
     setGoogleUser(null);
     setBackendUser(null);

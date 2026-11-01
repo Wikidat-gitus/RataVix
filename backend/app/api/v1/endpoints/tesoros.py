@@ -124,6 +124,10 @@ async def update_tesoro(
         tesoro.nombre_cifrado = payload.nombre_cifrado
     if payload.iv is not None:
         tesoro.iv = payload.iv
+    if payload.drive_file_id is not None:
+        tesoro.drive_file_id = payload.drive_file_id
+    if payload.es_cifrado is not None:
+        tesoro.es_cifrado = payload.es_cifrado
 
     db.add(tesoro)
     db.commit()
