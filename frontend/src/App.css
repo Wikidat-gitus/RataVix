@@ -11,7 +11,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 2rem;
+  padding: 0.5rem 1.5rem;
   background: var(--bg-glass);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-subtle);
@@ -238,7 +238,7 @@
 /* Footer */
 .app-footer {
   text-align: center;
-  padding: 2rem;
+  padding: 0.5rem 1.5rem;
   border-top: 1px solid var(--border-subtle);
   color: var(--text-subtle);
   font-size: 0.85rem;
@@ -667,7 +667,7 @@
    ========================================================================== */
 .vault-explorer {
   position: relative;
-  min-height: 420px;
+  min-height: 240px;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -2027,8 +2027,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 160px);
-  padding: 2rem 1rem;
+  flex: 1;
+  padding: 1rem;
 }
 
 .auth-gate-card {
@@ -3956,4 +3956,79 @@
 .user-dropdown-logout:hover {
   background: rgba(239, 68, 68, 0.12);
   color: #f87171;
+}
+
+/* ==========================================================================
+   Paginación del Explorador (Estándar y Limpia)
+   ========================================================================== */
+.explorer-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 0.5rem 0.25rem 0.5rem;
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 0.5rem;
+}
+
+.pagination-info {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-page-nav {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-page-nav:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-page-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-page-number {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.35rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-page-number:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+}
+
+.btn-page-number.active {
+  background: var(--accent-purple);
+  color: #ffffff;
+  border-color: var(--accent-purple);
+  font-weight: 600;
+  box-shadow: 0 2px 8px var(--accent-purple-glow);
 }

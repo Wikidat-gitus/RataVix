@@ -30,12 +30,17 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
   useEffect(() => {
     setCurrentBaulId(null);
     setBreadcrumbs([{ id: null, name: rootName }]);
+    setCurrentPage(1);
   }, [mode, rootName]);
 
   // Datos
   const [baules, setBaules] = useState([]);
   const [tesoros, setTesoros] = useState([]);
   const [allBaulesList, setAllBaulesList] = useState([]);
+
+  // Paginación (16 elementos por página: 2 filas de 8 elementos en escritorio)
+  const ITEMS_PER_PAGE = 16;
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -230,6 +235,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
 
   // Navegación: Entrar a subcarpeta
   const handleOpenBaul = (baul) => {
+    setCurrentPage(1);
     setCurrentBaulId(baul.id);
     setBreadcrumbs((prev) => [...prev, { id: baul.id, name: baul.plainName }]);
   };
@@ -1033,6 +1039,21 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
     };
   }, [handleMigrateTesoro]);
 
+  // Cálculo de elementos totales y paginación
+  const totalItems = baules.length + tesoros.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+
+  const paginatedBaules = baules.slice(
+    Math.min(startIndex, baules.length),
+    Math.min(endIndex, baules.length)
+  );
+
+  const tesorosStartIndex = Math.max(0, startIndex - baules.length);
+  const tesorosEndIndex = Math.max(0, endIndex - baules.length);
+  const paginatedTesoros = tesoros.slice(tesorosStartIndex, tesorosEndIndex);
+
   return (
     <div
       className={`vault-explorer ${isExternalDragging ? 'external-drag-active' : ''}`}
@@ -1169,9 +1190,10 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
             </div>
           </div>
         ) : (
-          <div className="explorer-grid">
+          <>
+            <div className="explorer-grid">
             {/* 1. Carpetas / Baúles (Draggable y Drop Target) */}
-            {baules.map((baul) => {
+            {paginatedBaules.map((baul) => {
               const isDragging = draggedItem?.type === 'baul' && draggedItem.item.id === baul.id;
               const isDropHover = dragOverTargetId === baul.id;
 
@@ -1265,7 +1287,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
             })}
 
             {/* 2. Archivos / Tesoros (Draggable) */}
-            {tesoros.map((tesoro) => {
+            {paginatedTesoros.map((tesoro) => {
               const category = getFileCategory(tesoro.plainName, tesoro.tipo_mime);
               const isDragging = draggedItem?.type === 'tesoro' && draggedItem.item.id === tesoro.id;
 
@@ -1377,6 +1399,46 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
               );
             })}
           </div>
+
+          {/* Paginación Limpia (Solo si hay más de 1 página) */}
+          {totalPages > 1 && (
+            <div className="explorer-pagination">
+              <span className="pagination-info">
+                Página {currentPage} de {totalPages} • Mostrando {startIndex + 1}–{Math.min(endIndex, totalItems)} de {totalItems} elementos
+              </span>
+              <div className="pagination-controls">
+                <button
+                  type="button"
+                  className="btn-page-nav"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  title="Página anterior"
+                >
+                  ‹ Anterior
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    className={`btn-page-number ${currentPage === pageNum ? 'active' : ''}`}
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="btn-page-nav"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  title="Página siguiente"
+                >
+                  Siguiente ›
+                </button>
+              </div>
+            </div>
+          )}
+          </>
         )}
       </div>
 
