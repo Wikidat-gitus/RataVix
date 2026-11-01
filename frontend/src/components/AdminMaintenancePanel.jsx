@@ -1,6 +1,7 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import CryptoPlayground from './CryptoPlayground';
+import StressBenchmarkPanel from './StressBenchmarkPanel';
 
 export default function AdminMaintenancePanel({
   backendStatus,
@@ -9,7 +10,7 @@ export default function AdminMaintenancePanel({
   isLocalMock,
   onToggleLocalMock,
 }) {
-  const [activeAdminSubTab, setActiveAdminSubTab] = useState('diagnostics'); // 'diagnostics' | 'crypto' | 'architecture'
+  const [activeAdminSubTab, setActiveAdminSubTab] = useState('diagnostics'); // 'diagnostics' | 'stress' | 'crypto' | 'architecture'
   const [idbStatus, setIdbStatus] = useState(null);
   const [clearingIdb, setClearingIdb] = useState(false);
 
@@ -49,6 +50,13 @@ export default function AdminMaintenancePanel({
           onClick={() => setActiveAdminSubTab('diagnostics')}
         >
           🔍 Diagnóstico y Mantenimiento
+        </button>
+        <button
+          type="button"
+          className={`admin-subnav-btn ${activeAdminSubTab === 'stress' ? 'active' : ''}`}
+          onClick={() => setActiveAdminSubTab('stress')}
+        >
+          ⚡ Estrés & Rendimiento
         </button>
         <button
           type="button"
@@ -212,14 +220,19 @@ export default function AdminMaintenancePanel({
         </div>
       )}
 
-      {/* 2. Vista de Laboratorio Criptográfico */}
+      {/* 2. Vista de Banco de Estrés y Rendimiento */}
+      {activeAdminSubTab === 'stress' && (
+        <StressBenchmarkPanel isLocalMock={isLocalMock} />
+      )}
+
+      {/* 3. Vista de Laboratorio Criptográfico */}
       {activeAdminSubTab === 'crypto' && (
         <div className="admin-crypto-wrapper">
           <CryptoPlayground />
         </div>
       )}
 
-      {/* 3. Vista de Arquitectura y Especificaciones */}
+      {/* 4. Vista de Arquitectura y Especificaciones */}
       {activeAdminSubTab === 'architecture' && (
         <div className="admin-arch-wrapper">
           <section className="hero-card">
@@ -254,4 +267,3 @@ export default function AdminMaintenancePanel({
     </div>
   );
 }
-
