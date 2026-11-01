@@ -1400,12 +1400,9 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
             })}
           </div>
 
-          {/* Paginación Limpia (Solo si hay más de 1 página) */}
+          {/* Paginación Centrada Limpia (Solo botones de navegación si hay más de 1 página) */}
           {totalPages > 1 && (
             <div className="explorer-pagination">
-              <span className="pagination-info">
-                Página {currentPage} de {totalPages} • Mostrando {startIndex + 1}–{Math.min(endIndex, totalItems)} de {totalItems} elementos
-              </span>
               <div className="pagination-controls">
                 <button
                   type="button"
