@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
 import { api } from '../services/api';
@@ -43,40 +43,37 @@ export default function UnlockVaultModal({
 
   return (
     <div className="unlock-container">
-      <div className="unlock-card">
-        {/* Cabecera Limpia */}
+      <div className="unlock-card compact-unlock-card">
+        {/* Cabecera Compacta */}
         <div className="unlock-header">
-          <div className="auth-gate-icon">🔒</div>
+          <div className="unlock-mini-icon">🔒</div>
           <h2>Desbloquear Modo Secreto</h2>
           <p>
-            Ingresa tu contraseña maestra para acceder a tus archivos cifrados.
+            Introduce tu contraseña maestra para acceder a tus archivos.
           </p>
         </div>
 
-        {/* Formulario de Clave */}
+        {/* Formulario Directo */}
         <form onSubmit={handleSubmit} className="unlock-form">
-          <div className="form-group">
-            <label htmlFor="master-key">Clave Maestra del Baúl</label>
-            <div className="password-input-wrapper">
-              <input
-                id="master-key"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Escribe tu frase o clave secreta..."
-                autoFocus
-                disabled={unlocking}
-                className="input-field"
-              />
-              <button
-                type="button"
-                className="toggle-vis-btn"
-                onClick={() => setShowPassword(!showPassword)}
-                title={showPassword ? 'Ocultar' : 'Mostrar'}
-              >
-                {showPassword ? '👁️' : '🕶️'}
-              </button>
-            </div>
+          <div className="password-input-wrapper">
+            <input
+              id="master-key"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Contraseña maestra..."
+              autoFocus
+              disabled={unlocking}
+              className="input-field"
+            />
+            <button
+              type="button"
+              className="toggle-vis-btn"
+              onClick={() => setShowPassword(!showPassword)}
+              title={showPassword ? 'Ocultar' : 'Mostrar'}
+            >
+              {showPassword ? '👁️' : '🕶️'}
+            </button>
           </div>
 
           {error && <div className="unlock-error-banner">⚠️ {error}</div>}
@@ -89,59 +86,54 @@ export default function UnlockVaultModal({
             {unlocking ? (
               <>
                 <span className="spinner-dot"></span>
-                <span>Verificando y Derivando Clave AES-256...</span>
+                <span>Verificando...</span>
               </>
             ) : (
               <>
                 <span>🗝️</span>
-                <span>Desbloquear Baúl</span>
+                <span>Desbloquear Bóveda</span>
               </>
             )}
           </button>
+        </form>
 
+        {/* Acciones Secundarias Limpias en línea */}
+        <div className="unlock-footer-links">
           {onBackToFreeMode && (
             <button
               type="button"
-              className="btn-back-free-mode"
+              className="btn-link-action"
               onClick={onBackToFreeMode}
               disabled={unlocking}
             >
-              ← Volver a Modo Libre (Sin Clave)
+              ← Volver a Modo Libre
             </button>
           )}
-        </form>
 
-        {/* Enlace para restablecimiento de emergencia en caso de olvido */}
-        <div className="forgot-password-box">
-          <button
-            type="button"
-            className="btn-link-forgot"
-            onClick={onForgotPassword}
-          >
-            ¿Olvidaste tu contraseña maestra? Restablecer baúl
-          </button>
+          {onForgotPassword && (
+            <button
+              type="button"
+              className="btn-link-action btn-link-muted-danger"
+              onClick={onForgotPassword}
+            >
+              ¿Olvidaste tu clave?
+            </button>
+          )}
         </div>
 
         {/* Acceso rápido de prueba para desarrollo (Solo en Modo Dev / Admin) */}
         {showDevTools && (
-          <div className="dev-shortcut-box">
-            <span className="dev-badge">Modo Desarrollo</span>
-            <p>¿Quieres probar rápido sin escribir?</p>
+          <div className="dev-shortcut-box" style={{ marginTop: '0.25rem', padding: '0.4rem' }}>
             <button
               type="button"
               className="btn-shortcut"
               onClick={() => handleQuickKey('rasputin')}
               disabled={unlocking}
             >
-              🪄 Usar clave sugerida: <code>"rasputin"</code>
+              🪄 Clave de prueba: <code>"rasputin"</code>
             </button>
           </div>
         )}
-
-        {/* Garantía Zero-Knowledge Directa */}
-        <p className="auth-gate-footnote">
-          🛡️ Tu clave se procesa en memoria volátil y nunca se envía a ningún servidor.
-        </p>
       </div>
     </div>
   );
