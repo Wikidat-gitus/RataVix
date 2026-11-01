@@ -17,7 +17,7 @@ import baulPixelArt from '../assets/baul-pixel-art.jpg';
 
 export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode }) {
   const { isUnlocked, lockVault, encryptName, decryptName, encryptFileBlob, decryptFileBlob } = useCrypto();
-  const { isGoogleConnected, googleAccessToken, googleUser } = useGoogleAuth();
+  const { isGoogleConnected, googleAccessToken, googleUser, refreshStorageQuota } = useGoogleAuth();
 
   // Navegación
   const isEncryptedMode = mode === 'secreto';
@@ -68,7 +68,11 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
     fileName: '',
     fileSize: '',
     stage: 'encrypting', // 'encrypting' | 'uploading' | 'saving'
-    statusMessage: ''
+    statusMessage: '',
+    percent: 0,
+    bytesTransferred: '',
+    speed: '',
+    eta: '',
   });
 
   // Modal Bloqueante de Purga / Eliminación
@@ -452,6 +456,17 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
             encryptedBuffer,
             fileIv,
             accessToken: googleAccessToken,
+            onProgress: ({ percent, loaded, total, speedMBs, etaSec }) => {
+              setUploadProgress((prev) => ({
+                ...prev,
+                stage: 'uploading',
+                percent,
+                bytesTransferred: `${formatBytes(loaded)} / ${formatBytes(total)}`,
+                speed: speedMBs ? `${speedMBs} MB/s` : prev.speed,
+                eta: etaSec !== null ? (etaSec > 60 ? `~${Math.ceil(etaSec / 60)} min` : `~${etaSec} seg`) : null,
+                statusMessage: `Subiendo blob cifrado (.enc) a Google Drive (${percent}%)...`,
+              }));
+            },
           });
           drive_file_id = driveRes.drive_file_id;
         } else {
@@ -477,6 +492,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
 
         addToast(`Tesoro "${file.name}" blindado y guardado`);
         await loadVaultContent();
+        refreshStorageQuota?.();
       } catch (err) {
         console.error('Error al subir archivo cifrado:', err);
         addToast(err.message || 'Error al cifrar y subir el archivo', 'error');
@@ -507,6 +523,17 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
           const driveRes = await uploadPlainFileToDrive({
             file,
             accessToken: googleAccessToken,
+            onProgress: ({ percent, loaded, total, speedMBs, etaSec }) => {
+              setUploadProgress((prev) => ({
+                ...prev,
+                stage: 'uploading',
+                percent,
+                bytesTransferred: `${formatBytes(loaded)} / ${formatBytes(total)}`,
+                speed: speedMBs ? `${speedMBs} MB/s` : prev.speed,
+                eta: etaSec !== null ? (etaSec > 60 ? `~${Math.ceil(etaSec / 60)} min` : `~${etaSec} seg`) : null,
+                statusMessage: `Subiendo a Google Drive (${percent}%)...`,
+              }));
+            },
           });
           drive_file_id = driveRes.drive_file_id;
         } else {
@@ -533,6 +560,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
 
         addToast(`Archivo "${file.name}" guardado exitosamente`);
         await loadVaultContent();
+        refreshStorageQuota?.();
       } catch (err) {
         console.error('Error al subir archivo en Modo Libre:', err);
         addToast(err.message || 'Error al subir el archivo', 'error');
@@ -1418,6 +1446,10 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         fileSize={uploadProgress.fileSize}
         stage={uploadProgress.stage}
         statusMessage={uploadProgress.statusMessage}
+        percent={uploadProgress.percent}
+        bytesTransferred={uploadProgress.bytesTransferred}
+        speed={uploadProgress.speed}
+        eta={uploadProgress.eta}
       />
 
       {/* MODAL 6: Overlay Bloqueante de Purga y Eliminación */}

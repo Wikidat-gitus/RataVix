@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Servicio de Integración Directa con Google Drive API v3 (Zero-Knowledge)
  * 
  * Principios de Seguridad:
@@ -112,10 +112,77 @@ export async function getOrCreateFreeFolder(accessToken) {
 }
 
 /**
+ * Helper interno: Sube un Blob multipart a Google Drive con reporte de progreso en tiempo real
+ */
+function uploadMultipartWithProgress({ url, accessToken, boundary, bodyBlob, onProgress }) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+    xhr.setRequestHeader('Content-Type', `multipart/related; boundary=${boundary}`);
+
+    const startTime = performance.now();
+
+    if (xhr.upload && onProgress) {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && event.total > 0) {
+          const now = performance.now();
+          const percent = Math.min(99, Math.round((event.loaded / event.total) * 100));
+          const elapsedSec = (now - startTime) / 1000;
+          const avgSpeedMBs = elapsedSec > 0 ? (event.loaded / (1024 * 1024)) / elapsedSec : 0;
+          const remainingBytes = event.total - event.loaded;
+          const etaSec = avgSpeedMBs > 0 ? Math.round(remainingBytes / (avgSpeedMBs * 1024 * 1024)) : null;
+
+          onProgress({
+            loaded: event.loaded,
+            total: event.total,
+            percent,
+            speedMBs: avgSpeedMBs > 0 ? avgSpeedMBs.toFixed(1) : '0.0',
+            etaSec,
+          });
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          if (onProgress) {
+            onProgress({
+              loaded: bodyBlob.size,
+              total: bodyBlob.size,
+              percent: 100,
+              speedMBs: null,
+              etaSec: 0,
+            });
+          }
+          resolve({ drive_file_id: res.id });
+        } catch {
+          reject(new Error('Respuesta inválida de Google Drive'));
+        }
+      } else {
+        let msg = xhr.statusText;
+        try {
+          const err = JSON.parse(xhr.responseText);
+          if (err.error?.message) msg = err.error.message;
+        } catch {}
+        reject(new Error(`Error al subir a Google Drive: ${msg}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Error de conexión de red con Google Drive.'));
+    xhr.ontimeout = () => reject(new Error('Tiempo de espera agotado al subir a Google Drive.'));
+
+    xhr.send(bodyBlob);
+  });
+}
+
+/**
  * Sube un archivo binario cifrado (ArrayBuffer) a Google Drive mediante multipart upload
  * Empaqueta los 12 bytes del IV al inicio del payload cifrado (estándar criptográfico autocontenido)
  */
-export async function uploadEncryptedFileToDrive({ encryptedBuffer, fileIv, accessToken }) {
+export async function uploadEncryptedFileToDrive({ encryptedBuffer, fileIv, accessToken, onProgress }) {
   if (!accessToken) {
     throw new Error('Token de Google Drive no disponible. Por favor conecta tu cuenta de Google.');
   }
@@ -150,28 +217,19 @@ export async function uploadEncryptedFileToDrive({ encryptedBuffer, fileIv, acce
 
   const multipartBlob = new Blob(bodyParts);
 
-  const response = await fetch(DRIVE_UPLOAD_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': `multipart/related; boundary=${boundary}`,
-    },
-    body: multipartBlob,
+  return uploadMultipartWithProgress({
+    url: DRIVE_UPLOAD_URL,
+    accessToken,
+    boundary,
+    bodyBlob: multipartBlob,
+    onProgress,
   });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(`Error al subir a Google Drive: ${errorData.error?.message || response.statusText}`);
-  }
-
-  const result = await response.json();
-  return { drive_file_id: result.id };
 }
 
 /**
  * Sube un archivo binario sin cifrar directamente a Google Drive en la carpeta de Modo Libre
  */
-export async function uploadPlainFileToDrive({ file, accessToken }) {
+export async function uploadPlainFileToDrive({ file, accessToken, onProgress }) {
   if (!accessToken) {
     throw new Error('Token de Google Drive no disponible. Por favor conecta tu cuenta de Google.');
   }
@@ -198,22 +256,13 @@ export async function uploadPlainFileToDrive({ file, accessToken }) {
 
   const multipartBlob = new Blob(bodyParts);
 
-  const response = await fetch(DRIVE_UPLOAD_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': `multipart/related; boundary=${boundary}`,
-    },
-    body: multipartBlob,
+  return uploadMultipartWithProgress({
+    url: DRIVE_UPLOAD_URL,
+    accessToken,
+    boundary,
+    bodyBlob: multipartBlob,
+    onProgress,
   });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(`Error al subir a Google Drive (Modo Libre): ${errorData.error?.message || response.statusText}`);
-  }
-
-  const result = await response.json();
-  return { drive_file_id: result.id };
 }
 
 /**
@@ -308,4 +357,41 @@ export async function fetchGoogleUserInfo(accessToken) {
     throw new Error('No se pudo obtener información del usuario de Google');
   }
   return await response.json();
+}
+
+/**
+ * Consulta la cuota de almacenamiento oficial de Google Drive del usuario
+ */
+export async function fetchGoogleStorageQuota(accessToken) {
+  if (!accessToken) return null;
+
+  try {
+    const response = await fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota,user', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      console.warn('No se pudo obtener la cuota de Google Drive:', err);
+      return null;
+    }
+
+    const data = await response.json();
+    const quota = data.storageQuota || {};
+    const limit = parseInt(quota.limit, 10) || 0;
+    const usage = parseInt(quota.usage, 10) || 0;
+    const usageInDrive = parseInt(quota.usageInDrive, 10) || 0;
+    const percentage = limit > 0 ? Math.min(100, Math.round((usage / limit) * 100)) : 0;
+
+    return {
+      limit,
+      usage,
+      usageInDrive,
+      percentage,
+      isUnlimited: limit === 0,
+    };
+  } catch (err) {
+    console.warn('Excepción al consultar cuota de Google Drive:', err);
+    return null;
+  }
 }

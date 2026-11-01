@@ -10,12 +10,21 @@ import VaultExplorer from './components/VaultExplorer';
 import CryptoPlayground from './components/CryptoPlayground';
 import AdminMaintenancePanel from './components/AdminMaintenancePanel';
 
+function formatQuotaBytes(bytes) {
+  if (!bytes || bytes === 0) return '0 GB';
+  const gb = bytes / (1024 * 1024 * 1024);
+  if (gb >= 1) return `${gb.toFixed(1)} GB`;
+  const mb = bytes / (1024 * 1024);
+  return `${mb.toFixed(0)} MB`;
+}
+
 function AppContent() {
   const { isUnlocked, lockVault } = useCrypto();
   const {
     isGoogleConnected,
     googleUser,
     backendUser,
+    storageQuota,
     disconnectGoogleDrive,
   } = useGoogleAuth();
 
@@ -247,9 +256,33 @@ function AppContent() {
                 <span>
                   {isGoogleConnected
                     ? `☁️ ${googleUser?.email || 'Google Drive Conectado'}`
-                    : '💾 Modo Simulado'}
+                                        : '💾 Modo Simulado'}
                 </span>
               </div>
+
+              {/* Widget de Cuota de Almacenamiento en Google Drive */}
+              {isGoogleConnected && storageQuota && (
+                <div
+                  className="header-storage-widget"
+                  title={`Almacenamiento Google Drive:\n• Ocupado total: ${formatQuotaBytes(storageQuota.usage)}\n• En este Baúl: ${formatQuotaBytes(storageQuota.usageInDrive)}\n• Espacio total: ${storageQuota.isUnlimited ? 'Ilimitado' : formatQuotaBytes(storageQuota.limit)}`}
+                >
+                  <div className="header-storage-meta">
+                    <span className="storage-icon">☁️</span>
+                    <span className="storage-numbers">
+                      {formatQuotaBytes(storageQuota.usage)} / {storageQuota.isUnlimited ? '∞' : formatQuotaBytes(storageQuota.limit)}
+                    </span>
+                    <span className="storage-pct">({storageQuota.percentage}%)</span>
+                  </div>
+                  <div className="header-storage-track">
+                    <div
+                      className={`header-storage-fill ${
+                        storageQuota.percentage > 90 ? 'danger' : storageQuota.percentage > 75 ? 'warning' : 'normal'
+                      }`}
+                      style={{ width: `${Math.min(100, storageQuota.percentage)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
 
               {/* Badge de Seguridad Dinámico según el Modo Activo */}
               <div

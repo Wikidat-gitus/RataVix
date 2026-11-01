@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { fetchGoogleUserInfo } from '../services/googleDrive';
+import { fetchGoogleUserInfo, fetchGoogleStorageQuota } from '../services/googleDrive';
 import { api } from '../services/api';
 
 const GoogleAuthContext = createContext();
@@ -19,9 +19,26 @@ export function GoogleAuthProvider({ children }) {
     const cached = sessionStorage.getItem('baul_backend_user');
     return cached ? JSON.parse(cached) : null;
   });
+  const [storageQuota, setStorageQuota] = useState(null);
   const [isGisReady, setIsGisReady] = useState(false);
   const [authError, setAuthError] = useState(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+
+  // Consulta y actualiza la cuota de almacenamiento de Google Drive
+  const refreshStorageQuota = async (token = googleAccessToken) => {
+    if (!token) {
+      setStorageQuota(null);
+      return;
+    }
+    try {
+      const quota = await fetchGoogleStorageQuota(token);
+      if (quota) {
+        setStorageQuota(quota);
+      }
+    } catch (e) {
+      console.warn('Error al consultar cuota de Google Drive:', e);
+    }
+  };
 
   // Esperar a que el script de Google Identity Services se cargue
   useEffect(() => {
@@ -43,6 +60,10 @@ export function GoogleAuthProvider({ children }) {
 
   // Si ya tenemos token guardado en sessionStorage, verificarlo o recargar perfil y sincronizar backend
   useEffect(() => {
+    if (googleAccessToken) {
+      refreshStorageQuota(googleAccessToken);
+    }
+
     if (googleAccessToken && !googleUser) {
       fetchGoogleUserInfo(googleAccessToken)
         .then(async (user) => {
@@ -142,9 +163,11 @@ export function GoogleAuthProvider({ children }) {
               // Una vez asegurado el token del backend, activar estados en React
               setGoogleUser(userInfo);
               setGoogleAccessToken(token);
+              refreshStorageQuota(token);
             } catch (err) {
               console.warn('No se pudo obtener datos del perfil o sincronizar backend:', err);
               setGoogleAccessToken(token);
+              refreshStorageQuota(token);
             }
           }
         },
@@ -177,6 +200,7 @@ export function GoogleAuthProvider({ children }) {
     setGoogleAccessToken(null);
     setGoogleUser(null);
     setBackendUser(null);
+    setStorageQuota(null);
     sessionStorage.removeItem('baul_google_access_token');
     sessionStorage.removeItem('baul_google_user');
     sessionStorage.removeItem('baul_backend_user');
@@ -187,6 +211,8 @@ export function GoogleAuthProvider({ children }) {
     googleAccessToken,
     googleUser,
     backendUser,
+    storageQuota,
+    refreshStorageQuota,
     updateBackendUser,
     isGisReady,
     isLoadingAuth,

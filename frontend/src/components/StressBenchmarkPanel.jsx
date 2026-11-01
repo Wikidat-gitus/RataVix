@@ -657,3 +657,4 @@ export default function StressBenchmarkPanel({ isLocalMock }) {
     </div>
   );
 }
+

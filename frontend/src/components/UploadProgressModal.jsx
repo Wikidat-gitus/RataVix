@@ -1,16 +1,20 @@
-﻿import React from 'react';
+import React from 'react';
 
 /**
- * Modal y Overlay bloqueante durante el proceso de Cifrado y Subida de Tesoros.
- * Previene condiciones de carrera, bloquea clics accidentales y ofrece
- * visibilidad del proceso Zero-Knowledge en tiempo real.
+ * Modal y Overlay bloqueante con Barra de Progreso Dinámica estilo Gamer/HUD.
+ * Informa en tiempo real el porcentaje (0-100%), velocidad en vivo (MB/s),
+ * bytes transferidos y tiempo estimado (ETA) durante el cifrado y subida a la nube.
  */
 export default function UploadProgressModal({
   isOpen,
   fileName,
   fileSize,
   stage = 'encrypting', // 'encrypting' | 'uploading' | 'saving'
-  statusMessage
+  statusMessage,
+  percent = null,
+  bytesTransferred = null,
+  speed = null,
+  eta = null,
 }) {
   if (!isOpen) return null;
 
@@ -22,33 +26,39 @@ export default function UploadProgressModal({
       defaultMsg: 'Cifrando bytes con AES-GCM (256 bits) en memoria RAM...',
       icon: '🛡️',
       colorClass: 'stage-crypto',
-      progressPercent: '33%'
+      fallbackPercent: 30,
     },
     uploading: {
       step: 2,
       total: 3,
-      title: 'Subida a la Nube',
-      defaultMsg: 'Enviando blob cifrado (.enc) a Google Drive...',
+      title: 'Transmisión Segura a Google Drive',
+      defaultMsg: 'Enviando bytes a la nube...',
       icon: '☁️',
       colorClass: 'stage-upload',
-      progressPercent: '66%'
+      fallbackPercent: 65,
     },
     saving: {
       step: 3,
       total: 3,
-      title: 'Sincronización Segura',
-      defaultMsg: 'Registrando metadatos blindados en el Baúl...',
+      title: 'Sincronización en el Baúl',
+      defaultMsg: 'Registrando metadatos blindados en base de datos...',
       icon: '✨',
       colorClass: 'stage-save',
-      progressPercent: '100%'
-    }
+      fallbackPercent: 100,
+    },
   };
 
   const current = stageConfig[stage] || stageConfig.encrypting;
 
+  // Determinar el porcentaje efectivo
+  let effectivePercent = current.fallbackPercent;
+  if (percent !== null && percent !== undefined) {
+    effectivePercent = Math.max(0, Math.min(100, percent));
+  }
+
   return (
     <div className="modal-backdrop upload-overlay-backdrop" role="dialog" aria-modal="true">
-      <div className="modal-box upload-progress-box" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-box upload-progress-box upload-hud-box" onClick={(e) => e.stopPropagation()}>
         {/* Encabezado con Icono Pulsante y Estado de Paso */}
         <div className="upload-header">
           <div className={`upload-pulse-orb ${current.colorClass}`}>
@@ -60,7 +70,7 @@ export default function UploadProgressModal({
           </div>
         </div>
 
-        {/* Tarjeta del archivo procesado */}
+        {/* Tarjeta del archivo en proceso */}
         <div className="upload-file-card">
           <span className="upload-file-icon">📄</span>
           <div className="upload-file-info">
@@ -71,31 +81,59 @@ export default function UploadProgressModal({
           </div>
         </div>
 
-        {/* Estado en vivo con spinner sutil */}
-        <div className="upload-status-box">
-          <div className="upload-spinner-ring"></div>
+        {/* Display Central de Porcentaje Estilo HUD Gamer */}
+        <div className="upload-hud-display">
+          <div className="upload-percent-counter">
+            <span className="upload-percent-num">{effectivePercent}</span>
+            <span className="upload-percent-sym">%</span>
+          </div>
           <p className="upload-status-text">
             {statusMessage || current.defaultMsg}
           </p>
         </div>
 
-        {/* Barra de progreso visual con transición */}
-        <div className="upload-progress-bar-container">
+        {/* Barra de Progreso Dinámica con Resplandor de Neón */}
+        <div className="upload-gamer-bar-container">
           <div
-            className={`upload-progress-bar-fill ${stage}`}
-            style={{ width: current.progressPercent }}
-          ></div>
+            className={`upload-gamer-bar-fill ${stage}`}
+            style={{ width: `${effectivePercent}%` }}
+          >
+            <div className="gamer-bar-glow-beam"></div>
+          </div>
         </div>
+
+        {/* Panel de Telemetría en Vivo (Velocidad, Transferencia y ETA) */}
+        {(speed || bytesTransferred || eta) && (
+          <div className="upload-telemetry-hud">
+            {speed && (
+              <div className="telemetry-pill">
+                <span className="telemetry-label">⚡ Velocidad</span>
+                <strong className="telemetry-value">{speed}</strong>
+              </div>
+            )}
+            {bytesTransferred && (
+              <div className="telemetry-pill">
+                <span className="telemetry-label">📦 Transferido</span>
+                <strong className="telemetry-value">{bytesTransferred}</strong>
+              </div>
+            )}
+            {eta && (
+              <div className="telemetry-pill">
+                <span className="telemetry-label">⏱️ Restante</span>
+                <strong className="telemetry-value">{eta}</strong>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Recordatorio de Seguridad Zero-Knowledge */}
         <div className="upload-security-hint">
           <span>🔒</span>
           <p>
-            <strong>Zero-Knowledge Activo:</strong> Tu archivo se cifra de forma local e inviolable en tu navegador antes de viajar. Por favor, mantén esta ventana abierta.
+            <strong>Cero Conocimiento:</strong> El archivo se procesa en tu navegador. Mantén esta pestaña activa hasta finalizar.
           </p>
         </div>
       </div>
     </div>
   );
 }
-

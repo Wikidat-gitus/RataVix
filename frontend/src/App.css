@@ -3468,3 +3468,212 @@
 .stress-conclusion-box strong {
   color: #ffffff;
 }
+
+
+/* =========================================================================
+   WIDGET DE CUOTA DE ALMACENAMIENTO EN GOOGLE DRIVE (HEADER)
+   ========================================================================= */
+
+.header-storage-widget {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 5px 12px;
+  min-width: 170px;
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+.header-storage-widget:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+}
+
+.header-storage-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+}
+
+.storage-icon {
+  font-size: 0.85rem;
+}
+
+.storage-numbers {
+  font-family: monospace;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.storage-pct {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #38bdf8;
+  margin-left: auto;
+}
+
+.header-storage-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.header-storage-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.header-storage-fill.normal {
+  background: linear-gradient(90deg, #38bdf8, #0284c7);
+}
+
+.header-storage-fill.warning {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.header-storage-fill.danger {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+/* =========================================================================
+   BARRA DE PROGRESO DINÁMICA GAMER / HUD (UPLOAD MODAL)
+   ========================================================================= */
+
+.upload-hud-box {
+  max-width: 520px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.12);
+}
+
+.upload-hud-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.upload-percent-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.upload-percent-num {
+  font-size: 3.4rem;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+  line-height: 1;
+  background: linear-gradient(180deg, #ffffff 0%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+}
+
+.upload-percent-sym {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #38bdf8;
+  font-family: 'Courier New', monospace;
+}
+
+.upload-gamer-bar-container {
+  width: 100%;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+  margin: 0.5rem 0;
+}
+
+.upload-gamer-bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  position: relative;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.upload-gamer-bar-fill.encrypting {
+  background: linear-gradient(90deg, #7c3aed, #a855f7, #c084fc);
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.7);
+}
+
+.upload-gamer-bar-fill.uploading {
+  background: linear-gradient(90deg, #0284c7, #38bdf8, #7dd3fc);
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.85);
+}
+
+.upload-gamer-bar-fill.saving {
+  background: linear-gradient(90deg, #059669, #10b981, #34d399);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.7);
+}
+
+.gamer-bar-glow-beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 100%
+  );
+  animation: gamerBeamScan 1.6s infinite linear;
+}
+
+@keyframes gamerBeamScan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.upload-telemetry-hud {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+  margin-top: 0.65rem;
+  width: 100%;
+}
+
+.telemetry-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 6px 10px;
+  flex: 1;
+}
+
+.telemetry-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.telemetry-value {
+  font-family: monospace;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+}
