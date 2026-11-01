@@ -99,12 +99,12 @@
   * [x] **Visor con Picture-in-Picture (PiP):** Botón directo `📺 Miniatura` nativo para reproducción de video en ventana flotante.
   * [x] **Iconografía Completa por Formato:** Detección de tipos de archivo (Word, Excel, PPT, Código, Texto, Media, Zip, etc.) con emojis dedicados.
   * [x] **Vista de Mosaico de Escritorio (Windows Explorer Style):** Mosaicos transparentes en reposo, resaltado de cuadrícula translúcida al pasar el puntero (`:hover`), icono libre y menú kebab `⋮` anclado a la esquina superior derecha del mosaico.
-  * [ ] **Arquitectura Dual: `🔓 Modo Libre` vs. `🔒 Modo Secreto`:**
+  * [x] **Arquitectura Dual: `🔓 Modo Libre` vs. `🔒 Modo Secreto`:**
     * [x] Frontend: Selector de modo en cabecera / navegación; entrada directa a `Modo Libre` sin solicitar contraseña maestra.
     * [x] Frontend: Desbloqueo bajo demanda del `Modo Secreto` al pulsar la pestaña correspondiente con retorno amigable.
     * [x] Google Drive: Soporte en cliente para `Baúl Mágico - Mis Archivos` (Libre) y `Baúl Mágico - Datos Cifrados` (Secreto).
     * [x] Backend & DB: Soporte de parámetro `es_cifrado` en endpoints y modelos de `baules` y `tesoros`.
-    * [ ] Puente de migración: Acción en menú `⋮` para *"🛡️ Enviar a Modo Secreto"* y *"🔓 Mover a Modo Libre"*.
+    * [x] Puente Mágico de migración: Drag & Drop sobre selector pills (`.pill-drop-hover`) y acción en menú `⋮` para *"🛡️ Mover a Modo Secreto"* y *"🔓 Mover a Modo Libre"*.
   * [ ] Pruebas de estrés con archivos de distintos pesos y formatos en la nube.
   * [ ] Vista alternativa (Cuadrícula ⊞ vs Lista ☰) y filtro rápido de búsqueda.
 * [ ] **Fase 5: Consolidación, Mantenimiento y Aprendizaje Profundo**
