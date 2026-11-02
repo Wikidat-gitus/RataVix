@@ -4641,3 +4641,29 @@
 
 
 
+
+
+/* ==========================================================================
+   LOGO OFICIAL RATAVIX (PIXEL ART)
+   ========================================================================== */
+.brand-logo-img {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.35);
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.auth-gate-logo-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 2px solid rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.4);
+  image-rendering: pixelated;
+  margin-bottom: 1rem;
+}

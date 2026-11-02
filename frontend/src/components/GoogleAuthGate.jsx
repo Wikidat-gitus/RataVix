@@ -1,5 +1,6 @@
 import React from 'react';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
+import ratavixLogo from '../assets/ratavix-logo.png';
 
 /**
  * Pantalla de Bienvenida / Inicio de Sesión:
@@ -13,7 +14,7 @@ export default function GoogleAuthGate({ onContinueLocal, showDevTools = false }
       <div className="auth-gate-card">
         {/* Cabecera limpia y directa */}
         <div className="auth-gate-header">
-          <div className="auth-gate-icon">📦</div>
+          <img src={ratavixLogo} alt="RataVix" className="auth-gate-logo-img" />
           <h2>Bienvenido a RataVix</h2>
           <p>
             Almacena, organiza y protege tus archivos en tu propio Google Drive.

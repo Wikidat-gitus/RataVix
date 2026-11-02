@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
+import ratavixLogo from './assets/ratavix-logo.png';
 import { CryptoProvider, useCrypto } from './context/CryptoContext';
 import { GoogleAuthProvider, useGoogleAuth } from './context/GoogleAuthContext';
 import GoogleAuthGate from './components/GoogleAuthGate';
@@ -288,7 +289,7 @@ function AppContent() {
       {/* Header Principal de la Aplicación */}
       <header className="app-header">
         <div className="brand-badge">
-          <div className="brand-icon">📦</div>
+          <img src={ratavixLogo} alt="RataVix" className="brand-logo-img" />
           <div className="brand-text">
             <h1>RataVix</h1>
             <p>Almacenamiento en Google Drive</p>
