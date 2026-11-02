@@ -1,4 +1,4 @@
-# 📜 Contrato de API — Baúl Mágico 2
+# 📜 Contrato de API — RataVix
 > **Documento de sincronización entre Frontend y Backend.**
 > Ambos equipos (y sus agentes de IA) deben respetar los esquemas y acuerdos aquí descritos.
 

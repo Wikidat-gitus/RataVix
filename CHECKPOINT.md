@@ -1,4 +1,4 @@
-# 🧭 Memoria y Checkpoints del Proyecto — Baúl Mágico 2
+# 🧭 Memoria y Checkpoints del Proyecto — RataVix
 
 > **Instrucción para los Agentes de IA:**
 > 1. **Lectura obligatoria:** Al iniciar cualquier sesión o tarea, lee este archivo para conocer el estado actual y las decisiones técnicas vigentes.
@@ -9,9 +9,9 @@
 ## 📍 Estado General del Proyecto
 * **Fase Actual:** `Fase 4.5: Refinamiento, Pruebas de Estrés y Optimización UX en la Nube` ➔ Previa a `Fase 5 (Consolidación / Docs)` y futura extensión móvil `Android App`.
 * **Arquitectura:** Monorepo (`frontend/` + `backend/` + `docs/`)
-* **Repositorio:** `Wikidat-gitus/Baul-Magico-2` (GitHub Privado, rama principal: `main`)
+* **Repositorio:** `Wikidat-gitus/RataVix` (GitHub Privado, rama principal: `main`)
 * **URLs de Producción ($0/mes):**
-  * **Frontend (Vercel):** `https://baul-magico-2.vercel.app`
+  * **Frontend (Vercel):** `https://ratavix.vercel.app` (y `https://baul-magico-2.vercel.app`)
   * **Backend (Render):** `https://baul-magico-2-api-9e9p.onrender.com`
   * **Base de Datos (Neon):** PostgreSQL Serverless (AWS US-East Virginia)
 
