@@ -50,6 +50,28 @@ function AppContent() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
 
+  // Tema Visual: 'normal' (Moderno) o 'pixel' (Pixel Art Retro)
+  const [appTheme, setAppTheme] = useState(() => {
+    try {
+      return localStorage.getItem('baul_theme') || 'normal';
+    } catch {
+      return 'normal';
+    }
+  });
+
+  const toggleAppTheme = () => {
+    const nextTheme = appTheme === 'pixel' ? 'normal' : 'pixel';
+    setAppTheme(nextTheme);
+    try {
+      localStorage.setItem('baul_theme', nextTheme);
+    } catch {
+      // ignore
+    }
+  };
+
+  // Buscador rápido en la barra superior
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Cerrar menú de perfil al hacer clic fuera o pulsar Escape
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -143,6 +165,11 @@ function AppContent() {
   // Control de Arrastre entre Modos (Puente Mágico sobre los Selector Pills)
   const [dragTargetMode, setDragTargetMode] = useState(null);
 
+  useEffect(() => {
+    setDragTargetMode(null);
+    setSearchQuery('');
+  }, [currentMode]);
+
   const handlePillDragOver = (e, targetMode) => {
     if (targetMode === currentMode) return;
     e.preventDefault();
@@ -193,7 +220,7 @@ function AppContent() {
   };
 
   return (
-    <div className={`app-container ${isDevMode ? 'dev-mode-active' : ''}`}>
+    <div className={`app-container theme-${appTheme} ${isDevMode ? 'dev-mode-active' : ''}`}>
       {/* 🛠️ BARRA SUPERIOR EXCLUSIVA PARA MODO DESARROLLADOR / ADMIN */}
       {isDevMode && (
         <aside className="admin-topbar">
@@ -271,6 +298,29 @@ function AppContent() {
         <div className="header-right">
           {isSessionStarted && (
             <>
+              {/* Buscador Rápido en la barra superior */}
+              <div className="header-search-container">
+                <span className="search-icon">🔍</span>
+                <input
+                  type="text"
+                  className="header-search-input"
+                  placeholder="Buscar en el baúl..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Buscar archivos y carpetas"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="search-clear-btn"
+                    onClick={() => setSearchQuery('')}
+                    title="Limpiar búsqueda"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
               {/* Widget de Almacenamiento al costado del perfil */}
               {isGoogleConnected && storageQuota && (
                 <div
@@ -329,6 +379,29 @@ function AppContent() {
                         <span className="user-dropdown-email">{googleUser?.email || 'Modo Local Simulado'}</span>
                       </div>
                     </div>
+                    <div className="user-dropdown-divider"></div>
+
+                    {/* Selector de Estilo Visual (Normal vs Pixel Art) */}
+                    <div className="user-dropdown-theme-row">
+                      <div className="theme-row-label">
+                        <span className="dropdown-icon">{appTheme === 'pixel' ? '👾' : '✨'}</span>
+                        <div className="theme-row-text">
+                          <span className="theme-name">Estilo {appTheme === 'pixel' ? 'Pixel Art' : 'Moderno'}</span>
+                          <span className="theme-hint">
+                            {appTheme === 'pixel' ? 'Iconos retro 1 fila' : 'Cuadrícula limpia'}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className={`theme-pill-btn ${appTheme === 'pixel' ? 'is-pixel' : ''}`}
+                        onClick={toggleAppTheme}
+                        title="Alternar entre Estilo Moderno y Estilo Pixel Art"
+                      >
+                        {appTheme === 'pixel' ? 'Pixel Art' : 'Normal'}
+                      </button>
+                    </div>
+
                     <div className="user-dropdown-divider"></div>
                     <button
                       type="button"
@@ -424,6 +497,9 @@ function AppContent() {
                 onLogout={handleLogout}
                 mode="libre"
                 onSwitchMode={() => setCurrentMode('secreto')}
+                searchQuery={searchQuery}
+                onClearSearch={() => setSearchQuery('')}
+                appTheme={appTheme}
               />
             ) : !isUnlocked ? (
               /* MODO SECRETO: Requiere contraseña maestra en RAM */
@@ -451,6 +527,9 @@ function AppContent() {
                 onLogout={handleLogout}
                 mode="secreto"
                 onSwitchMode={() => setCurrentMode('libre')}
+                searchQuery={searchQuery}
+                onClearSearch={() => setSearchQuery('')}
+                appTheme={appTheme}
               />
             )}
           </div>

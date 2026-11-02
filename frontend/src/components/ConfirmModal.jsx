@@ -13,8 +13,16 @@ export default function ConfirmModal({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
+    <div className="modal-backdrop">
       <div className="modal-box confirm-modal-box" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className="modal-close-btn"
+          onClick={onCancel}
+          title="Cerrar ventana"
+        >
+          ✕
+        </button>
         <div className="confirm-icon-orb">
           <span>{isDanger ? '🗑️' : '❓'}</span>
         </div>

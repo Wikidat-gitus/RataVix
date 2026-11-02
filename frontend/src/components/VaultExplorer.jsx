@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
 import {
@@ -15,7 +15,7 @@ import ConfirmModal from './ConfirmModal';
 import UploadProgressModal from './UploadProgressModal';
 import baulPixelArt from '../assets/baul-pixel-art.jpg';
 
-export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode }) {
+export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode, searchQuery = '', onClearSearch, appTheme = 'normal' }) {
   const { isUnlocked, lockVault, encryptName, decryptName, encryptFileBlob, decryptFileBlob } = useCrypto();
   const { isGoogleConnected, googleAccessToken, googleUser, refreshStorageQuota } = useGoogleAuth();
 
@@ -38,9 +38,16 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
   const [tesoros, setTesoros] = useState([]);
   const [allBaulesList, setAllBaulesList] = useState([]);
 
-  // Paginación (16 elementos por página: 2 filas de 8 elementos en escritorio)
-  const ITEMS_PER_PAGE = 16;
+  // Paginación: 16 en Moderno (2 filas x 8), 4 en Pixel Art (1 fila con iconos grandes cuadrados)
+  const isPixelMode = appTheme === 'pixel';
+  const ITEMS_PER_PAGE = isPixelMode ? 4 : 16;
   const [currentPage, setCurrentPage] = useState(1);
+  const [slideDirection, setSlideDirection] = useState('none'); // 'left' | 'right' | 'none'
+
+  const handlePageChange = (newPage, direction) => {
+    setSlideDirection(direction);
+    setCurrentPage(newPage);
+  };
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -379,7 +386,17 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
 
   const handleConfirmCreateFolder = async (e) => {
     e.preventDefault();
-    if (!inputValue.trim()) return;
+    const cleanName = inputValue.trim();
+    if (!cleanName) return;
+
+    // Validación anti-duplicados para carpetas en el mismo nivel
+    const isDuplicate = baules.some(
+      (b) => (b.plainName || '').trim().toLowerCase() === cleanName.toLowerCase()
+    );
+    if (isDuplicate) {
+      addToast(`Ya existe un baúl con el nombre "${cleanName}" en esta ubicación`, 'warning');
+      return;
+    }
 
     setActionLoading(true);
     try {
@@ -419,6 +436,34 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
+  // Genera un nombre único con sufijo numérico para evitar colisiones (estilo Windows Explorer: archivo (1).ext)
+  const getUniqueName = (originalName, existingNamesList) => {
+    const existingSet = new Set(existingNamesList.map((n) => (n || '').trim().toLowerCase()));
+    const trimmed = (originalName || '').trim();
+
+    if (!existingSet.has(trimmed.toLowerCase())) {
+      return trimmed;
+    }
+
+    const lastDot = trimmed.lastIndexOf('.');
+    let baseName = trimmed;
+    let extension = '';
+
+    if (lastDot > 0) {
+      baseName = trimmed.substring(0, lastDot);
+      extension = trimmed.substring(lastDot);
+    }
+
+    let counter = 1;
+    let candidate = `${baseName} (${counter})${extension}`;
+    while (existingSet.has(candidate.toLowerCase())) {
+      counter++;
+      candidate = `${baseName} (${counter})${extension}`;
+    }
+
+    return candidate;
+  };
+
   // 2. SUBIR TESORO (Archivo)
   const handleTriggerUpload = () => {
     if (fileInputRef.current) {
@@ -429,23 +474,29 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
   const processFileUpload = async (file) => {
     if (!file) return;
 
+    const existingNames = tesoros.map((t) => t.plainName || '');
+    const finalFileName = getUniqueName(file.name, existingNames);
+    if (finalFileName !== file.name) {
+      addToast(`"${file.name}" ya existe. Se guardará como "${finalFileName}"`, 'info');
+    }
+
     const formattedSize = formatBytes(file.size);
     setActionLoading(true);
 
     if (isEncryptedMode) {
       setUploadProgress({
         isOpen: true,
-        fileName: file.name,
+        fileName: finalFileName,
         fileSize: formattedSize,
         stage: 'encrypting',
         statusMessage: 'Cifrando bytes con AES-GCM (256 bits) en memoria RAM...'
       });
 
       try {
-        addToast(`Cifrando "${file.name}" con AES-GCM 256 bits...`, 'info');
+        addToast(`Cifrando "${finalFileName}" con AES-GCM 256 bits...`, 'info');
 
         const { encryptedBuffer, iv: fileIv } = await encryptFileBlob(file);
-        const { nombre_cifrado, iv: nameIv } = await encryptName(file.name);
+        const { nombre_cifrado, iv: nameIv } = await encryptName(finalFileName);
 
         setUploadProgress((prev) => ({
           ...prev,
@@ -496,7 +547,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
           tipo_mime: file.type || 'application/octet-stream'
         });
 
-        addToast(`Tesoro "${file.name}" blindado y guardado`);
+        addToast(`Tesoro "${finalFileName}" blindado y guardado`);
         await loadVaultContent();
         refreshStorageQuota?.();
       } catch (err) {
@@ -513,7 +564,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
       // MODO LIBRE: Subida directa sin cifrado
       setUploadProgress({
         isOpen: true,
-        fileName: file.name,
+        fileName: finalFileName,
         fileSize: formattedSize,
         stage: 'uploading',
         statusMessage: isGoogleConnected && googleAccessToken
@@ -522,12 +573,13 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
       });
 
       try {
-        addToast(`Subiendo "${file.name}" a Mis Archivos...`, 'info');
+        addToast(`Subiendo "${finalFileName}" a Mis Archivos...`, 'info');
 
         let drive_file_id;
         if (isGoogleConnected && googleAccessToken) {
           const driveRes = await uploadPlainFileToDrive({
             file,
+            customName: finalFileName,
             accessToken: googleAccessToken,
             onProgress: ({ percent, loaded, total, speedMBs, etaSec }) => {
               setUploadProgress((prev) => ({
@@ -557,14 +609,14 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         await api.createTesoro({
           baul_id: currentBaulId,
           drive_file_id,
-          nombre_cifrado: file.name,
+          nombre_cifrado: finalFileName,
           iv: null,
           es_cifrado: false,
           tamano_bytes: file.size,
           tipo_mime: file.type || 'application/octet-stream'
         });
 
-        addToast(`Archivo "${file.name}" guardado exitosamente`);
+        addToast(`Archivo "${finalFileName}" guardado exitosamente`);
         await loadVaultContent();
         refreshStorageQuota?.();
       } catch (err) {
@@ -698,7 +750,31 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
 
   const handleConfirmRename = async (e) => {
     e.preventDefault();
-    if (!inputValue.trim() || !activeItem) return;
+    const cleanName = inputValue.trim();
+    if (!cleanName || !activeItem) return;
+
+    if (cleanName.toLowerCase() === (activeItem.item.plainName || '').trim().toLowerCase()) {
+      setModalMode(null);
+      return;
+    }
+
+    if (activeItem.type === 'baul') {
+      const isDuplicate = baules.some(
+        (b) => b.id !== activeItem.item.id && (b.plainName || '').trim().toLowerCase() === cleanName.toLowerCase()
+      );
+      if (isDuplicate) {
+        addToast(`Ya existe un baúl con el nombre "${cleanName}" en esta ubicación`, 'warning');
+        return;
+      }
+    } else {
+      const isDuplicate = tesoros.some(
+        (t) => t.id !== activeItem.item.id && (t.plainName || '').trim().toLowerCase() === cleanName.toLowerCase()
+      );
+      if (isDuplicate) {
+        addToast(`Ya existe un archivo con el nombre "${cleanName}" en este baúl`, 'warning');
+        return;
+      }
+    }
 
     setActionLoading(true);
     try {
@@ -1039,20 +1115,38 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
     };
   }, [handleMigrateTesoro]);
 
+  // Filtrado en tiempo real con el buscador
+  const filteredBaules = useMemo(() => {
+    if (!searchQuery?.trim()) return baules;
+    const q = searchQuery.trim().toLowerCase();
+    return baules.filter((b) => (b.plainName || '').toLowerCase().includes(q));
+  }, [baules, searchQuery]);
+
+  const filteredTesoros = useMemo(() => {
+    if (!searchQuery?.trim()) return tesoros;
+    const q = searchQuery.trim().toLowerCase();
+    return tesoros.filter((t) => (t.plainName || '').toLowerCase().includes(q));
+  }, [tesoros, searchQuery]);
+
+  // Si cambia la búsqueda o el modo de tema, reiniciar página
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, appTheme]);
+
   // Cálculo de elementos totales y paginación
-  const totalItems = baules.length + tesoros.length;
+  const totalItems = filteredBaules.length + filteredTesoros.length;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
 
-  const paginatedBaules = baules.slice(
-    Math.min(startIndex, baules.length),
-    Math.min(endIndex, baules.length)
+  const paginatedBaules = filteredBaules.slice(
+    Math.min(startIndex, filteredBaules.length),
+    Math.min(endIndex, filteredBaules.length)
   );
 
-  const tesorosStartIndex = Math.max(0, startIndex - baules.length);
-  const tesorosEndIndex = Math.max(0, endIndex - baules.length);
-  const paginatedTesoros = tesoros.slice(tesorosStartIndex, tesorosEndIndex);
+  const tesorosStartIndex = Math.max(0, startIndex - filteredBaules.length);
+  const tesorosEndIndex = Math.max(0, endIndex - filteredBaules.length);
+  const paginatedTesoros = filteredTesoros.slice(tesorosStartIndex, tesorosEndIndex);
 
   return (
     <div
@@ -1159,7 +1253,19 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
             <span className="spinner-dot"></span>
             <p>{isEncryptedMode ? "Descifrando metadatos en tu navegador..." : "Cargando tus archivos..."}</p>
           </div>
-        ) : baules.length === 0 && tesoros.length === 0 ? (
+        ) : totalItems === 0 ? (
+          searchQuery.trim() ? (
+            <div className="search-empty-state">
+              <span className="search-empty-icon">🔍</span>
+              <h3>Sin resultados</h3>
+              <p>No se encontraron baúles ni tesoros que contengan "<strong>{searchQuery}</strong>" en este nivel.</p>
+              {onClearSearch && (
+                <button type="button" className="btn-cancel" onClick={onClearSearch}>
+                  ✕ Limpiar búsqueda
+                </button>
+              )}
+            </div>
+          ) : (
           <div className="vault-empty-state">
             <div className="empty-state-icon">📂</div>
             <h3>{isEncryptedMode ? "Bóveda secreta vacía" : "Esta carpeta está vacía"}</h3>
@@ -1189,9 +1295,14 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
               </button>
             </div>
           </div>
+          )
         ) : (
           <>
-            <div className="explorer-grid">
+            <div className={`explorer-grid-wrapper ${isPixelMode ? 'pixel-row-wrapper' : ''}`}>
+              <div
+                key={isPixelMode ? `pixel-page-${currentPage}` : 'normal-grid'}
+                className={`explorer-grid ${isPixelMode ? `pixel-single-row slide-${slideDirection}` : ''}`}
+              >
             {/* 1. Carpetas / Baúles (Draggable y Drop Target) */}
             {paginatedBaules.map((baul) => {
               const isDragging = draggedItem?.type === 'baul' && draggedItem.item.id === baul.id;
@@ -1200,7 +1311,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
               return (
                 <div
                   key={baul.id}
-                  className={`explorer-card folder-card ${isDragging ? 'is-dragging' : ''} ${isDropHover ? 'drop-hover' : ''}`}
+                  className={`explorer-card folder-card ${openMenuId === `baul-${baul.id}` ? 'menu-open' : ''} ${isDragging ? 'is-dragging' : ''} ${isDropHover ? 'drop-hover' : ''}`}
                   draggable={true}
                   onDragStart={(e) => handleDragStart(e, 'baul', baul)}
                   onDragEnd={handleDragEnd}
@@ -1294,7 +1405,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
               return (
                 <div
                   key={tesoro.id}
-                  className={`explorer-card file-card ${isDragging ? 'is-dragging' : ''}`}
+                  className={`explorer-card file-card ${openMenuId === `tesoro-${tesoro.id}` ? 'menu-open' : ''} ${isDragging ? 'is-dragging' : ''}`}
                   draggable={true}
                   onDragStart={(e) => handleDragStart(e, 'tesoro', tesoro)}
                   onDragEnd={handleDragEnd}
@@ -1399,41 +1510,68 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
               );
             })}
           </div>
+            </div>
 
-          {/* Paginación Centrada Limpia (Solo botones de navegación si hay más de 1 página) */}
+          {/* Paginación Centrada Abajo */}
           {totalPages > 1 && (
-            <div className="explorer-pagination">
-              <div className="pagination-controls">
+            isPixelMode ? (
+              <div className="pixel-pagination-container">
                 <button
                   type="button"
-                  className="btn-page-nav"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="pixel-pager-btn"
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1), 'left')}
                   disabled={currentPage === 1}
                   title="Página anterior"
                 >
-                  ‹ Anterior
+                  ◀
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                  <button
-                    key={pageNum}
-                    type="button"
-                    className={`btn-page-number ${currentPage === pageNum ? 'active' : ''}`}
-                    onClick={() => setCurrentPage(pageNum)}
-                  >
-                    {pageNum}
-                  </button>
-                ))}
+                <div className="pixel-counter-badge">
+                  <span>PÁGINA {currentPage} / {totalPages}</span>
+                </div>
                 <button
                   type="button"
-                  className="btn-page-nav"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  className="pixel-pager-btn"
+                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1), 'right')}
                   disabled={currentPage === totalPages}
                   title="Página siguiente"
                 >
-                  Siguiente ›
+                  ▶
                 </button>
               </div>
-            </div>
+            ) : (
+              <div className="explorer-pagination">
+                <div className="pagination-controls">
+                  <button
+                    type="button"
+                    className="btn-page-nav"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    title="Página anterior"
+                  >
+                    ‹ Anterior
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      className={`btn-page-number ${currentPage === pageNum ? 'active' : ''}`}
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="btn-page-nav"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    title="Página siguiente"
+                  >
+                    Siguiente ›
+                  </button>
+                </div>
+              </div>
+            )
           )}
           </>
         )}
@@ -1441,15 +1579,26 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
 
       {/* MODAL 1: Crear o Renombrar */}
       {(modalMode === 'createFolder' || modalMode === 'rename') && (
-        <div className="modal-backdrop" onClick={() => setModalMode(null)}>
+        <div className="modal-backdrop">
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="modal-close-btn"
+              onClick={() => setModalMode(null)}
+              disabled={actionLoading}
+              title="Cerrar ventana"
+            >
+              ✕
+            </button>
             <h3>
               {modalMode === 'createFolder'
-                ? '📁 Crear Nuevo Baúl'
-                : `✏️ Renombrar ${activeItem?.type === 'baul' ? 'Baúl' : 'Tesoro'}`}
+                ? (isEncryptedMode ? '📁 Crear Nuevo Baúl Secreto' : '📁 Crear Nueva Carpeta')
+                : `✏️ Renombrar ${activeItem?.type === 'baul' ? (isEncryptedMode ? 'Baúl' : 'Carpeta') : 'Archivo'}`}
             </h3>
             <p className="modal-description">
-              El nombre se cifrará con AES-GCM antes de guardarse en el sistema.
+              {isEncryptedMode
+                ? 'El nombre se cifrará con AES-GCM (256 bits) antes de guardarse en el sistema.'
+                : 'El nombre se guardará directamente en tu Google Drive.'}
             </p>
 
             <form
@@ -1464,7 +1613,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                 className="input-field"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Nombre del baúl o tesoro..."
+                placeholder={isEncryptedMode ? "Nombre del baúl o archivo secreto..." : "Nombre de la carpeta o archivo..."}
                 autoFocus
                 required
               />
@@ -1483,7 +1632,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                   className="btn-confirm"
                   disabled={actionLoading || !inputValue.trim()}
                 >
-                  {actionLoading ? 'Guardando...' : 'Guardar Cifrado'}
+                  {actionLoading ? 'Guardando...' : (isEncryptedMode ? 'Guardar Cifrado' : 'Guardar')}
                 </button>
               </div>
             </form>
@@ -1493,8 +1642,17 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
 
       {/* MODAL 2: Mover elemento */}
       {modalMode === 'move' && activeItem && (
-        <div className="modal-backdrop" onClick={() => setModalMode(null)}>
+        <div className="modal-backdrop">
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="modal-close-btn"
+              onClick={() => setModalMode(null)}
+              disabled={actionLoading}
+              title="Cerrar ventana"
+            >
+              ✕
+            </button>
             <h3>📦 Mover "{activeItem.currentName}"</h3>
             <p className="modal-description">
               Selecciona el baúl de destino donde deseas ubicar este elemento:

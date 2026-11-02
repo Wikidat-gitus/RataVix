@@ -229,7 +229,7 @@ export async function uploadEncryptedFileToDrive({ encryptedBuffer, fileIv, acce
 /**
  * Sube un archivo binario sin cifrar directamente a Google Drive en la carpeta de Modo Libre
  */
-export async function uploadPlainFileToDrive({ file, accessToken, onProgress }) {
+export async function uploadPlainFileToDrive({ file, customName, accessToken, onProgress }) {
   if (!accessToken) {
     throw new Error('Token de Google Drive no disponible. Por favor conecta tu cuenta de Google.');
   }
@@ -237,7 +237,7 @@ export async function uploadPlainFileToDrive({ file, accessToken, onProgress }) 
   const folderId = await getOrCreateFreeFolder(accessToken);
   const boundary = `-------BaulMagicoLibre${Date.now()}`;
   const metadata = JSON.stringify({
-    name: file.name,
+    name: customName || file.name,
     parents: [folderId],
     mimeType: file.type || 'application/octet-stream',
     description: 'Archivo estándar de Baúl Mágico 2 (Modo Libre).',
