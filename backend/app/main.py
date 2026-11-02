@@ -1,4 +1,4 @@
-﻿from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
@@ -14,8 +14,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Baúl Mágico 2 API",
-    description="API para gestión de metadatos virtuales cifrados y flujo seguro de Google Drive (Arquitectura Zero-Knowledge).",
+    title="RataVix API",
+    description="API para gestión de metadatos virtuales cifrados y flujo seguro de Google Drive (Arquitectura Zero-Knowledge - RataVix).",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -36,7 +36,7 @@ app.add_middleware(
 async def health_check():
     return {
         "status": "ok",
-        "app": "Baúl Mágico 2 API",
+        "app": "RataVix API",
         "environment": settings.ENVIRONMENT,
     }
 
