@@ -138,7 +138,7 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
           setBlobUrl(activeUrl);
         }
       } catch (err) {
-        console.error('Error al abrir el tesoro:', err);
+        console.error('Error al abrir el archivo:', err);
         setError(
           isEncrypted
             ? `No se pudo descifrar este archivo secreto. (${err.message || 'Comprueba tu clave maestra'})`

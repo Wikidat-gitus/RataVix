@@ -14,7 +14,7 @@ export default function GoogleAuthGate({ onContinueLocal, showDevTools = false }
         {/* Cabecera limpia y directa */}
         <div className="auth-gate-header">
           <div className="auth-gate-icon">📦</div>
-          <h2>Bienvenido a Baúl Mágico</h2>
+          <h2>Bienvenido a RataVix</h2>
           <p>
             Almacena, organiza y protege tus archivos en tu propio Google Drive.
           </p>

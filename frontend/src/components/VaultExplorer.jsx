@@ -21,7 +21,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
 
   // Navegación
   const isEncryptedMode = mode === 'secreto';
-  const rootName = isEncryptedMode ? 'Raíz del Baúl Secreto' : 'Raíz de Mis Archivos';
+  const rootName = isEncryptedMode ? 'Raíz Secreta' : 'Raíz Libre';
 
   const [currentBaulId, setCurrentBaulId] = useState(null);
   const [breadcrumbs, setBreadcrumbs] = useState([{ id: null, name: rootName }]);
@@ -206,7 +206,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                 const plainName = await decryptName(t.nombre_cifrado, t.iv);
                 return { ...t, plainName };
               } catch {
-                return { ...t, plainName: 'Tesoro Cifrado' };
+                return { ...t, plainName: 'Archivo Cifrado' };
               }
             })
           )
@@ -313,10 +313,10 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
     try {
       if (type === 'baul') {
         await api.updateBaul(item.id, { baul_padre_id: targetBaulId });
-        addToast(`📁 Baúl "${name}" movido a "${targetName}"`);
+        addToast(`📁 Carpeta "${name}" movida a "${targetName}"`);
       } else {
         await api.updateTesoro(item.id, { baul_id: targetBaulId });
-        addToast(`🔒 Tesoro "${name}" movido a "${targetName}"`);
+        addToast(`🔒 Archivo "${name}" movido a "${targetName}"`);
       }
       await loadVaultContent();
     } catch (err) {
@@ -394,7 +394,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
       (b) => (b.plainName || '').trim().toLowerCase() === cleanName.toLowerCase()
     );
     if (isDuplicate) {
-      addToast(`Ya existe un baúl con el nombre "${cleanName}" en esta ubicación`, 'warning');
+      addToast(`Ya existe una carpeta con el nombre "${cleanName}" en esta ubicación`, 'warning');
       return;
     }
 
@@ -408,7 +408,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
           es_cifrado: true,
           baul_padre_id: currentBaulId
         });
-        addToast(`Baúl secreto "${inputValue.trim()}" creado y blindado`);
+        addToast(`Carpeta secreta "${inputValue.trim()}" creada y blindada`);
       } else {
         await api.createBaul({
           nombre_cifrado: inputValue.trim(),
@@ -508,7 +508,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
 
         let drive_file_id;
         if (isGoogleConnected && googleAccessToken) {
-          addToast(`Subiendo a carpeta 'Baúl Mágico - Datos Cifrados' en Google Drive...`, 'info');
+          addToast(`Subiendo a 'RataVix - Secret Files' en Google Drive...`, 'info');
           const driveRes = await uploadEncryptedFileToDrive({
             encryptedBuffer,
             fileIv,
@@ -534,7 +534,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         setUploadProgress((prev) => ({
           ...prev,
           stage: 'saving',
-          statusMessage: 'Registrando metadatos blindados en el Baúl Secreto...'
+          statusMessage: 'Registrando metadatos blindados en la Raíz Secreta...'
         }));
 
         await api.createTesoro({
@@ -547,7 +547,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
           tipo_mime: file.type || 'application/octet-stream'
         });
 
-        addToast(`Tesoro "${finalFileName}" blindado y guardado`);
+        addToast(`Archivo "${finalFileName}" blindado y guardado`);
         await loadVaultContent();
         refreshStorageQuota?.();
       } catch (err) {
@@ -568,12 +568,12 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         fileSize: formattedSize,
         stage: 'uploading',
         statusMessage: isGoogleConnected && googleAccessToken
-          ? "Subiendo archivo a 'Baúl Mágico - Mis Archivos' en Google Drive..."
+          ? "Subiendo archivo a 'RataVix - Free Files' en Google Drive..."
           : "Guardando en almacenamiento local simulado..."
       });
 
       try {
-        addToast(`Subiendo "${finalFileName}" a Mis Archivos...`, 'info');
+        addToast(`Subiendo "${finalFileName}" a RataVix Free Files...`, 'info');
 
         let drive_file_id;
         if (isGoogleConnected && googleAccessToken) {
@@ -763,7 +763,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         (b) => b.id !== activeItem.item.id && (b.plainName || '').trim().toLowerCase() === cleanName.toLowerCase()
       );
       if (isDuplicate) {
-        addToast(`Ya existe un baúl con el nombre "${cleanName}" en esta ubicación`, 'warning');
+        addToast(`Ya existe una carpeta con el nombre "${cleanName}" en esta ubicación`, 'warning');
         return;
       }
     } else {
@@ -771,7 +771,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         (t) => t.id !== activeItem.item.id && (t.plainName || '').trim().toLowerCase() === cleanName.toLowerCase()
       );
       if (isDuplicate) {
-        addToast(`Ya existe un archivo con el nombre "${cleanName}" en este baúl`, 'warning');
+        addToast(`Ya existe un archivo con el nombre "${cleanName}" en esta carpeta`, 'warning');
         return;
       }
     }
@@ -826,10 +826,10 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
     try {
       if (activeItem.type === 'baul') {
         await api.updateBaul(activeItem.item.id, { baul_padre_id: selectedTargetBaulId });
-        addToast(`Baúl movido exitosamente`);
+        addToast(`Carpeta movida exitosamente`);
       } else {
         await api.updateTesoro(activeItem.item.id, { baul_id: selectedTargetBaulId });
-        addToast(`Tesoro movido exitosamente`);
+        addToast(`Archivo movido exitosamente`);
       }
 
       setModalMode(null);
@@ -847,10 +847,10 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
     const isFolder = type === 'baul';
     setConfirmConfig({
       isOpen: true,
-      title: isFolder ? '¿Eliminar este Baúl?' : '¿Eliminar este Tesoro?',
+      title: isFolder ? '¿Eliminar esta Carpeta?' : '¿Eliminar este Archivo?',
       message: isFolder
-        ? `Se eliminará el baúl virtual "${item.plainName}" y todos los tesoros contenidos en su interior.`
-        : `Se eliminará el tesoro virtual "${item.plainName}". Esta acción no se puede deshacer.`,
+        ? `Se eliminará la carpeta "${item.plainName}" y todos los archivos contenidos en su interior.`
+        : `Se eliminará el archivo "${item.plainName}". Esta acción no se puede deshacer.`,
       confirmText: 'Sí, Eliminar',
       cancelText: 'Cancelar',
       isDanger: true,
@@ -861,7 +861,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
           isDeleting: true,
           itemName: item.plainName,
           statusMessage: isFolder
-            ? `Eliminando baúl y recolectando archivos dependientes...`
+            ? `Eliminando carpeta y recolectando archivos dependientes...`
             : `Purgando archivo cifrado de Google Drive...`
         });
 
@@ -883,13 +883,13 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                 }
               }
             }
-            addToast(`Baúl "${item.plainName}" y sus contenidos eliminados`);
+            addToast(`Carpeta "${item.plainName}" y sus contenidos eliminados`);
           } else {
             if (item.drive_file_id && !item.drive_file_id.startsWith('gdrive-mock-') && isGoogleConnected && googleAccessToken) {
               await deleteFileFromDrive({ driveFileId: item.drive_file_id, accessToken: googleAccessToken });
             }
             await api.deleteTesoro(item.id);
-            addToast(`Tesoro "${item.plainName}" eliminado`);
+            addToast(`Archivo "${item.plainName}" eliminado`);
           }
           await loadVaultContent();
         } catch (err) {
@@ -987,7 +987,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
           baul_id: null,
         });
 
-        addToast(`🛡️ Tesoro "${tesoro.plainName}" protegido y movido a la Raíz de Modo Secreto`, 'success');
+        addToast(`🛡️ Archivo "${tesoro.plainName}" protegido y movido a Raíz Secreta`, 'success');
         await loadVaultContent();
       } catch (err) {
         console.error('Error al mover tesoro a Modo Secreto:', err);
@@ -1074,7 +1074,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
           baul_id: null,
         });
 
-        addToast(`🔓 Archivo "${tesoro.plainName}" movido a la Raíz de Mis Archivos`, 'success');
+        addToast(`🔓 Archivo "${tesoro.plainName}" movido a Raíz Libre`, 'success');
         await loadVaultContent();
       } catch (err) {
         console.error('Error al mover tesoro a Modo Libre:', err);
@@ -1168,7 +1168,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
             <div className="drop-pulse-icon">✨</div>
             <h3>¡Suelta tu archivo aquí!</h3>
             <p>
-              Se cifrará en tu navegador con <strong>AES-GCM (256 bits)</strong> antes de subirse a este baúl.
+              Se cifrará en tu navegador con <strong>AES-GCM (256 bits)</strong> antes de subirse a esta carpeta.
             </p>
             <div className="drop-badge">
               <span>🛡️ Cero Conocimiento • Subida Protegida</span>
@@ -1219,10 +1219,10 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
             className="btn-action btn-new-folder"
             onClick={handleOpenCreateFolder}
             disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
-            title={isEncryptedMode ? "Crear un nuevo baúl virtual blindado" : "Crear una nueva carpeta"}
+            title={isEncryptedMode ? "Crear una nueva carpeta secreta blindada" : "Crear una nueva carpeta"}
           >
             <span>📁+</span>
-            <span>{isEncryptedMode ? "Nuevo Baúl" : "Nueva Carpeta"}</span>
+            <span>Nueva Carpeta</span>
           </button>
 
           <button
@@ -1233,7 +1233,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
             title={isEncryptedMode ? "Subir y cifrar un archivo con AES-GCM 256 bits" : "Subir un archivo a Google Drive"}
           >
             <span>⬆️</span>
-            <span>{isEncryptedMode ? "Subir Tesoro" : "Subir Archivo"}</span>
+            <span>Subir Archivo</span>
           </button>
 
           <input
@@ -1258,7 +1258,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
             <div className="search-empty-state">
               <span className="search-empty-icon">🔍</span>
               <h3>Sin resultados</h3>
-              <p>No se encontraron baúles ni tesoros que contengan "<strong>{searchQuery}</strong>" en este nivel.</p>
+              <p>No se encontraron carpetas ni archivos que contengan "<strong>{searchQuery}</strong>" en este nivel.</p>
               {onClearSearch && (
                 <button type="button" className="btn-cancel" onClick={onClearSearch}>
                   ✕ Limpiar búsqueda
@@ -1282,7 +1282,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                 disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
               >
                 <span>⬆️</span>
-                <span>{isEncryptedMode ? "Subir Tesoro" : "Subir Archivo"}</span>
+                <span>Subir Archivo</span>
               </button>
               <button
                 type="button"
@@ -1291,7 +1291,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                 disabled={actionLoading || uploadProgress.isOpen || deletingProgress.isDeleting}
               >
                 <span>📁+</span>
-                <span>{isEncryptedMode ? "Nuevo Baúl" : "Nueva Carpeta"}</span>
+                <span>Nueva Carpeta</span>
               </button>
             </div>
           </div>
@@ -1346,7 +1346,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                           }}
                         >
                           <span className="dropdown-icon">📂</span>
-                          <span>Abrir baúl</span>
+                          <span>Abrir carpeta</span>
                         </button>
                         <button
                           type="button"
@@ -1380,7 +1380,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                           }}
                         >
                           <span className="dropdown-icon">🗑️</span>
-                          <span>Eliminar baúl</span>
+                          <span>Eliminar carpeta</span>
                         </button>
                       </div>
                     )}
@@ -1478,7 +1478,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                             setOpenMenuId(null);
                             handleMigrateTesoro(tesoro, isEncryptedMode ? 'libre' : 'secreto');
                           }}
-                          title={isEncryptedMode ? 'Mover a la Raíz de Modo Libre' : 'Blindar con Conocimiento Cero y mover a Modo Secreto'}
+                          title={isEncryptedMode ? 'Mover a Raíz Libre' : 'Blindar con Conocimiento Cero y mover a Raíz Secreta'}
                         >
                           <span className="dropdown-icon">{isEncryptedMode ? '🔓' : '🛡️'}</span>
                           <span>{isEncryptedMode ? 'Mover a Modo Libre' : 'Mover a Modo Secreto'}</span>
@@ -1493,7 +1493,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                           }}
                         >
                           <span className="dropdown-icon">🗑️</span>
-                          <span>Eliminar tesoro</span>
+                          <span>Eliminar archivo</span>
                         </button>
                       </div>
                     )}
@@ -1592,8 +1592,8 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
             </button>
             <h3>
               {modalMode === 'createFolder'
-                ? (isEncryptedMode ? '📁 Crear Nuevo Baúl Secreto' : '📁 Crear Nueva Carpeta')
-                : `✏️ Renombrar ${activeItem?.type === 'baul' ? (isEncryptedMode ? 'Baúl' : 'Carpeta') : 'Archivo'}`}
+                ? (isEncryptedMode ? '📁 Crear Nueva Carpeta Secreta' : '📁 Crear Nueva Carpeta')
+                : `✏️ Renombrar ${activeItem?.type === 'baul' ? 'Carpeta' : 'Archivo'}`}
             </h3>
             <p className="modal-description">
               {isEncryptedMode
@@ -1613,7 +1613,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                 className="input-field"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder={isEncryptedMode ? "Nombre del baúl o archivo secreto..." : "Nombre de la carpeta o archivo..."}
+                placeholder={isEncryptedMode ? "Nombre de la carpeta o archivo secreto..." : "Nombre de la carpeta o archivo..."}
                 autoFocus
                 required
               />
@@ -1655,7 +1655,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
             </button>
             <h3>📦 Mover "{activeItem.currentName}"</h3>
             <p className="modal-description">
-              Selecciona el baúl de destino donde deseas ubicar este elemento:
+              Selecciona la carpeta de destino donde deseas ubicar este elemento:
             </p>
 
             <form onSubmit={handleConfirmMove}>
@@ -1664,7 +1664,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                 value={selectedTargetBaulId || ''}
                 onChange={(e) => setSelectedTargetBaulId(e.target.value || null)}
               >
-                <option value="">📂 [Raíz del Baúl Principal]</option>
+                <option value="">📂 [{isEncryptedMode ? 'Raíz Secreta' : 'Raíz Libre'}]</option>
                 {allBaulesList
                   .filter((b) => b.id !== activeItem.item.id)
                   .map((b) => (

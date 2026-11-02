@@ -40,7 +40,7 @@ export default function UploadProgressModal({
     saving: {
       step: 3,
       total: 3,
-      title: 'Sincronización en el Baúl',
+      title: 'Sincronización en RataVix',
       defaultMsg: 'Registrando metadatos blindados en base de datos...',
       icon: '✨',
       colorClass: 'stage-save',

@@ -1,5 +1,5 @@
-﻿/**
- * Cliente de API Real para Baúl Mágico 2
+/**
+ * Cliente de API Real para RataVix
  * Conecta el Frontend con el Backend FastAPI en http://localhost:8000/api
  * Arquitectura Zero-Knowledge: Solo viajan metadatos cifrados e IVs.
  */
