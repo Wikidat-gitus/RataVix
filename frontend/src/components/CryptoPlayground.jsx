@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   generateSalt,
   deriveKeyFromPassword,
@@ -18,7 +18,7 @@ export default function CryptoPlayground() {
   const [derivationTime, setDerivationTime] = useState(null);
 
   // Estado de prueba de texto
-  const [textInput, setTextInput] = useState('Documento Confidencial - Baúl 2026');
+  const [textInput, setTextInput] = useState('Documento Confidencial - RataVix 2026');
   const [encryptedText, setEncryptedText] = useState(null);
   const [textIv, setTextIv] = useState(null);
   const [decryptedText, setDecryptedText] = useState(null);
@@ -153,7 +153,7 @@ export default function CryptoPlayground() {
 
       {/* SECCIÓN 2: CIFRADO DE METADATOS Y TEXTO */}
       <div className="playground-card">
-        <h4>2. Cifrado de Nombres de Baúles / Tesoros (Texto a Base64)</h4>
+        <h4>2. Cifrado de Nombres de Carpetas / Archivos (Texto a Base64)</h4>
         <div className="input-field">
           <label>Nombre en claro (lo que tú ves):</label>
           <input

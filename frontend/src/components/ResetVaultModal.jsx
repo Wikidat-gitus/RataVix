@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
 
@@ -29,7 +29,7 @@ export default function ResetVaultModal({ onClose, isLocalMock }) {
         });
         onClose();
       } else {
-        setResetError(res.error || 'Ocurrió un error al purgar el baúl.');
+        setResetError(res.error || 'Ocurrió un error al purgar la bóveda.');
       }
     } catch (err) {
       setResetError(err.message || 'Error inesperado al purgar.');
@@ -56,10 +56,10 @@ export default function ResetVaultModal({ onClose, isLocalMock }) {
               Ni nosotros, ni Render, ni Google poseemos tu clave maestra, por lo que <strong>nadie puede recuperar tus datos</strong>.
             </p>
             <p>
-              Para poder volver a utilizar tu cuenta y crear una nueva contraseña maestra, es necesario <strong>purgar por completo el baúl</strong>:
+              Para poder volver a utilizar tu cuenta y crear una nueva contraseña maestra, es necesario <strong>purgar por completo la bóveda secreta</strong>:
             </p>
             <ul className="reset-consequences-list">
-              <li>🗑️ Se eliminarán todos tus baúles virtuales y metadatos en la base de datos.</li>
+              <li>🗑️ Se eliminarán todas tus carpetas secretas y metadatos en la base de datos.</li>
               <li>☁️ Se purgarán los archivos cifrados (.enc) en tu Google Drive.</li>
               <li>✨ Tu cuenta quedará limpia para configurar una nueva clave maestra inmediatamente.</li>
             </ul>

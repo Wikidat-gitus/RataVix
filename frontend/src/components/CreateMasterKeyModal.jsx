@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
 
@@ -139,7 +139,7 @@ export default function CreateMasterKeyModal({
               <strong>ADVERTENCIA DE SEGURIDAD CRÍTICA:</strong>
               <p>
                 Tu contraseña <em>nunca</em> viaja al servidor ni a Google. No existe botón de <em>"recuperar contraseña"</em>.
-                Si la olvidas, la única forma de volver a usar la aplicación será purgar por completo el baúl y empezar de cero.
+                Si la olvidas, la única forma de volver a usar la aplicación será purgar por completo la bóveda y empezar de cero.
               </p>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function CreateMasterKeyModal({
             ) : (
               <>
                 <span>🛡️</span>
-                <span>Blindar y Abrir mi Baúl</span>
+                <span>Blindar y Abrir Bóveda Secreta</span>
               </>
             )}
           </button>

@@ -10,12 +10,14 @@
 
 import { base64ToBuffer, bufferToBase64 } from '../crypto/utils.js';
 
-const VAULT_FOLDER_NAME = 'Baúl Mágico - Datos Cifrados';
+const VAULT_FOLDER_NAME = 'RataVix - Secret Files';
+const LEGACY_VAULT_FOLDER_NAME = 'Baúl Mágico - Datos Cifrados';
 const DRIVE_API_URL = 'https://www.googleapis.com/drive/v3/files';
 const DRIVE_UPLOAD_URL = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
 const IV_LENGTH_BYTES = 12;
 
-const FREE_FOLDER_NAME = 'Baúl Mágico - Mis Archivos';
+const FREE_FOLDER_NAME = 'RataVix - Free Files';
+const LEGACY_FREE_FOLDER_NAME = 'Baúl Mágico - Mis Archivos';
 let cachedFolderId = null;
 let cachedFreeFolderId = null;
 
@@ -26,7 +28,7 @@ export async function getOrCreateVaultFolder(accessToken) {
   if (cachedFolderId) return cachedFolderId;
 
   // 1. Buscar si ya existe la carpeta
-  const query = encodeURIComponent(`name = '${VAULT_FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
+  const query = encodeURIComponent(`(name = '${VAULT_FOLDER_NAME}' or name = '${LEGACY_VAULT_FOLDER_NAME}') and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
   const searchRes = await fetch(`${DRIVE_API_URL}?q=${query}&fields=files(id,name)`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
@@ -52,7 +54,7 @@ export async function getOrCreateVaultFolder(accessToken) {
     body: JSON.stringify({
       name: VAULT_FOLDER_NAME,
       mimeType: 'application/vnd.google-apps.folder',
-      description: 'Bóveda de archivos cifrados de Baúl Mágico 2 (Arquitectura Zero-Knowledge). Los archivos aquí están encriptados con AES-GCM 256 bits.',
+      description: 'Bóveda de archivos cifrados de RataVix (Arquitectura Zero-Knowledge). Los archivos aquí están encriptados con AES-GCM 256 bits.',
     }),
   });
 
@@ -72,7 +74,7 @@ export async function getOrCreateVaultFolder(accessToken) {
 export async function getOrCreateFreeFolder(accessToken) {
   if (cachedFreeFolderId) return cachedFreeFolderId;
 
-  const query = encodeURIComponent(`name = '${FREE_FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
+  const query = encodeURIComponent(`(name = '${FREE_FOLDER_NAME}' or name = '${LEGACY_FREE_FOLDER_NAME}') and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
   const searchRes = await fetch(`${DRIVE_API_URL}?q=${query}&fields=files(id,name)`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
@@ -97,7 +99,7 @@ export async function getOrCreateFreeFolder(accessToken) {
     body: JSON.stringify({
       name: FREE_FOLDER_NAME,
       mimeType: 'application/vnd.google-apps.folder',
-      description: 'Carpeta de archivos estándar de Baúl Mágico 2 (Modo Libre).',
+      description: 'Carpeta de archivos estándar de RataVix (Modo Libre).',
     }),
   });
 
@@ -240,7 +242,7 @@ export async function uploadPlainFileToDrive({ file, customName, accessToken, on
     name: customName || file.name,
     parents: [folderId],
     mimeType: file.type || 'application/octet-stream',
-    description: 'Archivo estándar de Baúl Mágico 2 (Modo Libre).',
+    description: 'Archivo estándar de RataVix (Modo Libre).',
   });
 
   const fileBuffer = await file.arrayBuffer();

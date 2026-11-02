@@ -236,7 +236,7 @@ export default function AdminMaintenancePanel({
       {activeAdminSubTab === 'architecture' && (
         <div className="admin-arch-wrapper">
           <section className="hero-card">
-            <span className="hero-pill">Baúl Mágico 2 • Especificación de Arquitectura</span>
+            <span className="hero-pill">RataVix • Especificación de Arquitectura</span>
             <h2 className="hero-title">
               Arquitectura de <span>Cero Conocimiento</span>
             </h2>

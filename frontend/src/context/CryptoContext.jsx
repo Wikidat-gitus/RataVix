@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { deriveKeyFromPassword, generateSalt } from '../crypto/pbkdf2.js';
 import { encryptText, decryptText, encryptBinary, decryptBinary } from '../crypto/aesGcm.js';
 import { api } from '../services/api';
@@ -140,7 +140,7 @@ export function CryptoProvider({ children }) {
       return { ok: true, deletedCount: deletedDriveFileIds.length };
     } catch (err) {
       console.error('Error al purgar y resetear el baúl:', err);
-      setError(`Error al purgar el baúl: ${err.message}`);
+      setError(`Error al purgar la bóveda: ${err.message}`);
       return { ok: false, error: err.message };
     }
   }, []);
@@ -157,7 +157,7 @@ export function CryptoProvider({ children }) {
    * Cifra un nombre (carpeta o archivo) devolviendo los campos del contrato de API
    */
   const encryptName = useCallback(async (plainName) => {
-    if (!cryptoKey) throw new Error('El baúl está bloqueado. Clave no disponible.');
+    if (!cryptoKey) throw new Error('La bóveda está bloqueada. Clave no disponible.');
     const { cipherText, iv } = await encryptText(plainName, cryptoKey);
     return { nombre_cifrado: cipherText, iv };
   }, [cryptoKey]);
@@ -179,7 +179,7 @@ export function CryptoProvider({ children }) {
    * Cifra un archivo binario
    */
   const encryptFileBlob = useCallback(async (fileData) => {
-    if (!cryptoKey) throw new Error('El baúl está bloqueado. Clave no disponible.');
+    if (!cryptoKey) throw new Error('La bóveda está bloqueada. Clave no disponible.');
     return await encryptBinary(fileData, cryptoKey);
   }, [cryptoKey]);
 
@@ -187,7 +187,7 @@ export function CryptoProvider({ children }) {
    * Descifra un archivo binario
    */
   const decryptFileBlob = useCallback(async (encryptedBuffer, iv) => {
-    if (!cryptoKey) throw new Error('El baúl está bloqueado. Clave no disponible.');
+    if (!cryptoKey) throw new Error('La bóveda está bloqueada. Clave no disponible.');
     return await decryptBinary(encryptedBuffer, iv, cryptoKey);
   }, [cryptoKey]);
 

@@ -196,7 +196,7 @@ function AppContent() {
         window.dispatchEvent(
           new CustomEvent('baul:toast', {
             detail: {
-              message: 'Solo se pueden transferir archivos individuales (tesoros), no carpetas.',
+              message: 'Solo se pueden transferir archivos individuales, no carpetas.',
               type: 'warning',
             },
           })
@@ -246,7 +246,7 @@ function AppContent() {
                 className={`admin-tab-btn ${activeTab === 'vault' ? 'active' : ''}`}
                 onClick={() => setActiveTab('vault')}
               >
-                🏰 Baúl Virtual
+                📁 Explorador de Archivos
               </button>
               <button
                 type="button"
@@ -290,7 +290,7 @@ function AppContent() {
         <div className="brand-badge">
           <div className="brand-icon">📦</div>
           <div className="brand-text">
-            <h1>Baúl Mágico</h1>
+            <h1>RataVix</h1>
             <p>Almacenamiento en Google Drive</p>
           </div>
         </div>
@@ -304,7 +304,7 @@ function AppContent() {
                 <input
                   type="text"
                   className="header-search-input"
-                  placeholder="Buscar en el baúl..."
+                  placeholder="Buscar archivos o carpetas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   aria-label="Buscar archivos y carpetas"
@@ -325,7 +325,7 @@ function AppContent() {
               {isGoogleConnected && storageQuota && (
                 <div
                   className="header-storage-widget"
-                  title={`Almacenamiento Google Drive:\n• Ocupado total: ${formatQuotaBytes(storageQuota.usage)}\n• En este Baúl: ${formatQuotaBytes(storageQuota.usageInDrive)}\n• Espacio total: ${storageQuota.isUnlimited ? 'Ilimitado' : formatQuotaBytes(storageQuota.limit)}`}
+                  title={`Almacenamiento Google Drive:\n• Ocupado total: ${formatQuotaBytes(storageQuota.usage)}\n• En RataVix: ${formatQuotaBytes(storageQuota.usageInDrive)}\n• Espacio total: ${storageQuota.isUnlimited ? 'Ilimitado' : formatQuotaBytes(storageQuota.limit)}`}
                 >
                   <div className="header-storage-meta">
                     <span className="storage-icon">☁️</span>
@@ -563,13 +563,13 @@ function AppContent() {
         {isDevMode && activeTab === 'architecture' && (
           <div className="tab-pane">
             <section className="hero-card">
-              <span className="hero-pill">Baúl Mágico 2 • Cero Conocimiento</span>
+              <span className="hero-pill">RataVix • Cero Conocimiento</span>
               <h2 className="hero-title">
-                Tus tesoros digitales, <span>100% blindados</span>.
+                Tus archivos digitales, <span>100% blindados</span>.
               </h2>
               <p className="hero-description">
                 Cifrado AES-GCM de 256 bits directo en tu navegador. Ni el servidor, ni Google,
-                ni nadie puede leer lo que guardas en tu baúl personal.
+                ni nadie puede leer lo que guardas en tu bóveda personal.
               </p>
             </section>
 
@@ -607,7 +607,7 @@ function AppContent() {
       {/* Footer */}
       <footer className="app-footer">
         <div className="footer-content">
-          <p>Baúl Mágico 2 — Arquitectura de Conocimiento Cero • Frontend React + Vite</p>
+          <p>RataVix — Arquitectura de Conocimiento Cero • Frontend React + Vite</p>
           <div className="footer-actions">
             <button
               type="button"
