@@ -84,6 +84,7 @@
 | **CP-61** | 2026-11-02 | Usuario + @master_agent | **Cierre Oficial de Fase 4.5 y Transición Estratégica a Fase 5:** 1) **Evaluación y Cierre de Hito:** Fase 4.5 declarada 100% completada tras validar arquitectura dual (`🔓 Modo Libre` vs `🔒 Modo Secreto`), explorador estilo Windows Explorer con tema alternativo Pixel Art, visor multiformato estable (PDFs, videos, audios, texto e imágenes), blindaje preventivo anti-saturación de RAM (500 MB) y login OAuth continuo sin rebotes. 2) **Alcance de Mantenimiento Normal:** Se ratifica que cualquier ajuste menor futuro (bugs visuales puntuales, actualizaciones de librerías o parches cosméticos) forma parte del ciclo de vida de mantenimiento estándar continuo. 3) **Inicio de Fase 5 en Local:** Inicio formal de Fase 5 (Consolidación, Documentación de Arquitectura, Manuales de Soporte y Preparación de Verificación de Producción OAuth). Registrado en local sin despliegues externos. |
 | **CP-62** | 2026-11-03 | Usuario + @master_agent + @front_agent + @back_agent | **Auditoría de Código y Optimización de Rendimiento/Seguridad (Prioridad 1 y 2):** 1) **Blindaje Crítico en Backend (`security.py`):** Eliminado el fallback inseguro que retornaba al primer usuario ante peticiones anónimas sin Bearer token; ahora se rechaza estrictamente con `HTTP 401 Unauthorized` (validado con test automatizado). 2) **Optimización de Cascade Delete en Backend (`baules.py`):** Erradicado el bucle N+1 de consultas SQL en el borrado recursivo; ahora se resuelve en 1 sola consulta ligera de IDs con mapeo en memoria en microsegundos. 3) **Reseteo de Caché de Google Drive (`googleDrive.js` + `GoogleAuthContext.jsx`):** Nueva función `resetDriveFolderCache()` ejecutada al cerrar sesión para evitar colisiones entre cuentas de Google en la misma pestaña. 4) **Lazy Loading de Carpetas en Frontend (`VaultExplorer.jsx`):** Eliminada la sobrecarga de consultar y descifrar con Web Crypto todas las carpetas del baúl en cada navegación; ahora la lista completa se carga y descifra bajo demanda únicamente al abrir el modal 'Mover'. Suites de pruebas 100% aprobadas. |
 | **CP-63** | 2026-11-03 | Usuario + @master_agent + @front_agent | **Poda Integral de Estilos CSS Muertos y Optimización de Bundle (Prioridad 3):** 1) Auditoría exhaustiva de selectores CSS contra todos los componentes JSX. 2) Erradicación de 265 líneas de estilos huérfanos en `frontend/src/App.css` (antigua vista previa de Fase 1, botones saturados de tarjetas de CP-10 a CP-28, barras de progreso viejas, badges obsoletos de login y chips redundantes). 3) Reducción del bundle CSS de producción de 75.11 kB a 70.51 kB en Vite. Build verificado en 1.56s. |
+| **CP-64** | 2026-11-03 | Usuario + @master_agent + @front_agent | **Modularización Arquitectónica SOLID de Estilos (Hito 5.1):** 1) Desacople del archivo monolítico `App.css` (reducido de 4,426 líneas a 685 líneas). 2) Creación de 8 módulos CSS especializados por componente según el Principio de Responsabilidad Única (S): `GoogleAuthGate.css`, `TreasureViewerModal.css`, `UploadProgressModal.css`, `StressBenchmarkPanel.css`, `AdminMaintenancePanel.css`, `VaultModals.css`, `VaultExplorer.css` y `styles/pixelTheme.css`. 3) Importación modular directa en cada componente JSX. 4) Compilación de producción con Vite verificada en 1.43s con paridad estética idéntica (70.51 kB). |
 
 ---
 
@@ -132,9 +133,17 @@
   * [x] **Refinamiento UX/UI (Parte 1 — Completado):** Erradicación de clichés de IA y scrollbars parásitos, Header compacto con menú de perfil desplegable, selector segmentado en 1 fila, cuadrícula estable con paginación centrada (16 elementos por página) y login de Modo Secreto hipercompacto.
   * [x] **Pruebas de estrés y visualización en la nube (Archivos grandes, PiP, PDF, Auth):** Validado en vivo y blindado en producción.
   * [x] **Tema Alternativo Pixel Art y Buscador Rápido (Hito 4.5++++++++++++):** Buscador en tiempo real en cabecera (`🔍`), protección anti-duplicados, modales con `✕` y tema visual Pixel Art con paginación de 4 elementos en 1 fila y deslizamiento lateral.
-* [ ] **Fase 5: Consolidación, Mantenimiento y Aprendizaje Profundo (EN CURSO)**
-  * Documentación paso a paso ("Cómo recrear Baúl Mágico 2 desde cero sin agentes").
-  * Manual de mantenimiento, variables de entorno y soporte.
+* [ ] **Fase 5: Consolidación, Refactorización SOLID y Documentación (EN CURSO)**
+  * [x] **5.1: Refactorización y Principios SOLID:**
+    * [x] Seguridad Backend: Erradicación de fallback anónimo en `security.py` (CP-62).
+    * [x] Rendimiento Backend: Optimización de borrado en cascada en 1 sola consulta SQL en `baules.py` (CP-62).
+    * [x] Rendimiento Frontend: Lazy Loading criptográfico en `VaultExplorer.jsx` y reseteo de caché de Drive (CP-62).
+    * [x] Poda de CSS: Eliminación de 265 líneas de código muerto en estilos (CP-63).
+    * [x] Modularización SOLID: Desacople de `App.css` en 8 submódulos CSS por componente (CP-64).
+  * [ ] **5.2: Documentación de Arquitectura y Guía "Cómo recrear desde cero":**
+    * [ ] Guía paso a paso de Arquitectura Zero-Knowledge y Principios SOLID.
+    * [ ] Manual de operaciones, variables de entorno y mantenimiento cloud.
+    * [ ] Kit de verificación Google OAuth y políticas legales.
 * [ ] **Fase 6: Expansión Móvil — Arnés de Agente y Arquitectura Android**
   * Definición del agente especialista en Android / Flutter.
   * Reutilización de los pilares de API Contract y Web Crypto nativo adaptado a móvil.
