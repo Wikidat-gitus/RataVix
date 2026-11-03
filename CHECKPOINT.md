@@ -88,6 +88,7 @@
 | **CP-65** | 2026-11-03 | Usuario + @master_agent + @front_agent | **Modularización SOLID de Componentes y Lógica JSX (Hito 5.1+):** 1) Desacople de `VaultExplorer.jsx` extrayendo el subcomponente `FolderActionModals.jsx` para los diálogos de Crear Carpeta, Renombrar y Mover. 2) Extracción del subcomponente `ToastContainer.jsx` para notificaciones flotantes. 3) Extracción del Custom Hook `useVaultMigration.js` para encapsular la lógica del Puente Mágico (descarga, descifrado/cifrado AES-GCM en RAM y subida dual). 4) Reducción de ~400 líneas en `VaultExplorer.jsx`. Build de Vite verificado en 3.45s sin errores. |
 | **CP-66** | 2026-11-03 | Usuario + @master_agent + @front_agent | **Modularización SOLID de la Cuadrícula del Explorador (`ExplorerGrid.jsx`):** 1) Extracción del renderizado de mosaicos de escritorio y Pixel Art hacia `frontend/src/components/ExplorerGrid.jsx` con Drag & Drop nativo y menú contextual kebab. 2) Integración limpia en `VaultExplorer.jsx` reduciendo más de 200 líneas adicionales del render tree. 3) Pruebas de compilación en Vite (1.76s) y suites de persistencia de backend 100% aprobadas. Cierre formal del Hito 5.1 (Principios SOLID). |
 | **CP-67** | 2026-11-03 | Usuario + @master_agent + @front_agent + @back_agent | **Organización Funcional y Colocation de Subcarpetas (Frontend y Backend):** 1) **Frontend:** Clasificación y desacople de los 21 archivos de components/ en 4 módulos temáticos: auth/ (GoogleAuthGate, Unlock, Create, Reset), explorer/ (VaultExplorer, ExplorerGrid, ToastContainer), modals/ (ConfirmModal, FolderActionModals, TreasureViewer, UploadProgress, VaultModals.css) y admin/ (AdminMaintenancePanel, StressBenchmark, CryptoPlayground). 2) **Backend:** Estandarización de suite de pruebas en directorio dedicado backend/tests/test_api.py con __init__.py. 3) Compilación Vite en 1.49s y pruebas de backend 100% aprobadas. |
+| **CP-68** | 2026-11-03 | Usuario + @master_agent + @front_agent | **Políticas Legales Oficiales y Preparación para Publicación Google OAuth (v1.0):** 1) Creación de páginas públicas oficiales y responsivas: `frontend/public/privacy.html` (declaración de arquitectura dual, cumplimiento estricto de Google Limited Use Requirements, cero venta de datos, cero entrenamiento de IA y aislamiento de permisos drive.file) y `frontend/public/terms.html` (términos de servicio, propiedad del usuario y cláusula expresa de custodia de contraseña en Modo Secreto). 2) Integración de enlaces legales en pantalla de bienvenida (`GoogleAuthGate.jsx`) y pie de página general (`App.jsx`). 3) Compilación y despliegue exitoso en producción Vercel para validación en Google Cloud Console. |
 
 ---
 
@@ -149,7 +150,7 @@
   * [ ] **5.2: Documentación de Arquitectura y Guía "Cómo recrear desde cero":**
     * [ ] Guía paso a paso de Arquitectura Zero-Knowledge y Principios SOLID.
     * [ ] Manual de operaciones, variables de entorno y mantenimiento cloud.
-    * [ ] Kit de verificación Google OAuth y políticas legales.
+    * [x] Kit de verificación Google OAuth y políticas legales (CP-68).
 * [ ] **Fase 6: Expansión Móvil — Arnés de Agente y Arquitectura Android**
   * Definición del agente especialista en Android / Flutter.
   * Reutilización de los pilares de API Contract y Web Crypto nativo adaptado a móvil.
