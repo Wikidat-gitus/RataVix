@@ -77,6 +77,11 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
   // Visor de Tesoros
   const [viewerTesoro, setViewerTesoro] = useState(null);
 
+  // Cerrar cualquier reproducción activa si se cambia de modo (Libre <-> Secreto)
+  useEffect(() => {
+    setViewerTesoro(null);
+  }, [mode]);
+
   // Modal Bloqueante de Progreso de Subida (Zero-Knowledge)
   const [uploadProgress, setUploadProgress] = useState({
     isOpen: false,

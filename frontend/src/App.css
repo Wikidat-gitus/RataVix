@@ -1717,6 +1717,193 @@
 }
 
 /* ==========================================================================
+   Modo Flotante Minimizado del Visor (Mini Dock Player / PiP)
+   ========================================================================== */
+.viewer-backdrop.viewer-minimized {
+  position: fixed;
+  inset: auto;
+  bottom: 24px;
+  right: 24px;
+  width: auto;
+  height: auto;
+  background: transparent;
+  backdrop-filter: none;
+  padding: 0;
+  z-index: 1500;
+  pointer-events: none;
+  display: block;
+}
+
+.viewer-backdrop.viewer-minimized .viewer-window {
+  pointer-events: auto;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  max-height: none;
+  background: #111526;
+  border: 1px solid var(--accent-gold, #ffb800);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), 0 0 15px rgba(255, 184, 0, 0.25);
+  animation: slideUpMini 0.25s ease-out;
+  overflow: hidden;
+}
+
+@keyframes slideUpMini {
+  from {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.viewer-backdrop.viewer-minimized .viewer-header {
+  padding: 0.65rem 0.85rem;
+  background: rgba(15, 18, 29, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.viewer-backdrop.viewer-minimized .viewer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.viewer-backdrop.viewer-minimized .viewer-title-group h3 {
+  max-width: 150px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+.viewer-backdrop.viewer-minimized .viewer-meta-tags {
+  display: none;
+}
+
+.viewer-pip-status-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  color: #ffb800;
+  font-weight: 600;
+}
+
+.viewer-backdrop.viewer-minimized .viewer-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.viewer-backdrop.viewer-minimized .btn-viewer-action.btn-restore {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewer-backdrop.viewer-minimized .btn-viewer-action.btn-restore:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #ffb800;
+}
+
+.viewer-backdrop.viewer-minimized .btn-viewer-action.btn-pip {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.78rem;
+}
+
+.viewer-backdrop.viewer-minimized .btn-viewer-close {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.viewer-backdrop.viewer-minimized .btn-viewer-close:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.viewer-backdrop.viewer-minimized .viewer-body {
+  padding: 0.6rem;
+  max-height: 230px;
+}
+
+/* Cuando está minimizado Y además en PiP nativo de pantalla */
+.viewer-backdrop.viewer-minimized.pip-active .viewer-video-wrap {
+  height: 0;
+  max-height: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+.viewer-pip-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.8rem;
+  color: #ffb800;
+  background: rgba(255, 184, 0, 0.1);
+  border: 1px solid rgba(255, 184, 0, 0.25);
+  border-radius: 8px;
+}
+
+/* Cuando está minimizado pero NO en PiP nativo (se reproduce en el mini dock) */
+.viewer-backdrop.viewer-minimized:not(.pip-active) .viewer-video-wrap {
+  width: 100%;
+  height: 185px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.viewer-backdrop.viewer-minimized:not(.pip-active) .viewer-video-player {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.viewer-backdrop.viewer-minimized .viewer-audio-wrap {
+  padding: 0.25rem;
+}
+
+.viewer-backdrop.viewer-minimized .media-player-card {
+  padding: 0.6rem;
+  gap: 0.4rem;
+}
+
+.viewer-backdrop.viewer-minimized .media-player-card span {
+  font-size: 2rem !important;
+}
+
+.viewer-backdrop.viewer-minimized .media-player-card h4 {
+  font-size: 0.85rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+.viewer-backdrop.viewer-minimized .native-audio-player {
+  width: 100%;
+  height: 36px;
+}
+
+
+/* ==========================================================================
    Modal de Confirmación Suave (ConfirmModal)
    ========================================================================== */
 .confirm-modal-box {
