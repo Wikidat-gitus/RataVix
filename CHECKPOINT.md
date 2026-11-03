@@ -7,7 +7,7 @@
 ---
 
 ## 📍 Estado General del Proyecto
-* **Fase Actual:** `Fase 5: Consolidación, Mantenimiento, Aprendizaje Profundo y Preparación de Producción` ➔ Previa a la futura extensión móvil `Android App (Fase 6)`.
+* **Fase Actual:** `Fase 5: Consolidación, Mantenimiento y Documentación de Producción` (Hito 5.1 SOLID y Organización Funcional **100% COMPLETADOS** ➔ Próximo Hito: 5.2 Documentación de Arquitectura).
 * **Arquitectura:** Monorepo (`frontend/` + `backend/` + `docs/`)
 * **Repositorio:** `Wikidat-gitus/RataVix` (GitHub Privado, rama principal: `main`)
 * **URLs de Producción ($0/mes):**
