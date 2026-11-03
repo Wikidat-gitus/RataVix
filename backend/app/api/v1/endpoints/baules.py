@@ -149,6 +149,7 @@ async def delete_baul(
     Elimina un baúl virtual y sus contenidos dependientes en cascada.
     Retorna la lista de `deleted_drive_file_ids` de todos los tesoros hijos
     y descendientes para que el cliente pueda eliminarlos de Google Drive.
+    Optimizado: Resuelve la jerarquía en 1 sola consulta SQL sin bucles N+1.
     """
     baul = (
         db.query(Baul)
@@ -161,25 +162,29 @@ async def delete_baul(
             detail="Baúl no encontrado.",
         )
 
-    # 1. Recorrer el subárbol completo de baúles (BFS) para recolectar todos los IDs
-    baul_ids_to_check = [baul.id]
+    # 1. Obtener todos los baúles del usuario en una sola consulta ligera (evita N+1 queries)
+    user_baules = (
+        db.query(Baul.id, Baul.baul_padre_id)
+        .filter(Baul.usuario_id == current_user.id)
+        .all()
+    )
+
+    # 2. Construir mapa de adyacencia de hijos en memoria
+    children_map = {}
+    for b_id, p_id in user_baules:
+        if p_id:
+            children_map.setdefault(p_id, []).append(b_id)
+
+    # 3. Recorrer el subárbol en memoria instantáneamente
     all_descendant_baul_ids = set()
+    queue = [baul.id]
+    while queue:
+        curr = queue.pop()
+        all_descendant_baul_ids.add(curr)
+        if curr in children_map:
+            queue.extend(children_map[curr])
 
-    while baul_ids_to_check:
-        current_baul_id = baul_ids_to_check.pop()
-        all_descendant_baul_ids.add(current_baul_id)
-        hijos = (
-            db.query(Baul.id)
-            .filter(
-                Baul.baul_padre_id == current_baul_id,
-                Baul.usuario_id == current_user.id,
-            )
-            .all()
-        )
-        for (hijo_id,) in hijos:
-            baul_ids_to_check.append(hijo_id)
-
-    # 2. Recolectar todos los drive_file_ids de tesoros dentro de la jerarquía
+    # 4. Recolectar todos los drive_file_ids de tesoros dentro de la jerarquía (1 sola consulta SQL)
     drive_ids_records = (
         db.query(Tesoro.drive_file_id)
         .filter(
@@ -192,7 +197,7 @@ async def delete_baul(
         dict.fromkeys(r[0] for r in drive_ids_records if r[0])
     )
 
-    # 3. Eliminar el baúl en la base de datos (cascade borra subbaúles y tesoros)
+    # 5. Eliminar el baúl en la base de datos (cascade borra subbaúles y tesoros)
     db.delete(baul)
     db.commit()
 

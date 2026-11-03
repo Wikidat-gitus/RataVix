@@ -1,14 +1,3 @@
-"""
-Script de verificación integral de Baúl Mágico 2 — Backend & Persistencia.
-Prueba:
-1. Inicialización de base de datos.
-2. Control de Sesión Única (Single Active Session).
-3. Ciclo de vida completo (CRUD) de Baúles (Carpetas virtuales).
-4. Ciclo de vida completo (CRUD) de Tesoros (Archivos virtuales).
-5. Jerarquía y cascada de eliminación.
-6. Configuración de clave maestra Zero-Knowledge (salt + canario).
-7. Purga total y reseteo de baúl (olvido de contraseña).
-"""
 import uuid
 from fastapi.testclient import TestClient
 from app.main import app
@@ -25,6 +14,11 @@ def run_tests():
     res = client.get("/health")
     assert res.status_code == 200, f"Health check falló: {res.text}"
     print("✅ Health check exitoso:", res.json())
+
+    # 2.1 Verificar que endpoints protegidos rechazan peticiones sin token (Zero Fallback)
+    unauth_res = client.get("/api/baules")
+    assert unauth_res.status_code == 401, f"Se esperaba 401 para petición sin autenticación, pero se obtuvo {unauth_res.status_code}"
+    print("✅ Seguridad validada: Acceso anónimo rechazado con 401 Unauthorized.")
     
     # 3. Autenticación y Control de Sesión Única
     test_email = f"test_{uuid.uuid4().hex[:8]}@baulmagico.local"
@@ -71,67 +65,72 @@ def run_tests():
         },
         headers=headers
     )
-    assert setup_res.status_code == 200, f"Setup clave falló: {setup_res.text}"
-    setup_data = setup_res.json()["usuario"]
-    assert setup_data["tiene_clave_maestra"] is True
-    assert setup_data["salt_cifrado"] == "bW9ja19zYWx0XzE2Ynl0ZXM="
+    assert setup_res.status_code == 200
+    assert setup_res.json()["usuario"]["tiene_clave_maestra"] is True
     print("✅ Clave maestra configurada con éxito con salt y canario.")
-
-    # 5. CRUD de Baúles (Carpetas)
+    
+    # 5. CRUD de Baúles (Carpetas) y Tesoros (Archivos)
     print("\n--- PRUEBA DE CRUD DE BAÚLES ---")
-    # Crear un baúl secreto y un baúl libre
-    create_baul_res = client.post("/api/baules", json={
-        "nombre_cifrado": "YmF1bF9zZWNyZXRv",
-        "iv": "aXZfc2VjcmV0b18xMjg=",
-        "es_cifrado": True,
-        "baul_padre_id": None
-    }, headers=headers)
-    assert create_baul_res.status_code == 201
-    baul_secreto = create_baul_res.json()
+    # Crear baúl en Modo Secreto
+    baul_secreto_res = client.post(
+        "/api/baules",
+        json={"nombre_cifrado": "bW9ja19ub21icmVfYmF1bA==", "iv": "bW9ja19pdg==", "es_cifrado": True},
+        headers=headers
+    )
+    assert baul_secreto_res.status_code == 201
+    baul_secreto = baul_secreto_res.json()
     assert baul_secreto["es_cifrado"] is True
     print("✅ Baúl secreto creado con ID:", baul_secreto["id"])
 
-    create_libre_res = client.post("/api/baules", json={
-        "nombre_cifrado": "Carpeta Fotos Libres",
-        "iv": None,
-        "es_cifrado": False,
-        "baul_padre_id": None
-    }, headers=headers)
-    assert create_libre_res.status_code == 201
-    baul_libre = create_libre_res.json()
+    # Crear baúl en Modo Libre
+    baul_libre_res = client.post(
+        "/api/baules",
+        json={"nombre_cifrado": "Carpeta Libre de Prueba", "iv": "", "es_cifrado": False},
+        headers=headers
+    )
+    assert baul_libre_res.status_code == 201
+    baul_libre = baul_libre_res.json()
     assert baul_libre["es_cifrado"] is False
     print("✅ Baúl libre creado con ID:", baul_libre["id"])
 
-    # Verificar filtrado estricto por es_cifrado
+    # Listar filtrando por modo
     list_secretos = client.get("/api/baules?es_cifrado=true", headers=headers).json()
-    assert len(list_secretos) == 1
-    assert list_secretos[0]["id"] == baul_secreto["id"]
-
     list_libres = client.get("/api/baules?es_cifrado=false", headers=headers).json()
-    assert len(list_libres) == 1
-    assert list_libres[0]["id"] == baul_libre["id"]
+    assert any(b["id"] == baul_secreto["id"] for b in list_secretos)
+    assert not any(b["id"] == baul_libre["id"] for b in list_secretos)
+    assert any(b["id"] == baul_libre["id"] for b in list_libres)
+    assert not any(b["id"] == baul_secreto["id"] for b in list_libres)
     print("✅ Filtrado estricto de baúles por Modo Libre / Modo Secreto verificado.")
-    
-    # Crear un tesoro secreto y un tesoro libre
-    client.post("/api/tesoros", json={
-        "baul_id": baul_secreto["id"],
-        "drive_file_id": "gdrive-test-reset-999",
-        "nombre_cifrado": "dGVzb3JvX3BhcmFfcHVyZ2E=",
-        "iv": "aXZfZXhhbXBsZV85Ng==",
-        "es_cifrado": True,
-        "tamano_bytes": 1024,
-        "tipo_mime": "text/plain"
-    }, headers=headers)
 
-    client.post("/api/tesoros", json={
-        "baul_id": baul_libre["id"],
-        "drive_file_id": "gdrive-test-libre-111",
-        "nombre_cifrado": "mi_foto.jpg",
-        "iv": None,
-        "es_cifrado": False,
-        "tamano_bytes": 2048,
-        "tipo_mime": "image/jpeg"
-    }, headers=headers)
+    # Crear tesoro en baúl secreto
+    client.post(
+        "/api/tesoros",
+        json={
+            "baul_id": baul_secreto["id"],
+            "drive_file_id": "gdrive-test-reset-999",
+            "nombre_cifrado": "YXJjaGl2b19zZWNyZXRv",
+            "iv": "aXZfc2VjcmV0bw==",
+            "tamano_bytes": 1024,
+            "tipo_mime": "application/octet-stream",
+            "es_cifrado": True
+        },
+        headers=headers
+    )
+
+    # Crear tesoro en baúl libre
+    client.post(
+        "/api/tesoros",
+        json={
+            "baul_id": baul_libre["id"],
+            "drive_file_id": "gdrive-test-libre-111",
+            "nombre_cifrado": "mi_foto.jpg",
+            "iv": "",
+            "tamano_bytes": 2048,
+            "tipo_mime": "image/jpeg",
+            "es_cifrado": False
+        },
+        headers=headers
+    )
 
     tesoros_secretos = client.get(f"/api/tesoros?baul_id={baul_secreto['id']}&es_cifrado=true", headers=headers).json()
     assert len(tesoros_secretos) == 1

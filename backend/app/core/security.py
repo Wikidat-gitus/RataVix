@@ -1,4 +1,4 @@
-﻿import secrets
+import secrets
 from typing import Optional
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.models.usuario import Usuario
 
-# Esquema Bearer opcional para permitir desarrollo ágil
+# Esquema Bearer
 security_bearer = HTTPBearer(auto_error=False)
 
 
@@ -38,7 +38,7 @@ def get_current_user(
     el Control de Sesión Única:
     1. Si se envía token, verifica que coincida exactamente con active_session_token.
     2. Si no coincide, rechaza con HTTP 401 (sesión cerrada o expirada).
-    3. Si no se envía token (ej. arranque inicial o sincronización), provee el primer usuario existente.
+    3. Si no se envía token, rechaza inmediatamente con HTTP 401 (autenticación obligatoria).
     """
     token: Optional[str] = None
     if credentials:
@@ -54,11 +54,6 @@ def get_current_user(
                 headers={"WWW-Authenticate": "Bearer"},
             )
         return user
-
-    # Fallback de resiliencia si no se ha recibido el header todavía
-    fallback_user = db.query(Usuario).first()
-    if fallback_user:
-        return fallback_user
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
