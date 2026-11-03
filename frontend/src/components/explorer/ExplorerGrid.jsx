@@ -1,5 +1,5 @@
 import React from 'react';
-import { getFileCategory } from '../utils/fileTypes';
+import { getFileCategory } from '../../utils/fileTypes';
 
 function formatBytes(bytes) {
   if (!bytes || bytes === 0) return '0 B';
@@ -256,3 +256,4 @@ export default function ExplorerGrid({
     </div>
   );
 }
+

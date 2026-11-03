@@ -7,7 +7,7 @@ import {
   encryptBinary,
   decryptBinary,
   bufferToBase64
-} from '../crypto/index.js';
+} from '../../crypto/index.js';
 
 export default function CryptoPlayground() {
   // Estado de derivación de clave

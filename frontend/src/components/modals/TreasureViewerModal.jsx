@@ -1,10 +1,10 @@
 import './TreasureViewerModal.css';
 import React, { useState, useEffect, useRef } from 'react';
-import { useCrypto } from '../context/CryptoContext';
-import { useGoogleAuth } from '../context/GoogleAuthContext';
-import { downloadEncryptedFileFromDrive, downloadPlainFileFromDrive } from '../services/googleDrive';
-import { api } from '../services/api';
-import { getFileCategory } from '../utils/fileTypes';
+import { useCrypto } from '../../context/CryptoContext';
+import { useGoogleAuth } from '../../context/GoogleAuthContext';
+import { downloadEncryptedFileFromDrive, downloadPlainFileFromDrive } from '../../services/googleDrive';
+import { api } from '../../services/api';
+import { getFileCategory } from '../../utils/fileTypes';
 
 export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
   const { decryptFileBlob } = useCrypto();

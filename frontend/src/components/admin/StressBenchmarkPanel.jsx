@@ -1,7 +1,7 @@
 import './StressBenchmarkPanel.css';
 import React, { useState, useRef } from 'react';
-import { encryptBinary, decryptBinary } from '../crypto/aesGcm.js';
-import { api } from '../services/api.js';
+import { encryptBinary, decryptBinary } from '../../crypto/aesGcm.js';
+import { api } from '../../services/api.js';
 
 const SIZES = [
   { label: '100 KB', bytes: 100 * 1024, desc: 'Notas, configuraciones, JSON' },

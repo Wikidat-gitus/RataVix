@@ -1,8 +1,8 @@
-import './VaultModals.css';
+import '../modals/VaultModals.css';
 import React, { useState } from 'react';
-import { useCrypto } from '../context/CryptoContext';
-import { useGoogleAuth } from '../context/GoogleAuthContext';
-import { api } from '../services/api';
+import { useCrypto } from '../../context/CryptoContext';
+import { useGoogleAuth } from '../../context/GoogleAuthContext';
+import { api } from '../../services/api';
 
 export default function UnlockVaultModal({
   onLogout,

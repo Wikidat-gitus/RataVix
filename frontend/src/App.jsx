@@ -3,13 +3,13 @@ import './App.css';
 import ratavixLogo from './assets/ratavix-logo.png';
 import { CryptoProvider, useCrypto } from './context/CryptoContext';
 import { GoogleAuthProvider, useGoogleAuth } from './context/GoogleAuthContext';
-import GoogleAuthGate from './components/GoogleAuthGate';
-import CreateMasterKeyModal from './components/CreateMasterKeyModal';
-import UnlockVaultModal from './components/UnlockVaultModal';
-import ResetVaultModal from './components/ResetVaultModal';
-import VaultExplorer from './components/VaultExplorer';
-import CryptoPlayground from './components/CryptoPlayground';
-import AdminMaintenancePanel from './components/AdminMaintenancePanel';
+import GoogleAuthGate from './components/auth/GoogleAuthGate';
+import CreateMasterKeyModal from './components/auth/CreateMasterKeyModal';
+import UnlockVaultModal from './components/auth/UnlockVaultModal';
+import ResetVaultModal from './components/auth/ResetVaultModal';
+import VaultExplorer from './components/explorer/VaultExplorer';
+import CryptoPlayground from './components/admin/CryptoPlayground';
+import AdminMaintenancePanel from './components/admin/AdminMaintenancePanel';
 
 function formatQuotaBytes(bytes) {
   if (!bytes || bytes === 0) return '0 GB';

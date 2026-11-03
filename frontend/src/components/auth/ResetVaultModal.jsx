@@ -1,7 +1,7 @@
-import './VaultModals.css';
+import '../modals/VaultModals.css';
 import React, { useState } from 'react';
-import { useCrypto } from '../context/CryptoContext';
-import { useGoogleAuth } from '../context/GoogleAuthContext';
+import { useCrypto } from '../../context/CryptoContext';
+import { useGoogleAuth } from '../../context/GoogleAuthContext';
 
 export default function ResetVaultModal({ onClose, isLocalMock }) {
   const { resetVaultAndPurge } = useCrypto();

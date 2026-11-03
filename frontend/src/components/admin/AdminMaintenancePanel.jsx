@@ -1,6 +1,6 @@
 import './AdminMaintenancePanel.css';
 import React, { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import { api } from '../../services/api';
 import CryptoPlayground from './CryptoPlayground';
 import StressBenchmarkPanel from './StressBenchmarkPanel';
 

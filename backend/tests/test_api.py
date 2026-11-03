@@ -1,10 +1,16 @@
+import os
+import sys
 import uuid
+
+# Asegurar que el directorio raíz de backend esté en el PYTHONPATH
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from fastapi.testclient import TestClient
 from app.main import app
 from app.db.init_db import init_db
 
 def run_tests():
-    print("--- INICIANDO PRUEBAS DE BACKEND Y PERSISTENCIA ---")
+    print("--- INICIANDO PRUEBAS DE BACKEND Y PERSISTENCIA (tests/test_api.py) ---")
     
     # 1. Inicialización
     init_db()

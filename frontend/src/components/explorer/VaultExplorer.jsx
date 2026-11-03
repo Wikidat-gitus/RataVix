@@ -1,23 +1,23 @@
 import './VaultExplorer.css';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useCrypto } from '../context/CryptoContext';
-import { useGoogleAuth } from '../context/GoogleAuthContext';
+import { useCrypto } from '../../context/CryptoContext';
+import { useGoogleAuth } from '../../context/GoogleAuthContext';
 import {
   uploadEncryptedFileToDrive,
   downloadEncryptedFileFromDrive,
   uploadPlainFileToDrive,
   downloadPlainFileFromDrive,
   deleteFileFromDrive,
-} from '../services/googleDrive';
-import { api } from '../services/api';
-import TreasureViewerModal from './TreasureViewerModal';
-import FolderActionModals from './FolderActionModals';
+} from '../../services/googleDrive';
+import { api } from '../../services/api';
+import TreasureViewerModal from '../modals/TreasureViewerModal';
+import FolderActionModals from '../modals/FolderActionModals';
 import ExplorerGrid from './ExplorerGrid';
 import ToastContainer from './ToastContainer';
-import { useVaultMigration } from '../hooks/useVaultMigration';
-import ConfirmModal from './ConfirmModal';
-import UploadProgressModal from './UploadProgressModal';
-import baulPixelArt from '../assets/baul-pixel-art.jpg';
+import { useVaultMigration } from '../../hooks/useVaultMigration';
+import ConfirmModal from '../modals/ConfirmModal';
+import UploadProgressModal from '../modals/UploadProgressModal';
+import baulPixelArt from '../../assets/baul-pixel-art.jpg';
 
 // Límite máximo preventivo de subida para proteger la memoria RAM del navegador
 const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024; // 500 MB

@@ -1,7 +1,7 @@
 import './GoogleAuthGate.css';
 import React from 'react';
-import { useGoogleAuth } from '../context/GoogleAuthContext';
-import ratavixLogo from '../assets/ratavix-logo.png';
+import { useGoogleAuth } from '../../context/GoogleAuthContext';
+import ratavixLogo from '../../assets/ratavix-logo.png';
 
 /**
  * Pantalla de Bienvenida / Inicio de Sesión:
