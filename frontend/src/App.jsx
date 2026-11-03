@@ -29,8 +29,16 @@ function AppContent() {
     disconnectGoogleDrive,
   } = useGoogleAuth();
 
-  // Control de Modo Desarrollador / Admin (persistido o por URL ?dev=true)
+  // Entorno Local: Solo en localhost / 127.0.0.1 se permiten herramientas de desarrollo / admin
+  const isLocalEnvironment =
+    import.meta.env.DEV ||
+    (typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1'));
+
+  // Control de Modo Desarrollador / Admin: 100% DESACTIVADO en Producción
   const [isDevMode, setIsDevMode] = useState(() => {
+    if (!isLocalEnvironment) return false;
     try {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('dev') === 'true' || urlParams.get('admin') === 'true') {
@@ -43,6 +51,7 @@ function AppContent() {
   });
 
   const [isLocalMock, setIsLocalMock] = useState(() => {
+    if (!isLocalEnvironment) return false;
     return sessionStorage.getItem('baul_local_mock') === 'true';
   });
 
@@ -126,8 +135,10 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [checkHealth]);
 
-  // Atajo de teclado: Ctrl + Shift + D (o Cmd + Shift + D) para alternar Modo Admin
+  // Atajo de teclado: Ctrl + Shift + D (Exclusivo en Localhost para el desarrollador)
   useEffect(() => {
+    if (!isLocalEnvironment) return;
+
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
         e.preventDefault();
@@ -140,7 +151,7 @@ function AppContent() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isLocalEnvironment]);
 
   const toggleDevMode = () => {
     setIsDevMode((prev) => {
@@ -486,7 +497,7 @@ function AppContent() {
           <div className="tab-pane">
             {!isSessionStarted ? (
               <GoogleAuthGate
-                showDevTools={isDevMode}
+                showDevTools={isLocalEnvironment && isDevMode}
                 onContinueLocal={() => {
                   setIsLocalMock(true);
                   sessionStorage.setItem('baul_local_mock', 'true');
@@ -510,7 +521,7 @@ function AppContent() {
                   onLogout={handleLogout}
                   onBackToFreeMode={() => setCurrentMode('libre')}
                   isLocalMock={isLocalMock}
-                  showDevTools={isDevMode}
+                  showDevTools={isLocalEnvironment && isDevMode}
                 />
               ) : (
                 /* Flujo B: Usuario Existente con contraseña maestra */
@@ -519,7 +530,7 @@ function AppContent() {
                   onForgotPassword={() => setShowResetModal(true)}
                   onBackToFreeMode={() => setCurrentMode('libre')}
                   isLocalMock={isLocalMock}
-                  showDevTools={isDevMode}
+                  showDevTools={isLocalEnvironment && isDevMode}
                 />
               )
             ) : (
@@ -614,16 +625,18 @@ function AppContent() {
             <span className="footer-separator">•</span>
             <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="footer-legal-link">Términos</a>
           </div>
-          <div className="footer-actions">
-            <button
-              type="button"
-              className={`btn-footer-admin ${isDevMode ? 'active' : ''}`}
-              onClick={toggleDevMode}
-              title="Alternar Modo Desarrollador / Admin (Atajo: Ctrl + Shift + D)"
-            >
-              {isDevMode ? '🛠️ Modo Admin Activo' : '🛠️ Modo Admin'}
-            </button>
-          </div>
+          {isLocalEnvironment && (
+            <div className="footer-actions">
+              <button
+                type="button"
+                className={`btn-footer-admin ${isDevMode ? 'active' : ''}`}
+                onClick={toggleDevMode}
+                title="Alternar Modo Desarrollador / Admin (Atajo: Ctrl + Shift + D)"
+              >
+                {isDevMode ? '🛠️ Modo Admin Activo' : '🛠️ Modo Admin'}
+              </button>
+            </div>
+          )}
         </div>
       </footer>
     </div>
