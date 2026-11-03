@@ -10,9 +10,9 @@ import {
   deleteFileFromDrive,
 } from '../services/googleDrive';
 import { api } from '../services/api';
-import { getFileCategory } from '../utils/fileTypes';
 import TreasureViewerModal from './TreasureViewerModal';
 import FolderActionModals from './FolderActionModals';
+import ExplorerGrid from './ExplorerGrid';
 import ToastContainer from './ToastContainer';
 import { useVaultMigration } from '../hooks/useVaultMigration';
 import ConfirmModal from './ConfirmModal';
@@ -1169,219 +1169,30 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
           )
         ) : (
           <>
-            <div className={`explorer-grid-wrapper ${isPixelMode ? 'pixel-row-wrapper' : ''}`}>
-              <div
-                key={isPixelMode ? `pixel-page-${currentPage}` : 'normal-grid'}
-                className={`explorer-grid ${isPixelMode ? `pixel-single-row slide-${slideDirection}` : ''}`}
-              >
-            {/* 1. Carpetas / Baúles (Draggable y Drop Target) */}
-            {paginatedBaules.map((baul) => {
-              const isDragging = draggedItem?.type === 'baul' && draggedItem.item.id === baul.id;
-              const isDropHover = dragOverTargetId === baul.id;
-
-              return (
-                <div
-                  key={baul.id}
-                  className={`explorer-card folder-card ${openMenuId === `baul-${baul.id}` ? 'menu-open' : ''} ${isDragging ? 'is-dragging' : ''} ${isDropHover ? 'drop-hover' : ''}`}
-                  draggable={true}
-                  onDragStart={(e) => handleDragStart(e, 'baul', baul)}
-                  onDragEnd={handleDragEnd}
-                  onDragOver={(e) => handleDragOver(e, baul.id)}
-                  onDragLeave={(e) => handleDragLeave(e, baul.id)}
-                  onDrop={(e) => handleDrop(e, baul.id, baul.plainName)}
-                  onDoubleClick={() => handleOpenBaul(baul)}
-                  onClick={() => handleOpenBaul(baul)}
-                  title={baul.plainName}
-                >
-                  {/* Botón de 3 Puntos en la Esquina Superior Derecha del Mosaico */}
-                  <div className="card-menu-container" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      className={`item-btn btn-menu-trigger ${openMenuId === `baul-${baul.id}` ? 'active' : ''}`}
-                      title="Opciones de carpeta"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenMenuId(openMenuId === `baul-${baul.id}` ? null : `baul-${baul.id}`);
-                      }}
-                    >
-                      ⋮
-                    </button>
-                    {openMenuId === `baul-${baul.id}` && (
-                      <div className="card-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleOpenBaul(baul);
-                          }}
-                        >
-                          <span className="dropdown-icon">📂</span>
-                          <span>Abrir carpeta</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleOpenRename('baul', baul);
-                          }}
-                        >
-                          <span className="dropdown-icon">✏️</span>
-                          <span>Renombrar</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleOpenMove('baul', baul);
-                          }}
-                        >
-                          <span className="dropdown-icon">📦</span>
-                          <span>Mover a...</span>
-                        </button>
-                        <div className="dropdown-divider"></div>
-                        <button
-                          type="button"
-                          className="dropdown-item dropdown-item-danger"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleDeleteItem('baul', baul);
-                          }}
-                        >
-                          <span className="dropdown-icon">🗑️</span>
-                          <span>Eliminar carpeta</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="card-icon-wrapper folder-icon">
-                    <span className="card-icon-symbol">📁</span>
-                  </div>
-
-                  <span className="card-title" title={baul.plainName}>
-                    {baul.plainName}
-                  </span>
-                </div>
-              );
-            })}
-
-            {/* 2. Archivos / Tesoros (Draggable) */}
-            {paginatedTesoros.map((tesoro) => {
-              const category = getFileCategory(tesoro.plainName, tesoro.tipo_mime);
-              const isDragging = draggedItem?.type === 'tesoro' && draggedItem.item.id === tesoro.id;
-
-              return (
-                <div
-                  key={tesoro.id}
-                  className={`explorer-card file-card ${openMenuId === `tesoro-${tesoro.id}` ? 'menu-open' : ''} ${isDragging ? 'is-dragging' : ''}`}
-                  draggable={true}
-                  onDragStart={(e) => handleDragStart(e, 'tesoro', tesoro)}
-                  onDragEnd={handleDragEnd}
-                  onClick={() => setViewerTesoro(tesoro)}
-                  title={`${tesoro.plainName} (${formatBytes(tesoro.tamano_bytes)})`}
-                >
-                  {/* Botón de 3 Puntos en la Esquina Superior Derecha del Mosaico */}
-                  <div className="card-menu-container" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      className={`item-btn btn-menu-trigger ${openMenuId === `tesoro-${tesoro.id}` ? 'active' : ''}`}
-                      title="Opciones de archivo"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenMenuId(openMenuId === `tesoro-${tesoro.id}` ? null : `tesoro-${tesoro.id}`);
-                      }}
-                    >
-                      ⋮
-                    </button>
-                    {openMenuId === `tesoro-${tesoro.id}` && (
-                      <div className="card-dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            setViewerTesoro(tesoro);
-                          }}
-                        >
-                          <span className="dropdown-icon">👁️</span>
-                          <span>Previsualizar</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleDownloadTesoro(tesoro);
-                          }}
-                        >
-                          <span className="dropdown-icon">⬇️</span>
-                          <span>{isEncryptedMode ? "Descargar descifrado" : "Descargar archivo"}</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleOpenRename('tesoro', tesoro);
-                          }}
-                        >
-                          <span className="dropdown-icon">✏️</span>
-                          <span>Renombrar</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleOpenMove('tesoro', tesoro);
-                          }}
-                        >
-                          <span className="dropdown-icon">📦</span>
-                          <span>Mover a carpeta...</span>
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleMigrateTesoro(tesoro, isEncryptedMode ? 'libre' : 'secreto');
-                          }}
-                          title={isEncryptedMode ? 'Mover a Raíz Libre' : 'Blindar con Conocimiento Cero y mover a Raíz Secreta'}
-                        >
-                          <span className="dropdown-icon">{isEncryptedMode ? '🔓' : '🛡️'}</span>
-                          <span>{isEncryptedMode ? 'Mover a Modo Libre' : 'Mover a Modo Secreto'}</span>
-                        </button>
-                        <div className="dropdown-divider"></div>
-                        <button
-                          type="button"
-                          className="dropdown-item dropdown-item-danger"
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            handleDeleteItem('tesoro', tesoro);
-                          }}
-                        >
-                          <span className="dropdown-icon">🗑️</span>
-                          <span>Eliminar archivo</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className={`card-icon-wrapper file-icon ${category.badgeClass}-icon`}>
-                    <span className="card-icon-symbol">{category.icon}</span>
-                  </div>
-
-                  <span className="card-title" title={tesoro.plainName}>
-                    {tesoro.plainName}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-            </div>
+            <ExplorerGrid
+              paginatedBaules={paginatedBaules}
+              paginatedTesoros={paginatedTesoros}
+              isPixelMode={isPixelMode}
+              currentPage={currentPage}
+              slideDirection={slideDirection}
+              draggedItem={draggedItem}
+              dragOverTargetId={dragOverTargetId}
+              openMenuId={openMenuId}
+              setOpenMenuId={setOpenMenuId}
+              isEncryptedMode={isEncryptedMode}
+              onOpenBaul={handleOpenBaul}
+              onOpenRename={handleOpenRename}
+              onOpenMove={handleOpenMove}
+              onDeleteItem={handleDeleteItem}
+              onDownloadTesoro={handleDownloadTesoro}
+              onMigrateTesoro={handleMigrateTesoro}
+              onPreviewTesoro={setViewerTesoro}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            />
 
           {/* Paginación Centrada Abajo */}
           {totalPages > 1 && (

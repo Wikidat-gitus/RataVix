@@ -35,3 +35,4 @@ export default function ToastContainer({ toasts, onRemoveToast }) {
     </div>
   );
 }
+
