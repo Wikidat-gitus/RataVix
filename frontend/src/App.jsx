@@ -8,8 +8,9 @@ import CreateMasterKeyModal from './components/auth/CreateMasterKeyModal';
 import UnlockVaultModal from './components/auth/UnlockVaultModal';
 import ResetVaultModal from './components/auth/ResetVaultModal';
 import VaultExplorer from './components/explorer/VaultExplorer';
-import CryptoPlayground from './components/admin/CryptoPlayground';
-import AdminMaintenancePanel from './components/admin/AdminMaintenancePanel';
+// Componentes de Administración y Diagnóstico cargados bajo demanda (Code Splitting con React.lazy)
+const AdminMaintenancePanel = React.lazy(() => import('./components/admin/AdminMaintenancePanel'));
+const CryptoPlayground = React.lazy(() => import('./components/admin/CryptoPlayground'));
 
 function formatQuotaBytes(bytes) {
   if (!bytes || bytes === 0) return '0 GB';
@@ -550,24 +551,28 @@ function AppContent() {
         {/* 2. Vista Exclusiva Admin: Consola de Mantenimiento y Diagnóstico */}
         {isDevMode && activeTab === 'admin' && (
           <div className="tab-pane">
-            <AdminMaintenancePanel
-              backendStatus={backendStatus}
-              backendLatency={backendLatency}
-              onCheckHealth={checkHealth}
-              isLocalMock={isLocalMock}
-              onToggleLocalMock={() => {
-                const next = !isLocalMock;
-                setIsLocalMock(next);
-                sessionStorage.setItem('baul_local_mock', next ? 'true' : 'false');
-              }}
-            />
+            <React.Suspense fallback={<div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Cargando consola de administración...</div>}>
+              <AdminMaintenancePanel
+                backendStatus={backendStatus}
+                backendLatency={backendLatency}
+                onCheckHealth={checkHealth}
+                isLocalMock={isLocalMock}
+                onToggleLocalMock={() => {
+                  const next = !isLocalMock;
+                  setIsLocalMock(next);
+                  sessionStorage.setItem('baul_local_mock', next ? 'true' : 'false');
+                }}
+              />
+            </React.Suspense>
           </div>
         )}
 
         {/* 3. Vista Exclusiva Admin: Laboratorio Criptográfico */}
         {isDevMode && activeTab === 'crypto' && (
           <div className="tab-pane">
-            <CryptoPlayground />
+            <React.Suspense fallback={<div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Cargando laboratorio criptográfico...</div>}>
+              <CryptoPlayground />
+            </React.Suspense>
           </div>
         )}
 
