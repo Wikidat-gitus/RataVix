@@ -85,8 +85,11 @@ export function GoogleAuthProvider({ children }) {
             }
           }
         })
-        .catch(() => {
-          disconnectGoogleDrive();
+        .catch((err) => {
+          console.warn('Advertencia al recargar perfil Google:', err);
+          if (err?.status === 401 || String(err).includes('401')) {
+            disconnectGoogleDrive();
+          }
         });
     } else if (googleAccessToken && googleUser && !api.getToken()) {
       api.loginGoogle({
@@ -132,10 +135,10 @@ export function GoogleAuthProvider({ children }) {
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: async (response) => {
-          setIsLoadingAuth(false);
           if (response.error) {
+            setIsLoadingAuth(false);
             console.error('Error de OAuth Google:', response);
-            setAuthError(`Error de Google: ${response.error_description || response.error}`);
+            setAuthError('Error de Google: ' + (response.error_description || response.error));
             return;
           }
 
@@ -149,14 +152,18 @@ export function GoogleAuthProvider({ children }) {
 
               // Sincronizar sesión activa en el backend FastAPI ANTES de activar el estado
               if (userInfo?.email) {
-                const res = await api.loginGoogle({
-                  email: userInfo.email,
-                  google_id: userInfo.sub || userInfo.id || `google_${userInfo.email}`,
-                  code: token,
-                });
-                if (res?.usuario) {
-                  setBackendUser(res.usuario);
-                  sessionStorage.setItem('baul_backend_user', JSON.stringify(res.usuario));
+                try {
+                  const res = await api.loginGoogle({
+                    email: userInfo.email,
+                    google_id: userInfo.sub || userInfo.id || ('google_' + userInfo.email),
+                    code: token,
+                  });
+                  if (res?.usuario) {
+                    setBackendUser(res.usuario);
+                    sessionStorage.setItem('baul_backend_user', JSON.stringify(res.usuario));
+                  }
+                } catch (apiErr) {
+                  console.warn('Advertencia al sincronizar backend (se reintentara):', apiErr);
                 }
               }
 
@@ -168,7 +175,11 @@ export function GoogleAuthProvider({ children }) {
               console.warn('No se pudo obtener datos del perfil o sincronizar backend:', err);
               setGoogleAccessToken(token);
               refreshStorageQuota(token);
+            } finally {
+              setIsLoadingAuth(false);
             }
+          } else {
+            setIsLoadingAuth(false);
           }
         },
         error_callback: (nonOAuthError) => {
