@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Términos del Servicio — RataVix</title>
+  <link rel="icon" type="image/png" href="/ratavix-logo.png">
+  <style>
+    :root {
+      --bg-primary: #0f1117;
+      --bg-surface: #181b26;
+      --bg-card: #202434;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #eab308;
+      --accent-hover: #facc15;
+      --accent-glow: rgba(234, 179, 8, 0.2);
+      --code-bg: #111420;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 2.5rem 2.25rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .header img {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      image-rendering: pixelated;
+    }
+    .header-text h1 {
+      font-size: 1.85rem;
+      color: #fff;
+      font-weight: 700;
+    }
+    .header-text p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    h2 {
+      font-size: 1.25rem;
+      color: var(--accent);
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    p, li {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 0.85rem;
+    }
+    ul {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li {
+      margin-bottom: 0.4rem;
+    }
+    strong {
+      color: #fff;
+    }
+    .highlight-card {
+      background-color: var(--bg-card);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 1.15rem 1.25rem;
+      margin: 1.25rem 0;
+    }
+    .highlight-card p:last-child {
+      margin-bottom: 0;
+    }
+    .footer-nav {
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: var(--accent);
+      color: #0f1117;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      transition: background-color 0.15s ease;
+    }
+    .btn-back:hover {
+      background-color: var(--accent-hover);
+    }
+    .links a {
+      color: var(--text-muted);
+      text-decoration: underline;
+      font-size: 0.88rem;
+      margin-left: 1rem;
+    }
+    .links a:hover {
+      color: var(--text-main);
+    }
+    code {
+      background-color: var(--code-bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85em;
+      color: #facc15;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <img src="/ratavix-logo.png" alt="RataVix Logo">
+      <div class="header-text">
+        <h1>Términos del Servicio</h1>
+        <p>RataVix • Última actualización: Noviembre de 2026</p>
+      </div>
+    </header>
+
+    <div class="highlight-card">
+      <p>Al utilizar o acceder a <strong>RataVix</strong>, aceptas cumplir con los presentes Términos del Servicio y con nuestra Política de Privacidad. Si no estás de acuerdo con alguna disposición, te solicitamos no utilizar la plataforma.</p>
+    </div>
+
+    <h2>1. Naturaleza y Alcance del Servicio</h2>
+    <p>RataVix es una aplicación web que provee una interfaz gráfica de usuario para organizar, visualizar y gestionar archivos almacenados en la cuenta personal de Google Drive del usuario. RataVix no provee servicios de alojamiento independiente ni almacena tus archivos binarios en servidores propios; todos los ficheros residen en tu propia cuenta de Google.</p>
+
+    <h2>2. Arquitectura Dual de Uso</h2>
+    <p>El usuario comprende y acepta las características funcionales de cada modo:</p>
+    <ul>
+      <li><strong>Modo Libre:</strong> Diseñado para la gestión diaria y ágil de archivos. Los nombres de los archivos y la jerarquía de carpetas se almacenan en la base de datos de RataVix para permitir indexación y búsqueda rápida, mientras que el contenido se almacena en su estado original en Google Drive.</li>
+      <li><strong>Modo Secreto:</strong> Diseñado bajo el principio de <strong>Conocimiento Cero (Zero-Knowledge)</strong>. Los archivos y sus nombres se cifran en el navegador mediante AES-GCM (256 bits). La contraseña maestra vive exclusivamente en la memoria RAM volátil del dispositivo del usuario y nunca es transmitida ni almacenada en ningún servidor.</li>
+    </ul>
+
+    <h2>3. Responsabilidad Exclusiva de la Clave Maestra (Cláusula Zero-Knowledge)</h2>
+    <div class="highlight-card">
+      <p><strong>IMPORTANTE:</strong> En el Modo Secreto, RataVix <strong>NO</strong> tiene acceso, conocimiento ni copias de respaldo de tu contraseña maestra. Si olvidas o extravías tu contraseña maestra, <strong>los archivos cifrados no podrán ser recuperados por ningún medio técnico ni por el soporte de RataVix</strong>. La única opción disponible será purgar la bóveda cifrada para iniciar una nueva configuración. El usuario asume plena y exclusiva responsabilidad por la custodia y resguardo de su contraseña maestra.</p>
+    </div>
+
+    <h2>4. Titularidad y Propiedad de los Datos</h2>
+    <p>El usuario conserva el 100% de la titularidad, propiedad intelectual y derechos sobre todos los archivos, documentos y contenidos que gestione mediante RataVix. RataVix no reclama ningún derecho de propiedad sobre tu contenido.</p>
+
+    <h2>5. Uso Aceptable y Prohibiciones</h2>
+    <p>El usuario se compromete a no utilizar RataVix para:</p>
+    <ul>
+      <li>Almacenar o distribuir material que infrinja leyes aplicables, derechos de autor o propiedad intelectual de terceros.</li>
+      <li>Intentar vulnerar, descompilar, realizar ingeniería inversa o interrumpir la integridad o el rendimiento de los servidores y redes vinculadas a RataVix o Google.</li>
+      <li>Distribuir software malicioso, virus, troyanos o código dañino.</li>
+    </ul>
+
+    <h2>6. Interacción con Servicios de Terceros (Google Drive)</h2>
+    <p>El funcionamiento de RataVix depende de la disponibilidad y conectividad con la API de Google Drive. El usuario debe poseer una cuenta de Google activa y cumplir con los términos y cuotas de almacenamiento estipuladas por Google LLC. RataVix no se responsabiliza por interrupciones, limitaciones de cuota o cambios en las políticas de Google que afecten la disponibilidad del servicio.</p>
+
+    <h2>7. Exclusión de Garantías y Limitación de Responsabilidad</h2>
+    <p>RataVix se proporciona "tal cual" (<em>as is</em>) y "según disponibilidad", sin garantías expresas o implícitas de ningún tipo. En la máxima medida permitida por la ley aplicable, RataVix y sus desarrolladores no serán responsables por daños indirectos, incidentales, pérdida de datos, lucro cesante o cualquier perjuicio derivado del uso o imposibilidad de uso del software.</p>
+
+    <h2>8. Modificaciones a los Términos</h2>
+    <p>Nos reservamos el derecho de actualizar estos términos en cualquier momento. Las actualizaciones entrarán en vigor a partir de su publicación en esta misma página con la fecha de revisión correspondiente.</p>
+
+    <h2>9. Contacto</h2>
+    <p>Para consultas legales, sugerencias o aclaraciones relacionadas con estos Términos, comunícate con nosotros a:</p>
+    <p>📧 Correo: <code>wikidat.g@gmail.com</code></p>
+
+    <footer class="footer-nav">
+      <a href="/" class="btn-back">← Volver a RataVix</a>
+      <div class="links">
+        <a href="/privacy.html">Política de Privacidad</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

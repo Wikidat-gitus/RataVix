@@ -72,6 +72,13 @@ export default function GoogleAuthGate({ onContinueLocal, showDevTools = false }
           🔒 Tus archivos se guardan directamente en tu cuenta de Google. Privacidad y control total.
         </p>
 
+        {/* Enlaces Legales Oficiales */}
+        <div className="auth-gate-legal-links">
+          <a href="/privacy.html" target="_blank" rel="noopener noreferrer">Privacidad</a>
+          <span className="legal-separator">•</span>
+          <a href="/terms.html" target="_blank" rel="noopener noreferrer">Términos</a>
+        </div>
+
         {/* Acceso local de pruebas si aplica */}
         {showDevTools && onContinueLocal && (
           <div className="auth-gate-dev">

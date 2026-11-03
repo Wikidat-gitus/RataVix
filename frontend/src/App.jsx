@@ -609,6 +609,11 @@ function AppContent() {
       <footer className="app-footer">
         <div className="footer-content">
           <p>RataVix — Arquitectura de Conocimiento Cero • Frontend React + Vite</p>
+          <div className="footer-links">
+            <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="footer-legal-link">Privacidad</a>
+            <span className="footer-separator">•</span>
+            <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="footer-legal-link">Términos</a>
+          </div>
           <div className="footer-actions">
             <button
               type="button"

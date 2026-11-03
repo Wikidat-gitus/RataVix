@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Privacidad — RataVix</title>
+  <link rel="icon" type="image/png" href="/ratavix-logo.png">
+  <style>
+    :root {
+      --bg-primary: #0f1117;
+      --bg-surface: #181b26;
+      --bg-card: #202434;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #eab308;
+      --accent-hover: #facc15;
+      --accent-glow: rgba(234, 179, 8, 0.2);
+      --code-bg: #111420;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 2.5rem 2.25rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .header img {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      image-rendering: pixelated;
+    }
+    .header-text h1 {
+      font-size: 1.85rem;
+      color: #fff;
+      font-weight: 700;
+    }
+    .header-text p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    h2 {
+      font-size: 1.25rem;
+      color: var(--accent);
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    p, li {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 0.85rem;
+    }
+    ul {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li {
+      margin-bottom: 0.4rem;
+    }
+    strong {
+      color: #fff;
+    }
+    .highlight-card {
+      background-color: var(--bg-card);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 1.15rem 1.25rem;
+      margin: 1.25rem 0;
+    }
+    .highlight-card p:last-child {
+      margin-bottom: 0;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 6px;
+      margin-right: 0.4rem;
+    }
+    .badge-free {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .badge-secret {
+      background: rgba(234, 179, 8, 0.2);
+      color: #facc15;
+      border: 1px solid rgba(234, 179, 8, 0.3);
+    }
+    .footer-nav {
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: var(--accent);
+      color: #0f1117;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      transition: background-color 0.15s ease;
+    }
+    .btn-back:hover {
+      background-color: var(--accent-hover);
+    }
+    .links a {
+      color: var(--text-muted);
+      text-decoration: underline;
+      font-size: 0.88rem;
+      margin-left: 1rem;
+    }
+    .links a:hover {
+      color: var(--text-main);
+    }
+    code {
+      background-color: var(--code-bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85em;
+      color: #facc15;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <img src="/ratavix-logo.png" alt="RataVix Logo">
+      <div class="header-text">
+        <h1>Política de Privacidad</h1>
+        <p>RataVix • Última actualización: Noviembre de 2026</p>
+      </div>
+    </header>
+
+    <div class="highlight-card">
+      <p><strong>Resumen Fundamental:</strong> RataVix es una herramienta de gestión y seguridad que se conecta directamente a tu propia cuenta de Google Drive. <strong>RataVix nunca almacena el contenido de tus archivos en sus propios servidores.</strong> Tus datos binarios se transmiten de forma directa entre tu navegador y los servidores de Google.</p>
+    </div>
+
+    <h2>1. Información General y Rol del Servicio</h2>
+    <p>RataVix actúa exclusivamente como un cliente web y una interfaz visual de usuario diseñada para permitirte almacenar, organizar y gestionar archivos en tu cuenta personal de Google Drive, ofreciendo un entorno dual diseñado para balancear comodidad diaria y privacidad extrema.</p>
+
+    <h2>2. Arquitectura Dual y Tratamiento de Datos</h2>
+    <p>RataVix opera mediante dos modos claramente diferenciados:</p>
+
+    <p><span class="badge badge-free">🔓 MODO LIBRE</span> <strong>Gestión y Comodidad:</strong></p>
+    <ul>
+      <li><strong>Archivos en Google Drive:</strong> Los archivos se almacenan en su formato original dentro de una carpeta dedicada llamada <code>RataVix - Free Files</code> en tu propia cuenta de Google Drive.</li>
+      <li><strong>Metadatos en Base de Datos:</strong> Para permitir la navegación fluida, estructura de carpetas y búsquedas instantáneas entre dispositivos sin solicitar contraseñas continuas, la base de datos de RataVix almacena únicamente los nombres de los archivos, tamaño, tipo MIME y los identificadores asignados por Google (<code>drive_file_id</code>).</li>
+      <li><strong>Tráfico Directo:</strong> El contenido binario del archivo nunca se almacena en el backend de RataVix.</li>
+    </ul>
+
+    <p><span class="badge badge-secret">🔒 MODO SECRETO</span> <strong>Bóveda Zero-Knowledge (Conocimiento Cero):</strong></p>
+    <ul>
+      <li><strong>Cifrado en Cliente:</strong> Antes de salir de tu navegador, tus archivos y sus nombres originales se cifran mediante la Web Crypto API nativa utilizando el algoritmo criptográfico <strong>AES-GCM de 256 bits</strong> con derivación de clave <strong>PBKDF2 (100,000 iteraciones con SHA-256)</strong>.</li>
+      <li><strong>Archivos en Google Drive:</strong> En tu cuenta de Google Drive se almacena únicamente un archivo binario cifrado (extensión <code>.enc</code>) en la carpeta <code>RataVix - Secret Files</code>. Ni Google ni RataVix pueden descifrar o inspeccionar su contenido.</li>
+      <li><strong>Metadatos Ciegos:</strong> En la base de datos de RataVix únicamente se guardan cadenas cifradas aleatorias e ininteligibles junto con sus vectores de inicialización (IV).</li>
+      <li><strong>Clave Efímera en Memoria RAM:</strong> Tu contraseña maestra nunca se envía a través de la red ni se guarda en almacenamiento persistente alguno. Vive exclusivamente en la memoria volátil de tu navegador y se destruye al recargar o cerrar la pestaña.</li>
+      <li><strong>Sin Custodia de Contraseña:</strong> Debido al principio matemático de Conocimiento Cero, RataVix no puede recuperar ni restablecer tu contraseña maestra. Si la olvidas, los datos cifrados son matemáticamente irrecuperables.</li>
+    </ul>
+
+    <h2>3. Permisos de Google OAuth y Finalidad de Uso</h2>
+    <p>RataVix solicita exclusivamente los siguientes alcances (scopes) de la API de Google:</p>
+    <ul>
+      <li><code>https://www.googleapis.com/auth/drive.file</code>: Este permiso limitado otorga acceso <strong>únicamente a los archivos y carpetas creados o seleccionados por la propia aplicación RataVix</strong> (específicamente las carpetas <code>RataVix - Free Files</code> y <code>RataVix - Secret Files</code>). RataVix <strong>NO</strong> tiene acceso ni visibilidad sobre los demás archivos personales existentes en tu Google Drive.</li>
+      <li><code>https://www.googleapis.com/auth/userinfo.email</code> y <code>https://www.googleapis.com/auth/userinfo.profile</code>: Se utilizan para autenticar tu identidad, verificar tu cuenta, mostrar tu nombre y foto de perfil en la cabecera, y gestionar el control de sesión única.</li>
+    </ul>
+
+    <h2>4. Cumplimiento de la Política de Datos de Usuario de Google API (Limited Use)</h2>
+    <div class="highlight-card">
+      <p>El uso y la transferencia a cualquier otra aplicación de la información recibida a través de las API de Google por parte de RataVix se adhieren estrictamente a la <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" style="color: var(--accent);">Política de Datos de Usuario de los Servicios de las API de Google (Google API Services User Data Policy)</a>, incluidos los requisitos de Uso Limitado (Limited Use Requirements).</p>
+    </div>
+    <ul>
+      <li><strong>Cero Publicidad:</strong> RataVix no utiliza datos de Google ni metadatos de archivos para servir anuncios personalizados, retargeting ni fines comerciales de publicidad.</li>
+      <li><strong>Cero Venta de Datos:</strong> No vendemos, no transferimos ni compartimos datos ni archivos con terceros o intermediarios de datos.</li>
+      <li><strong>Cero Entrenamiento de IA:</strong> Ningún dato de usuario ni archivo procesado en RataVix es utilizado para entrenar modelos de Inteligencia Artificial (IA) o Aprendizaje Automático (Machine Learning).</li>
+      <li><strong>Cero Inspección Humana:</strong> El personal de RataVix no lee ni examina los contenidos de tus archivos bajo ningún motivo.</li>
+    </ul>
+
+    <h2>5. Retención y Eliminación de Datos</h2>
+    <ul>
+      <li><strong>Control Total del Usuario:</strong> Puedes eliminar tus archivos o carpetas en cualquier momento desde la interfaz. La eliminación purga los registros de la base de datos de RataVix y remueve los archivos correspondientes en tu Google Drive.</li>
+      <li><strong>Revocación Inmediata de Acceso:</strong> Puedes revocar el acceso de RataVix en cualquier instante a través de la configuración de seguridad de tu cuenta de Google en <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" style="color: var(--accent);">Permisos de Cuenta de Google</a>.</li>
+    </ul>
+
+    <h2>6. Contacto</h2>
+    <p>Si tienes preguntas o inquietudes sobre esta Política de Privacidad o el tratamiento de tus datos, puedes comunicarte con el equipo de desarrollo a través de:</p>
+    <p>📧 Correo de soporte: <code>wikidat.g@gmail.com</code></p>
+
+    <footer class="footer-nav">
+      <a href="/" class="btn-back">← Volver a RataVix</a>
+      <div class="links">
+        <a href="/terms.html">Términos del Servicio</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

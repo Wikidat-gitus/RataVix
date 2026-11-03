@@ -169,6 +169,39 @@
   font-size: 0.85rem;
 }
 
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.footer-legal-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.footer-legal-link:hover {
+  color: var(--color-warning);
+  text-decoration: underline;
+}
+
+.footer-separator {
+  color: var(--text-subtle);
+  font-size: 0.7rem;
+}
+
 /* Barra de Navegación por Pestañas */
 .nav-tabs {
   display: flex;

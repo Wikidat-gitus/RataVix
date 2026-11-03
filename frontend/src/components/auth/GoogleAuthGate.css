@@ -205,3 +205,29 @@
 .auth-gate-logo-img:hover {
   transform: scale(1.05);
 }
+
+/* Enlaces Legales en Bienvenida */
+.auth-gate-legal-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+  font-size: 0.78rem;
+}
+
+.auth-gate-legal-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.auth-gate-legal-links a:hover {
+  color: #facc15;
+  text-decoration: underline;
+}
+
+.legal-separator {
+  color: var(--text-subtle);
+  font-size: 0.7rem;
+}
