@@ -22,6 +22,14 @@ let cachedFolderId = null;
 let cachedFreeFolderId = null;
 
 /**
+ * Resetea los identificadores de carpetas cacheados en memoria (útil al cerrar sesión)
+ */
+export function resetDriveFolderCache() {
+  cachedFolderId = null;
+  cachedFreeFolderId = null;
+}
+
+/**
  * Obtiene o crea automáticamente la carpeta contenedora en Google Drive
  */
 export async function getOrCreateVaultFolder(accessToken) {

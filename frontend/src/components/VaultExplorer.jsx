@@ -40,6 +40,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
   const [baules, setBaules] = useState([]);
   const [tesoros, setTesoros] = useState([]);
   const [allBaulesList, setAllBaulesList] = useState([]);
+  const [loadingMoveTargets, setLoadingMoveTargets] = useState(false);
 
   // Paginación: 16 en Moderno (2 filas x 8), 4 en Pixel Art (1 fila con iconos grandes cuadrados)
   const isPixelMode = appTheme === 'pixel';
@@ -235,7 +236,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
 
       setBaules(decryptedBaules);
       setTesoros(decryptedTesoros);
-      setAllBaulesList(decryptedAll);
+
     } catch (err) {
       console.error('Error al cargar contenido:', err);
       addToast('Error al cargar elementos', 'error');

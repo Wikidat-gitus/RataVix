@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { fetchGoogleUserInfo, fetchGoogleStorageQuota } from '../services/googleDrive';
+import { fetchGoogleUserInfo, fetchGoogleStorageQuota, resetDriveFolderCache } from '../services/googleDrive';
 import { api } from '../services/api';
 
 const GoogleAuthContext = createContext();
@@ -208,6 +208,7 @@ export function GoogleAuthProvider({ children }) {
       }
     }
     api.logout().catch(() => { });
+    resetDriveFolderCache();
     setGoogleAccessToken(null);
     setGoogleUser(null);
     setBackendUser(null);
