@@ -14,8 +14,6 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
   const [textContent, setTextContent] = useState('');
   const [copied, setCopied] = useState(false);
   const [isPiPActive, setIsPiPActive] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
 
   const isEncrypted = tesoro.es_cifrado === true || (tesoro.es_cifrado !== false && Boolean(tesoro.iv && tesoro.iv.trim()));
 
@@ -111,28 +109,24 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
           }
         }
 
-        // 2. Descifrar si es necesario
-        let finalBuffer = buffer;
-        if (isEncrypted) {
-          if (!fileIv) {
-            throw new Error('El archivo no posee vector de inicialización (IV) para descifrarse.');
-          }
-          finalBuffer = await decryptFileBlob(buffer, fileIv);
-        }
+        // Descifrar solo si el archivo es cifrado
+        const finalBuffer = isEncrypted
+          ? await decryptFileBlob(buffer, fileIv)
+          : buffer;
 
         setDownloadProgress((prev) => ({
           ...prev,
           percent: 100,
-          status: 'Preparando reproductor multimedia...',
+          status: 'Preparando visualización...',
         }));
 
-        // 3. Procesar según la categoría
+        // Procesar según la categoría
         if (category.type === 'text') {
           const decoder = new TextDecoder('utf-8');
           const text = decoder.decode(finalBuffer);
           setTextContent(text);
         } else {
-          // Generar Blob con el tipo MIME exacto para decodificadores del navegador
+          // Asignar MIME type estricto
           let mime = tesoro.tipo_mime;
           if (category.type === 'pdf') {
             mime = 'application/pdf';
@@ -162,24 +156,13 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
 
     loadAndDecrypt();
 
-    // Limpieza estricta de memoria (Zero-Knowledge): detener reproducción, salir de PiP y revocar URL
+    // Limpieza al cerrar: pausar medios y revocar blob
     return () => {
-      try {
-        if (videoRef.current) {
-          videoRef.current.pause();
-          videoRef.current.removeAttribute('src');
-          videoRef.current.load();
-        }
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.removeAttribute('src');
-          audioRef.current.load();
-        }
-        if (document.pictureInPictureElement) {
-          document.exitPictureInPicture().catch(() => {});
-        }
-      } catch (e) {
-        console.warn('Error en cleanup:', e);
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
       }
       if (activeUrl) {
         URL.revokeObjectURL(activeUrl);
@@ -204,7 +187,7 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
     };
   }, [blobUrl, category.type]);
 
-  // Alternar Picture-in-Picture nativo
+  // Alternar Picture-in-Picture nativo simple como antes
   const handleTogglePiP = async () => {
     if (!videoRef.current) return;
     try {
@@ -212,54 +195,11 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
         await document.exitPictureInPicture();
         setIsPiPActive(false);
       } else {
-        if (videoRef.current.paused) {
-          try {
-            await videoRef.current.play();
-          } catch (e) {
-            console.warn('Autoplay al entrar a PiP:', e);
-          }
-        }
         await videoRef.current.requestPictureInPicture();
         setIsPiPActive(true);
-        // Al entrar a PiP, auto-minimizar modal para que el usuario pueda explorar carpetas
-        setIsMinimized(true);
       }
     } catch (err) {
       console.warn('Error al activar Picture-in-Picture:', err);
-    }
-  };
-
-  // Cierre total definitivo (detiene reproducción, sale de PiP y libera recursos)
-  const handleFullClose = () => {
-    try {
-      if (videoRef.current) {
-        videoRef.current.pause();
-        videoRef.current.removeAttribute('src');
-        videoRef.current.load();
-      }
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.removeAttribute('src');
-        audioRef.current.load();
-      }
-      if (document.pictureInPictureElement) {
-        document.exitPictureInPicture().catch(() => {});
-      }
-    } catch (err) {
-      console.warn('Error al cerrar reproductor:', err);
-    }
-    setIsPiPActive(false);
-    setIsMinimized(false);
-    onClose();
-  };
-
-  // Clic en la '✕' de la cabecera principal del visor
-  const handleHeaderClose = () => {
-    if (isPiPActive) {
-      // Si el video está activo en Picture-in-Picture, minimizar al dock flotante para continuar navegando
-      setIsMinimized(true);
-    } else {
-      handleFullClose();
     }
   };
 
@@ -274,9 +214,7 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
   };
 
   return (
-    <div
-      className={`viewer-backdrop ${isMinimized ? 'viewer-minimized' : ''} ${isPiPActive ? 'pip-active' : ''}`}
-    >
+    <div className="viewer-backdrop">
       <div className="viewer-window">
         {/* Cabecera del Visor */}
         <header className="viewer-header">
@@ -291,114 +229,62 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
                   {isEncrypted ? '🔐 Descifrado en RAM' : '☁️ Modo Libre'}
                 </span>
               </div>
-              {isMinimized && (
-                <span className="viewer-pip-status-badge">
-                  {isPiPActive ? '📺 Miniatura PiP activa' : (isPlaying ? '▶ Reproduciendo' : '⏸ En pausa')}
-                </span>
-              )}
             </div>
           </div>
 
           <div className="viewer-header-actions">
-            {/* Controles cuando está MINIMIZADO */}
-            {isMinimized ? (
-              <>
-                {category.type === 'video' && blobUrl && document.pictureInPictureEnabled && (
-                  <button
-                    type="button"
-                    className={`btn-viewer-action btn-pip ${isPiPActive ? 'active' : ''}`}
-                    onClick={handleTogglePiP}
-                    title={isPiPActive ? 'Salir de ventana miniatura' : 'Ver en ventana miniatura'}
-                  >
-                    📺
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="btn-viewer-action btn-restore"
-                  onClick={() => setIsMinimized(false)}
-                  title="Restaurar visor a pantalla completa"
-                >
-                  🗖 Restaurar
-                </button>
-                <button
-                  type="button"
-                  className="btn-viewer-close"
-                  onClick={handleFullClose}
-                  title="Detener y cerrar definitivamente"
-                >
-                  ✕
-                </button>
-              </>
-            ) : (
-              /* Controles cuando está en MODO COMPLETO */
-              <>
-                {/* Botón para abrir PDF en pestaña nueva nativa */}
-                {category.type === 'pdf' && blobUrl && (
-                  <button
-                    type="button"
-                    className="btn-viewer-action"
-                    onClick={() => window.open(blobUrl, '_blank')}
-                    title="Abrir este PDF a pantalla completa en una nueva pestaña del navegador"
-                  >
-                    📄 Abrir en Pestaña
-                  </button>
-                )}
-
-                {/* Botón directo de Miniatura (Picture-in-Picture) para Videos */}
-                {category.type === 'video' && blobUrl && document.pictureInPictureEnabled && (
-                  <button
-                    type="button"
-                    className={`btn-viewer-action btn-pip ${isPiPActive ? 'active' : ''}`}
-                    onClick={handleTogglePiP}
-                    title="Reproducir en ventana miniatura flotante (Picture-in-Picture)"
-                  >
-                    {isPiPActive ? '📺 Salir de Miniatura' : '📺 Miniatura'}
-                  </button>
-                )}
-
-                {/* Botón de Minimizar para Video y Audio (permite navegar libremente por carpetas) */}
-                {(category.type === 'video' || category.type === 'audio') && blobUrl && (
-                  <button
-                    type="button"
-                    className="btn-viewer-action btn-minimize"
-                    onClick={() => setIsMinimized(true)}
-                    title="Minimizar a la esquina para explorar tus carpetas mientras se reproduce"
-                  >
-                    🗕 Minimizar
-                  </button>
-                )}
-
-                {category.type === 'text' && !loading && !error && (
-                  <button
-                    type="button"
-                    className="btn-viewer-action"
-                    onClick={handleCopyText}
-                    title="Copiar contenido"
-                  >
-                    {copied ? '✅ Copiado' : '📋 Copiar'}
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  className="btn-viewer-action"
-                  onClick={() => onDownload(tesoro)}
-                  title="Descargar copia descifrada"
-                >
-                  ⬇️ Descargar
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-viewer-close"
-                  onClick={handleHeaderClose}
-                  title={isPiPActive ? 'Minimizar a la esquina (PiP activo)' : 'Cerrar visor'}
-                >
-                  ✕
-                </button>
-              </>
+            {/* Botón para abrir PDF en pestaña nueva nativa */}
+            {category.type === 'pdf' && blobUrl && (
+              <button
+                type="button"
+                className="btn-viewer-action"
+                onClick={() => window.open(blobUrl, '_blank')}
+                title="Abrir este PDF a pantalla completa en una nueva pestaña del navegador"
+              >
+                📄 Abrir en Pestaña
+              </button>
             )}
+
+            {/* Botón directo de Miniatura (Picture-in-Picture) para Videos */}
+            {category.type === 'video' && blobUrl && document.pictureInPictureEnabled && (
+              <button
+                type="button"
+                className={`btn-viewer-action btn-pip ${isPiPActive ? 'active' : ''}`}
+                onClick={handleTogglePiP}
+                title="Reproducir en ventana miniatura flotante (Picture-in-Picture)"
+              >
+                {isPiPActive ? '📺 Salir de Miniatura' : '📺 Miniatura'}
+              </button>
+            )}
+
+            {category.type === 'text' && !loading && !error && (
+              <button
+                type="button"
+                className="btn-viewer-action"
+                onClick={handleCopyText}
+                title="Copiar contenido"
+              >
+                {copied ? '✅ Copiado' : '📋 Copiar'}
+              </button>
+            )}
+
+            <button
+              type="button"
+              className="btn-viewer-action"
+              onClick={() => onDownload(tesoro)}
+              title="Descargar copia descifrada"
+            >
+              ⬇️ Descargar
+            </button>
+
+            <button
+              type="button"
+              className="btn-viewer-close"
+              onClick={onClose}
+              title="Cerrar visor"
+            >
+              ✕
+            </button>
           </div>
         </header>
 
@@ -454,14 +340,6 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
             </div>
           ) : (
             <div className="viewer-display-area">
-              {/* Banner informativo cuando está minimizado con PiP activo */}
-              {isMinimized && isPiPActive && (
-                <div className="viewer-pip-banner">
-                  <span>📺</span>
-                  <span>Reproduciendo en ventana miniatura sobre tu pantalla.</span>
-                </div>
-              )}
-
               {/* 1. Imagen */}
               {category.type === 'image' && blobUrl && (
                 <div className="viewer-media-wrap">
@@ -511,14 +389,7 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
                   <div className="media-player-card">
                     <span style={{ fontSize: '4rem' }}>🎵</span>
                     <h4>{tesoro.plainName}</h4>
-                    <audio
-                      ref={audioRef}
-                      controls
-                      src={blobUrl}
-                      className="native-audio-player"
-                      onPlay={() => setIsPlaying(true)}
-                      onPause={() => setIsPlaying(false)}
-                    />
+                    <audio ref={audioRef} controls src={blobUrl} className="native-audio-player" />
                   </div>
                 </div>
               )}
@@ -530,16 +401,8 @@ export default function TreasureViewerModal({ tesoro, onClose, onDownload }) {
                     ref={videoRef}
                     controls
                     playsInline
-                    preload="auto"
                     src={blobUrl}
                     className="viewer-video-player"
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                    onWaiting={() => {
-                      if (videoRef.current && !videoRef.current.paused) {
-                        videoRef.current.play().catch(() => {});
-                      }
-                    }}
                   />
                 </div>
               )}
