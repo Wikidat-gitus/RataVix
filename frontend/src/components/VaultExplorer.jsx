@@ -15,6 +15,9 @@ import ConfirmModal from './ConfirmModal';
 import UploadProgressModal from './UploadProgressModal';
 import baulPixelArt from '../assets/baul-pixel-art.jpg';
 
+// Límite máximo preventivo de subida para proteger la memoria RAM del navegador
+const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024; // 500 MB
+
 export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode, searchQuery = '', onClearSearch, appTheme = 'normal' }) {
   const { isUnlocked, lockVault, encryptName, decryptName, encryptFileBlob, decryptFileBlob } = useCrypto();
   const { isGoogleConnected, googleAccessToken, googleUser, refreshStorageQuota } = useGoogleAuth();
@@ -474,6 +477,16 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
   const processFileUpload = async (file) => {
     if (!file) return;
 
+    // Blindaje de memoria: interceptar antes de leer bytes a la memoria RAM
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      const sizeText = formatBytes(file.size);
+      addToast(`⚠️ "${file.name}" (${sizeText}) supera el límite de 500 MB. Para evitar congelar el navegador, sube archivos menores a 500 MB.`, 'warning');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
+
     const existingNames = tesoros.map((t) => t.plainName || '');
     const finalFileName = getUniqueName(file.name, existingNames);
     if (finalFileName !== file.name) {
@@ -635,6 +648,16 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
   const handleFileSelected = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Blindaje de memoria: interceptar antes de leer bytes a la memoria RAM
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      const sizeText = formatBytes(file.size);
+      addToast(`⚠️ "${file.name}" (${sizeText}) supera el límite de 500 MB. Para evitar congelar el navegador, sube archivos menores a 500 MB.`, 'warning');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
     await processFileUpload(file);
   };
 
@@ -856,7 +879,7 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
       isDanger: true,
       onConfirm: async () => {
         setConfirmConfig((prev) => ({ ...prev, isOpen: false }));
-        setActionLoading(true);
+      setActionLoading(true);
         setDeletingProgress({
           isDeleting: true,
           itemName: item.plainName,
@@ -917,6 +940,10 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         return;
       }
 
+      if (tesoro.tamano_bytes > MAX_FILE_SIZE_BYTES) {
+        addToast(`⚠️ "${tesoro.plainName}" supera los 500 MB y no puede cifrarse en memoria RAM.`, 'warning');
+        return;
+      }
       setActionLoading(true);
       setUploadProgress({
         isOpen: true,
@@ -998,6 +1025,10 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
       }
     } else {
       // De Modo Secreto a Modo Libre
+      if (tesoro.tamano_bytes > MAX_FILE_SIZE_BYTES) {
+        addToast(`⚠️ "${tesoro.plainName}" supera los 500 MB y no puede cifrarse en memoria RAM.`, 'warning');
+        return;
+      }
       setActionLoading(true);
       setUploadProgress({
         isOpen: true,
