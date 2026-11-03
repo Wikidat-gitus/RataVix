@@ -12,6 +12,9 @@ import {
 import { api } from '../services/api';
 import { getFileCategory } from '../utils/fileTypes';
 import TreasureViewerModal from './TreasureViewerModal';
+import FolderActionModals from './FolderActionModals';
+import ToastContainer from './ToastContainer';
+import { useVaultMigration } from '../hooks/useVaultMigration';
 import ConfirmModal from './ConfirmModal';
 import UploadProgressModal from './UploadProgressModal';
 import baulPixelArt from '../assets/baul-pixel-art.jpg';
@@ -948,205 +951,20 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
     });
   };
 
-  // 7. PUENTE MÁGICO: MIGRAR TESORO ENTRE MODO LIBRE Y MODO SECRETO
-  const handleMigrateTesoro = useCallback(async (tesoro, targetMode) => {
-    if (!tesoro) return;
-
-    if (targetMode === 'secreto') {
-      // De Modo Libre a Modo Secreto
-      if (!isUnlocked) {
-        addToast('Para mover a Modo Secreto, primero desbloquea la bóveda con tu clave maestra.', 'warning');
-        if (onSwitchMode) {
-          onSwitchMode();
-        }
-        return;
-      }
-
-      if (tesoro.tamano_bytes > MAX_FILE_SIZE_BYTES) {
-        addToast(`⚠️ "${tesoro.plainName}" supera los 500 MB y no puede cifrarse en memoria RAM.`, 'warning');
-        return;
-      }
-      setActionLoading(true);
-      setUploadProgress({
-        isOpen: true,
-        fileName: tesoro.plainName,
-        fileSize: formatBytes(tesoro.tamano_bytes),
-        stage: 'encrypting',
-        statusMessage: 'Descargando y cifrando con AES-GCM (256 bits) en RAM...',
-      });
-
-      try {
-        let plainBuffer;
-        if (tesoro.drive_file_id.startsWith('gdrive-mock-')) {
-          const driveRecord = await api.downloadDriveMock(tesoro.drive_file_id);
-          plainBuffer = driveRecord.encryptedBuffer || driveRecord.buffer || driveRecord;
-        } else {
-          if (!isGoogleConnected || !googleAccessToken) {
-            throw new Error('Debes conectar tu Google Drive para transferir este archivo');
-          }
-          plainBuffer = await downloadPlainFileFromDrive({
-            driveFileId: tesoro.drive_file_id,
-            accessToken: googleAccessToken,
-          });
-        }
-
-        const { encryptedBuffer, iv: fileIv } = await encryptFileBlob(plainBuffer);
-        const { nombre_cifrado, iv: nameIv } = await encryptName(tesoro.plainName);
-
-        setUploadProgress((prev) => ({
-          ...prev,
-          stage: 'uploading',
-          statusMessage: isGoogleConnected && googleAccessToken
-            ? 'Subiendo blob cifrado (.enc) a Google Drive...'
-            : 'Guardando en almacenamiento local...',
-        }));
-
-        let newDriveFileId;
-        if (isGoogleConnected && googleAccessToken) {
-          const driveRes = await uploadEncryptedFileToDrive({
-            encryptedBuffer,
-            fileIv,
-            accessToken: googleAccessToken,
-          });
-          newDriveFileId = driveRes.drive_file_id;
-        } else {
-          const mockRes = await api.uploadDriveMock(encryptedBuffer, fileIv, true);
-          newDriveFileId = mockRes.drive_file_id;
-        }
-
-        if (tesoro.drive_file_id && !tesoro.drive_file_id.startsWith('gdrive-mock-') && isGoogleConnected && googleAccessToken) {
-          try {
-            await deleteFileFromDrive({ driveFileId: tesoro.drive_file_id, accessToken: googleAccessToken });
-          } catch (driveErr) {
-            console.warn('No se pudo borrar el archivo plano original de Google Drive:', driveErr);
-          }
-        }
-
-        setUploadProgress((prev) => ({
-          ...prev,
-          stage: 'saving',
-          statusMessage: 'Blindando registro en Modo Secreto...',
-        }));
-
-        await api.updateTesoro(tesoro.id, {
-          nombre_cifrado,
-          iv: nameIv,
-          drive_file_id: newDriveFileId,
-          es_cifrado: true,
-          baul_id: null,
-        });
-
-        addToast(`🛡️ Archivo "${tesoro.plainName}" protegido y movido a Raíz Secreta`, 'success');
-        await loadVaultContent();
-      } catch (err) {
-        console.error('Error al mover tesoro a Modo Secreto:', err);
-        addToast(err.message || 'Error al blindar y transferir el archivo', 'error');
-      } finally {
-        setActionLoading(false);
-        setUploadProgress((prev) => ({ ...prev, isOpen: false }));
-      }
-    } else {
-      // De Modo Secreto a Modo Libre
-      if (tesoro.tamano_bytes > MAX_FILE_SIZE_BYTES) {
-        addToast(`⚠️ "${tesoro.plainName}" supera los 500 MB y no puede cifrarse en memoria RAM.`, 'warning');
-        return;
-      }
-      setActionLoading(true);
-      setUploadProgress({
-        isOpen: true,
-        fileName: tesoro.plainName,
-        fileSize: formatBytes(tesoro.tamano_bytes),
-        stage: 'encrypting',
-        statusMessage: 'Descargando y descifrando en RAM con AES-GCM (256 bits)...',
-      });
-
-      try {
-        let encryptedBuffer;
-        let fileIv;
-        if (tesoro.drive_file_id.startsWith('gdrive-mock-')) {
-          const driveRecord = await api.downloadDriveMock(tesoro.drive_file_id);
-          encryptedBuffer = driveRecord.encryptedBuffer || driveRecord.buffer || driveRecord;
-          fileIv = driveRecord.fileIv || tesoro.iv;
-        } else {
-          if (!isGoogleConnected || !googleAccessToken) {
-            throw new Error('Debes conectar tu Google Drive para transferir este archivo');
-          }
-          const driveRecord = await downloadEncryptedFileFromDrive({
-            driveFileId: tesoro.drive_file_id,
-            accessToken: googleAccessToken,
-            fallbackIv: tesoro.iv,
-          });
-          encryptedBuffer = driveRecord.encryptedBuffer;
-          fileIv = driveRecord.fileIv || tesoro.iv;
-        }
-
-        const plainBuffer = await decryptFileBlob(encryptedBuffer, fileIv);
-
-        setUploadProgress((prev) => ({
-          ...prev,
-          stage: 'uploading',
-          statusMessage: isGoogleConnected && googleAccessToken
-            ? 'Subiendo archivo estándar a Google Drive...'
-            : 'Guardando en almacenamiento local...',
-        }));
-
-        let newDriveFileId;
-        if (isGoogleConnected && googleAccessToken) {
-          const fileObj = new File([plainBuffer], tesoro.plainName, {
-            type: tesoro.tipo_mime || 'application/octet-stream',
-          });
-          const driveRes = await uploadPlainFileToDrive({
-            file: fileObj,
-            accessToken: googleAccessToken,
-          });
-          newDriveFileId = driveRes.drive_file_id;
-        } else {
-          const mockRes = await api.uploadDriveMock(plainBuffer, null, false);
-          newDriveFileId = mockRes.drive_file_id;
-        }
-
-        if (tesoro.drive_file_id && !tesoro.drive_file_id.startsWith('gdrive-mock-') && isGoogleConnected && googleAccessToken) {
-          try {
-            await deleteFileFromDrive({ driveFileId: tesoro.drive_file_id, accessToken: googleAccessToken });
-          } catch (driveErr) {
-            console.warn('No se pudo borrar el blob cifrado original de Google Drive:', driveErr);
-          }
-        }
-
-        setUploadProgress((prev) => ({
-          ...prev,
-          stage: 'saving',
-          statusMessage: 'Registrando archivo en Mis Archivos...',
-        }));
-
-        await api.updateTesoro(tesoro.id, {
-          nombre_cifrado: tesoro.plainName,
-          iv: null,
-          drive_file_id: newDriveFileId,
-          es_cifrado: false,
-          baul_id: null,
-        });
-
-        addToast(`🔓 Archivo "${tesoro.plainName}" movido a Raíz Libre`, 'success');
-        await loadVaultContent();
-      } catch (err) {
-        console.error('Error al mover tesoro a Modo Libre:', err);
-        addToast(err.message || 'Error al descifrar y transferir el archivo', 'error');
-      } finally {
-        setActionLoading(false);
-        setUploadProgress((prev) => ({ ...prev, isOpen: false }));
-      }
-    }
-  }, [
+  // 7. PUENTE MÁGICO: MIGRAR TESORO ENTRE MODO LIBRE Y MODO SECRETO (Hook Modular SOLID)
+  const { handleMigrateTesoro } = useVaultMigration({
     isUnlocked,
     isGoogleConnected,
     googleAccessToken,
-    encryptFileBlob,
     encryptName,
     decryptFileBlob,
+    encryptFileBlob,
+    setActionLoading,
+    setUploadProgress,
     loadVaultContent,
     onSwitchMode,
-  ]);
+    addToast,
+  });
 
   // Escuchar eventos globales de migración y notificaciones (desde pills de App.jsx u otros componentes)
   useEffect(() => {
@@ -1630,68 +1448,23 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         )}
       </div>
 
-      {/* MODAL 1: Crear o Renombrar */}
-      {(modalMode === 'createFolder' || modalMode === 'rename') && (
-        <div className="modal-backdrop">
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="modal-close-btn"
-              onClick={() => setModalMode(null)}
-              disabled={actionLoading}
-              title="Cerrar ventana"
-            >
-              ✕
-            </button>
-            <h3>
-              {modalMode === 'createFolder'
-                ? (isEncryptedMode ? '📁 Crear Nueva Carpeta Secreta' : '📁 Crear Nueva Carpeta')
-                : `✏️ Renombrar ${activeItem?.type === 'baul' ? 'Carpeta' : 'Archivo'}`}
-            </h3>
-            <p className="modal-description">
-              {isEncryptedMode
-                ? 'El nombre se cifrará con AES-GCM (256 bits) antes de guardarse en el sistema.'
-                : 'El nombre se guardará directamente en tu Google Drive.'}
-            </p>
-
-            <form
-              onSubmit={
-                modalMode === 'createFolder'
-                  ? handleConfirmCreateFolder
-                  : handleConfirmRename
-              }
-            >
-              <input
-                type="text"
-                className="input-field"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder={isEncryptedMode ? "Nombre de la carpeta o archivo secreto..." : "Nombre de la carpeta o archivo..."}
-                autoFocus
-                required
-              />
-
-              <div className="modal-buttons">
-                <button
-                  type="button"
-                  className="btn-cancel"
-                  onClick={() => setModalMode(null)}
-                  disabled={actionLoading}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn-confirm"
-                  disabled={actionLoading || !inputValue.trim()}
-                >
-                  {actionLoading ? 'Guardando...' : (isEncryptedMode ? 'Guardar Cifrado' : 'Guardar')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* MODALES DE ACCIÓN (Crear Carpeta, Renombrar, Mover) — Principio SOLID (S) */}
+      <FolderActionModals
+        modalMode={modalMode}
+        activeItem={activeItem}
+        isEncryptedMode={isEncryptedMode}
+        inputValue={inputValue}
+        setInputValue={setInputValue}
+        actionLoading={actionLoading}
+        selectedTargetBaulId={selectedTargetBaulId}
+        setSelectedTargetBaulId={setSelectedTargetBaulId}
+        allBaulesList={allBaulesList}
+        loadingMoveTargets={loadingMoveTargets}
+        onClose={() => setModalMode(null)}
+        onConfirmCreateFolder={handleConfirmCreateFolder}
+        onConfirmRename={handleConfirmRename}
+        onConfirmMove={handleConfirmMove}
+      />
 
       {/* MODAL 2: Mover elemento */}
       {modalMode === 'move' && activeItem && (
@@ -1825,31 +1598,8 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         </div>
       )}
 
-      {/* 5. Contenedor de Notificaciones Toast Flotantes */}
-      <div className="toast-container">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={`toast-item toast-${toast.type}`}
-            onClick={() => removeToast(toast.id)}
-          >
-            <span className="toast-icon">
-              {toast.type === 'error' ? '❌' : toast.type === 'info' ? 'ℹ️' : '✅'}
-            </span>
-            <span className="toast-text">{toast.text}</span>
-            <button
-              type="button"
-              className="toast-close"
-              onClick={(e) => {
-                e.stopPropagation();
-                removeToast(toast.id);
-              }}
-            >
-              ✕
-            </button>
-          </div>
-        ))}
-      </div>
+      {/* Notificaciones Toast Flotantes — Principio SOLID (S) */}
+      <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
     </div>
   );
 }
