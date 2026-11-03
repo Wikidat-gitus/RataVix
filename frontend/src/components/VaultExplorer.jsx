@@ -176,10 +176,9 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         }
       }
 
-      const [rawBaules, rawTesoros, allAvailable] = await Promise.all([
+      const [rawBaules, rawTesoros] = await Promise.all([
         api.getBaules(currentBaulId, isEncryptedMode),
-        api.getTesoros(currentBaulId, isEncryptedMode),
-        api.getAllBaules(isEncryptedMode)
+        api.getTesoros(currentBaulId, isEncryptedMode)
       ]);
 
       // Aislamiento defensivo en cliente: garantizar separación total entre Modo Libre y Secreto
@@ -191,9 +190,6 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
         ? rawTesoros.filter(t => t.es_cifrado !== false && Boolean(t.iv && t.iv.trim()))
         : rawTesoros.filter(t => t.es_cifrado === false || !t.iv || !t.iv.trim());
 
-      const filteredAll = isEncryptedMode
-        ? allAvailable.filter(b => b.es_cifrado !== false && Boolean(b.iv && b.iv.trim()))
-        : allAvailable.filter(b => b.es_cifrado === false || !b.iv || !b.iv.trim());
 
       const decryptedBaules = isEncryptedMode
         ? await Promise.all(
@@ -221,18 +217,6 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
           )
         : filteredTesoros.map((t) => ({ ...t, plainName: t.nombre_cifrado }));
 
-      const decryptedAll = isEncryptedMode
-        ? await Promise.all(
-            filteredAll.map(async (b) => {
-              try {
-                const plainName = await decryptName(b.nombre_cifrado, b.iv);
-                return { ...b, plainName };
-              } catch {
-                return { ...b, plainName: 'Elemento Cifrado' };
-              }
-            })
-          )
-        : filteredAll.map((b) => ({ ...b, plainName: b.nombre_cifrado }));
 
       setBaules(decryptedBaules);
       setTesoros(decryptedTesoros);
@@ -835,11 +819,42 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
     }
   };
 
+  // Carga y descifra la lista completa de carpetas bajo demanda (Lazy Loading exclusivo para el modal 'Mover')
+  const loadMoveTargets = useCallback(async () => {
+    setLoadingMoveTargets(true);
+    try {
+      const allAvailable = await api.getAllBaules(isEncryptedMode);
+      const filteredAll = isEncryptedMode
+        ? allAvailable.filter(b => b.es_cifrado !== false && Boolean(b.iv && b.iv.trim()))
+        : allAvailable.filter(b => b.es_cifrado === false || !b.iv || !b.iv.trim());
+
+      const decryptedAll = isEncryptedMode
+        ? await Promise.all(
+            filteredAll.map(async (b) => {
+              try {
+                const plainName = await decryptName(b.nombre_cifrado, b.iv);
+                return { ...b, plainName };
+              } catch {
+                return { ...b, plainName: 'Elemento Cifrado' };
+              }
+            })
+          )
+        : filteredAll.map((b) => ({ ...b, plainName: b.nombre_cifrado }));
+
+      setAllBaulesList(decryptedAll);
+    } catch (err) {
+      console.error('Error al cargar carpetas para mover:', err);
+    } finally {
+      setLoadingMoveTargets(false);
+    }
+  }, [decryptName, isEncryptedMode]);
+
   // 5. MOVER POR MODAL (Alternativa accesible al arrastrar)
   const handleOpenMove = (type, item) => {
     setActiveItem({ type, item, currentName: item.plainName });
     setSelectedTargetBaulId(null);
     setModalMode('move');
+    loadMoveTargets();
   };
 
   const handleConfirmMove = async (e) => {
@@ -1700,15 +1715,20 @@ export default function VaultExplorer({ onLogout, mode = 'secreto', onSwitchMode
                 className="input-field select-field"
                 value={selectedTargetBaulId || ''}
                 onChange={(e) => setSelectedTargetBaulId(e.target.value || null)}
+                disabled={loadingMoveTargets}
               >
                 <option value="">📂 [{isEncryptedMode ? 'Raíz Secreta' : 'Raíz Libre'}]</option>
-                {allBaulesList
-                  .filter((b) => b.id !== activeItem.item.id)
-                  .map((b) => (
-                    <option key={b.id} value={b.id}>
-                      📁 {b.plainName}
-                    </option>
-                  ))}
+                {loadingMoveTargets ? (
+                  <option disabled>⏳ Descifrando carpetas disponibles...</option>
+                ) : (
+                  allBaulesList
+                    .filter((b) => b.id !== activeItem.item.id)
+                    .map((b) => (
+                      <option key={b.id} value={b.id}>
+                        📁 {b.plainName}
+                      </option>
+                    ))
+                )}
               </select>
 
               <div className="modal-buttons">
