@@ -26,15 +26,6 @@
   gap: 0.85rem;
 }
 
-.brand-icon {
-  font-size: 2rem;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
-  padding: 0.5rem;
-  border-radius: 14px;
-  border: 1px solid var(--border-glow);
-  box-shadow: 0 0 15px var(--accent-purple-glow);
-  line-height: 1;
-}
 
 .brand-text h1 {
   font-size: 1.35rem;
@@ -49,32 +40,6 @@
   color: var(--text-muted);
 }
 
-.security-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.95rem;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 9999px;
-  font-size: 0.82rem;
-  color: #34d399;
-  font-weight: 500;
-}
-
-.pulse-dot {
-  width: 8px;
-  height: 8px;
-  background-color: var(--accent-emerald);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--accent-emerald);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.85); }
-}
 
 /* Área Principal */
 .main-content {
@@ -186,54 +151,6 @@
   color: var(--text-muted);
 }
 
-/* Vista Previa del Baúl Virtual */
-.vault-preview {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  padding: 2rem;
-}
-
-.vault-preview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 1rem;
-}
-
-.vault-items-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
-}
-
-.vault-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  transition: all var(--transition-fast);
-}
-
-.vault-item:hover {
-  border-color: var(--accent-purple);
-  background: rgba(139, 92, 246, 0.1);
-}
-
-.vault-item-info strong {
-  display: block;
-  font-size: 0.9rem;
-}
-
-.vault-item-info span {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
 
 /* Footer */
 .app-footer {
@@ -682,16 +599,6 @@
   font-weight: bold;
 }
 
-.zk-guarantee-footer {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  font-size: 0.78rem;
-  color: var(--text-subtle);
-  line-height: 1.4;
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 1rem;
-}
 
 /* ==========================================================================
    Estilos del Explorador de Baúl (VaultExplorer)
@@ -1114,74 +1021,6 @@
   color: #ffffff;
 }
 
-.card-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.4rem;
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 0.65rem;
-}
-
-.item-btn {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 0.35rem 0.55rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all var(--transition-fast);
-  color: var(--text-muted);
-}
-
-.item-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--border-subtle);
-  color: #ffffff;
-}
-
-/* Botón de Acción Rápida con Etiqueta (Abrir / Ver) */
-.btn-quick-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.82rem;
-  font-weight: 500;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-main);
-  border-radius: 8px;
-}
-
-.btn-quick-action:hover {
-  background: rgba(139, 92, 246, 0.18);
-  border-color: var(--accent-purple);
-  color: #ffffff;
-}
-
-.btn-quick-action.preview-action:hover {
-  background: rgba(6, 182, 212, 0.18);
-  border-color: var(--accent-cyan);
-  color: #ffffff;
-}
-
-.btn-label-text {
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.item-btn.download-action:hover {
-  background: rgba(6, 182, 212, 0.2);
-  border-color: var(--accent-cyan);
-  color: #ffffff;
-}
-
-.item-btn.delete-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
-}
 
 /* Menú Desplegable de 3 Puntos (⋮) */
 
@@ -2041,34 +1880,7 @@
   line-height: 1.4;
 }
 
-.upload-progress-bar-container {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 9999px;
-  overflow: hidden;
-}
 
-.upload-progress-bar-fill {
-  height: 100%;
-  border-radius: 9999px;
-  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease;
-}
-
-.upload-progress-bar-fill.encrypting {
-  background: linear-gradient(90deg, #8b5cf6, #a855f7);
-  box-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
-}
-
-.upload-progress-bar-fill.uploading {
-  background: linear-gradient(90deg, #06b6d4, #3b82f6);
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
-}
-
-.upload-progress-bar-fill.saving {
-  background: linear-gradient(90deg, #10b981, #059669);
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
-}
 
 .upload-security-hint {
   display: flex;
@@ -2092,19 +1904,6 @@
 /* ==========================================================================
    Puerta de Acceso en 2 Pasos (GoogleAuthGate & Cuenta Activa)
    ========================================================================== */
-.auth-step-pill {
-  display: inline-block;
-  font-size: 0.76rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--accent-cyan);
-  background: rgba(6, 182, 212, 0.12);
-  border: 1px solid rgba(6, 182, 212, 0.3);
-  padding: 0.3rem 0.85rem;
-  border-radius: 9999px;
-  margin-bottom: 0.5rem;
-}
 
 /* ==========================================================================
    Pantalla de Inicio de Sesión / Entrada Limpia (GoogleAuthGate)
@@ -2139,18 +1938,6 @@
   margin-bottom: 1.75rem;
 }
 
-.auth-gate-icon {
-  font-size: 2.2rem;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  margin-bottom: 1rem;
-}
 
 .auth-gate-header h2 {
   font-size: 1.35rem;
@@ -2940,35 +2727,6 @@
    ARQUITECTURA DUAL: SELECTOR DE MODO LIBRE VS. MODO SECRETO
    ========================================================================== */
 
-/* ==========================================================================
-   Chip de Cuenta de Usuario en Header
-   ========================================================================== */
-.user-account-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  padding: 0.4rem 0.85rem;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  color: var(--text-main);
-}
-
-.user-account-dot {
-  width: 7px;
-  height: 7px;
-  background: #10b981;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.user-account-email {
-  white-space: nowrap;
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 /* ==========================================================================
    Selector de Modo Segmentado (Estándar y Limpio)
@@ -3042,12 +2800,6 @@
   margin-left: 0.25rem;
 }
 
-/* Badges del Header para Modo Libre */
-.free-mode-badge {
-  background: rgba(6, 182, 212, 0.1);
-  border: 1px solid rgba(6, 182, 212, 0.3);
-  color: #38bdf8;
-}
 
 .free-mode-dot {
   width: 8px;
@@ -4057,10 +3809,6 @@
   width: 100%;
 }
 
-.pagination-info {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
 
 .pagination-controls {
   display: flex;
@@ -4315,20 +4063,7 @@
   transform: scale(1.05) !important;
 }
 
-.pixel-single-row .card-info {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  width: 100% !important;
-  overflow: hidden !important;
-}
 
-.pixel-single-row .card-meta {
-  font-family: 'Courier New', Courier, monospace !important;
-  font-size: 0.72rem !important;
-  color: #94a3b8 !important;
-  margin-top: 2px !important;
-}
 
 .pixel-single-row .explorer-card:hover {
   border: 2px solid #38bdf8 !important;
