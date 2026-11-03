@@ -1,0 +1,354 @@
+/* ==========================================================================
+   UploadProgressModal.css — Módulo de Estilos para Overlay y Barra Gamer de Subida
+   Principio SOLID: Responsabilidad Única (S)
+   ========================================================================== */
+/* ==========================================================================
+   Overlay y Modal Bloqueante de Subida Protegida (UploadProgressModal)
+   ========================================================================== */
+.upload-overlay-backdrop {
+  z-index: 2500;
+  backdrop-filter: blur(12px);
+  background: rgba(4, 6, 12, 0.85);
+  cursor: wait;
+}
+
+.upload-progress-box {
+  max-width: 480px;
+  background: linear-gradient(160deg, rgba(26, 29, 48, 0.95) 0%, rgba(15, 17, 28, 0.98) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(139, 92, 246, 0.25);
+  border-radius: 18px;
+  padding: 2.2rem;
+  gap: 1.25rem;
+  animation: fadeInModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: default;
+}
+
+.upload-header {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.upload-pulse-orb {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.upload-pulse-orb.stage-crypto {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  animation: pulseOrbPurple 2s infinite ease-in-out;
+}
+
+.upload-pulse-orb.stage-upload {
+  background: rgba(6, 182, 212, 0.2);
+  border: 1px solid rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+  animation: pulseOrbCyan 2s infinite ease-in-out;
+}
+
+.upload-pulse-orb.stage-save {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  animation: pulseOrbEmerald 2s infinite ease-in-out;
+}
+
+@keyframes pulseOrbPurple {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); }
+  50% { transform: scale(1.06); box-shadow: 0 0 25px rgba(139, 92, 246, 0.7); }
+}
+
+@keyframes pulseOrbCyan {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(6, 182, 212, 0.4); }
+  50% { transform: scale(1.06); box-shadow: 0 0 25px rgba(6, 182, 212, 0.7); }
+}
+
+@keyframes pulseOrbEmerald {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+  50% { transform: scale(1.06); box-shadow: 0 0 25px rgba(16, 185, 129, 0.7); }
+}
+
+.upload-title-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.upload-title-area h3 {
+  font-size: 1.15rem;
+  color: var(--text-main);
+  font-weight: 700;
+  margin: 0;
+}
+
+.upload-step-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-purple);
+  background: rgba(139, 92, 246, 0.15);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  width: fit-content;
+}
+
+.upload-file-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: rgba(10, 12, 22, 0.65);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+}
+
+.upload-file-icon {
+  font-size: 1.4rem;
+}
+
+.upload-file-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 0.2rem;
+}
+
+.upload-file-name {
+  color: var(--text-main);
+  font-size: 0.92rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upload-file-size {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.upload-status-box {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.65rem 0.25rem;
+}
+
+.upload-spinner-ring {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(139, 92, 246, 0.25);
+  border-top-color: var(--accent-purple);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.upload-status-text {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+
+
+.upload-security-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.78rem;
+  color: #a7f3d0;
+  margin: 0;
+}
+
+.upload-security-hint p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+
+
+/* ==========================================================================
+   Overlay de Bloqueo durante Eliminación y Purga en Google Drive
+   ========================================================================== */
+.upload-pulse-orb.stage-delete {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border: 1px solid rgba(239, 68, 68, 0.6) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+  animation: pulseOrbRed 2s infinite ease-in-out !important;
+}
+
+@keyframes pulseOrbRed {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+  50% { transform: scale(1.06); box-shadow: 0 0 25px rgba(239, 68, 68, 0.7); }
+}
+
+.delete-badge {
+  color: #f87171 !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.delete-spinner {
+  border-top-color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
+}
+
+.delete-hint {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
+  color: #fca5a5 !important;
+}
+
+
+
+/* =========================================================================
+   BARRA DE PROGRESO DINÁMICA GAMER / HUD (UPLOAD MODAL)
+   ========================================================================= */
+
+.upload-hud-box {
+  max-width: 520px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.12);
+}
+
+.upload-hud-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.upload-percent-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.upload-percent-num {
+  font-size: 3.4rem;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+  line-height: 1;
+  background: linear-gradient(180deg, #ffffff 0%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+}
+
+.upload-percent-sym {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #38bdf8;
+  font-family: 'Courier New', monospace;
+}
+
+.upload-gamer-bar-container {
+  width: 100%;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+  margin: 0.5rem 0;
+}
+
+.upload-gamer-bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  position: relative;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.upload-gamer-bar-fill.encrypting {
+  background: linear-gradient(90deg, #7c3aed, #a855f7, #c084fc);
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.7);
+}
+
+.upload-gamer-bar-fill.uploading {
+  background: linear-gradient(90deg, #0284c7, #38bdf8, #7dd3fc);
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.85);
+}
+
+.upload-gamer-bar-fill.saving {
+  background: linear-gradient(90deg, #059669, #10b981, #34d399);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.7);
+}
+
+.gamer-bar-glow-beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 100%
+  );
+  animation: gamerBeamScan 1.6s infinite linear;
+}
+
+@keyframes gamerBeamScan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.upload-telemetry-hud {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+  margin-top: 0.65rem;
+  width: 100%;
+}
+
+.telemetry-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 6px 10px;
+  flex: 1;
+}
+
+.telemetry-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.telemetry-value {
+  font-family: monospace;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+

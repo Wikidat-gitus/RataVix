@@ -1,0 +1,358 @@
+/* ==========================================================================
+   TreasureViewerModal.css — Módulo de Estilos para Visor Universal de Archivos
+   (Imágenes Lightbox, Videos PiP, Audio, Lector PDF, Texto/Código y HUD)
+   Principio SOLID: Responsabilidad Única (S)
+   ========================================================================== */
+/* ==========================================================================
+   Visor de Tesoros en Vivo (TreasureViewerModal)
+   ========================================================================== */
+.viewer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 7, 13, 0.88);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+  padding: 1.5rem;
+  animation: fadeInModal 0.25s ease-out;
+}
+
+.viewer-window {
+  width: 100%;
+  max-width: 960px;
+  max-height: 90vh;
+  background: #0f121d;
+  border: 1px solid var(--border-glow);
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px var(--accent-purple-glow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(18, 20, 30, 0.85);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.viewer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  overflow: hidden;
+}
+
+.viewer-type-icon {
+  font-size: 1.8rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 0.4rem;
+}
+
+.viewer-meta-text {
+  overflow: hidden;
+}
+
+.viewer-meta-text h3 {
+  font-size: 1.1rem;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 460px;
+}
+
+.viewer-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+}
+
+.file-size-tag {
+  color: var(--text-muted);
+}
+
+.zk-tag {
+  color: var(--accent-emerald);
+  font-size: 0.75rem;
+}
+
+.viewer-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-viewer-action {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-viewer-action:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--accent-purple);
+  color: #ffffff;
+}
+
+.btn-viewer-action.btn-pip {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: var(--accent-cyan);
+  color: #67e8f9;
+}
+
+.btn-viewer-action.btn-pip:hover,
+.btn-viewer-action.btn-pip.active {
+  background: var(--accent-cyan);
+  color: #0b0f19;
+  font-weight: 600;
+  box-shadow: 0 0 12px var(--accent-cyan-glow);
+}
+
+.btn-viewer-close {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-viewer-close:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.viewer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: #080a10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.viewer-loading,
+.viewer-error,
+.viewer-binary-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.viewer-media-wrap {
+  max-width: 100%;
+  max-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewer-image-preview {
+  max-width: 100%;
+  max-height: 70vh;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  object-fit: contain;
+}
+
+.viewer-pdf-wrap {
+  width: 100%;
+  height: 72vh;
+}
+
+.viewer-pdf-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.pdf-fallback-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem 1.5rem;
+  background: var(--bg-card, #1e293b);
+  border-radius: 12px;
+  color: var(--text-primary, #f8fafc);
+  text-align: center;
+}
+
+.viewer-text-wrap {
+  width: 100%;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: #0d101a;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.viewer-code-view {
+  font-family: 'Fira Code', Consolas, Monaco, monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.media-player-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-glow);
+  border-radius: 16px;
+  padding: 2.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.native-audio-player {
+  width: 320px;
+}
+
+.viewer-video-player {
+  max-width: 100%;
+  max-height: 70vh;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+
+/* =========================================================================
+   BARRA DE PROGRESO GAMER HUD PARA CARGA / DESCARGA EN VISOR (VIEWER MODAL)
+   ========================================================================= */
+
+.zk-tag.zk-plain {
+  background: rgba(56, 189, 248, 0.12) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+}
+
+.zk-tag.zk-encrypted {
+  background: rgba(168, 85, 247, 0.15) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+}
+
+.viewer-loading-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 480px;
+  margin: 3rem auto;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.viewer-hud-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.viewer-hud-num {
+  font-size: 3.8rem;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+  line-height: 1;
+  background: linear-gradient(180deg, #ffffff 0%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+}
+
+.viewer-hud-sym {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #38bdf8;
+  font-family: 'Courier New', monospace;
+}
+
+.viewer-hud-status {
+  margin: 0.5rem 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.viewer-gamer-bar-container {
+  width: 100%;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.viewer-gamer-bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  position: relative;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.viewer-gamer-bar-fill.plain {
+  background: linear-gradient(90deg, #0284c7, #38bdf8, #7dd3fc);
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.85);
+}
+
+.viewer-gamer-bar-fill.encrypted {
+  background: linear-gradient(90deg, #7c3aed, #a855f7, #c084fc);
+  box-shadow: 0 0 22px rgba(168, 85, 247, 0.85);
+}
+
+.viewer-telemetry-hud {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  width: 100%;
+}
+

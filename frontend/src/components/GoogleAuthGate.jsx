@@ -1,3 +1,4 @@
+import './GoogleAuthGate.css';
 import React from 'react';
 import { useGoogleAuth } from '../context/GoogleAuthContext';
 import ratavixLogo from '../assets/ratavix-logo.png';

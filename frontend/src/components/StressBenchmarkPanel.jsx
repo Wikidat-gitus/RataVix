@@ -1,3 +1,4 @@
+import './StressBenchmarkPanel.css';
 import React, { useState, useRef } from 'react';
 import { encryptBinary, decryptBinary } from '../crypto/aesGcm.js';
 import { api } from '../services/api.js';

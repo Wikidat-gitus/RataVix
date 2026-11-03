@@ -1,3 +1,4 @@
+import './VaultExplorer.css';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';

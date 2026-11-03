@@ -1,3 +1,4 @@
+import './TreasureViewerModal.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';

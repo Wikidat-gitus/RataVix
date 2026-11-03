@@ -1,3 +1,4 @@
+import './UploadProgressModal.css';
 import React from 'react';
 
 /**

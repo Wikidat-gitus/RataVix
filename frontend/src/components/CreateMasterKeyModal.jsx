@@ -1,3 +1,4 @@
+import './VaultModals.css';
 import React, { useState } from 'react';
 import { useCrypto } from '../context/CryptoContext';
 import { useGoogleAuth } from '../context/GoogleAuthContext';

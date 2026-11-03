@@ -1,0 +1,207 @@
+/* ==========================================================================
+   GoogleAuthGate.css — Módulo de Estilos para Bienvenida e Inicio de Sesión
+   Principio SOLID: Responsabilidad Única (S)
+   ========================================================================== */
+/* ==========================================================================
+   Puerta de Acceso en 2 Pasos (GoogleAuthGate & Cuenta Activa)
+   ========================================================================== */
+
+/* ==========================================================================
+   Pantalla de Inicio de Sesión / Entrada Limpia (GoogleAuthGate)
+   ========================================================================== */
+.auth-gate-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  padding: 1rem;
+}
+
+.auth-gate-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: fadeInModal 0.25s ease-out;
+}
+
+.auth-gate-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+
+
+.auth-gate-header h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.auth-gate-header p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.auth-gate-action {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-google-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  background: #ffffff;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease;
+}
+
+.btn-google-primary:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.btn-google-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.google-icon-svg {
+  flex-shrink: 0;
+}
+
+.auth-gate-footnote {
+  font-size: 0.78rem;
+  color: var(--text-subtle);
+  margin-top: 1.5rem;
+  line-height: 1.4;
+}
+
+.auth-gate-dev {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+  width: 100%;
+}
+
+.btn-link-muted {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.15s;
+}
+
+.btn-link-muted:hover {
+  color: var(--text-main);
+  text-decoration: underline;
+}
+
+/* Chip de Cuenta Conectada en UnlockVaultModal (Paso 2) */
+.account-connected-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  color: #34d399;
+  max-width: 100%;
+  margin: 0.25rem 0 0.75rem 0;
+}
+
+.account-dot {
+  width: 7px;
+  height: 7px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+.account-email {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+.account-logout-link {
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 0.75rem;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 0.35rem;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.account-logout-link:hover {
+  color: #ef4444;
+}
+
+.btn-logout-header {
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #fca5a5 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-logout-header:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+
+
+
+.auth-gate-logo-img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 20px;
+  border: 2px solid rgba(245, 158, 11, 0.7);
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.45);
+  margin-bottom: 1.25rem;
+  transition: transform 0.25s ease;
+}
+
+.auth-gate-logo-img:hover {
+  transform: scale(1.05);
+}
