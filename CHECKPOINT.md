@@ -7,7 +7,7 @@
 ---
 
 ## 📍 Estado General del Proyecto
-* **Fase Actual:** `Fase 5: Consolidación, Mantenimiento y Documentación de Producción` (Hito 5.1 SOLID **100% COMPLETADO** • Google OAuth en Producción Oficial v1.0 **100% COMPLETADO** ➔ Próximo Hito: 5.2 Documentación de Arquitectura).
+* **Fase Actual:** `Fase 5: Consolidación, Mantenimiento y Documentación de Producción` (Hito 5.1 SOLID **100% COMPLETADO** • Google OAuth v1.0 **100% COMPLETADO** • Hito 5.2 Documentación de Arquitectura y Operaciones **100% COMPLETADO** ➔ Fase 5 Concluida • Próxima: Fase 6 Expansión Móvil).
 * **Arquitectura:** Monorepo (`frontend/` + `backend/` + `docs/`)
 * **Repositorio:** `Wikidat-gitus/RataVix` (GitHub Privado, rama principal: `main`)
 * **URLs de Producción ($0/mes):**
@@ -92,6 +92,7 @@
 | **CP-69** | 2026-11-03 | Usuario + @master_agent + @front_agent | **Blindaje de Producción y Aislamiento Estricto de Modo Admin (v1.0):** 1) Desactivación absoluta del Modo Admin en producción (`vercel.app`); la variable `isLocalEnvironment` restringe las herramientas de depuración exclusivamente a `localhost` / `127.0.0.1`. 2) Erradicado el botón `🛠️ Modo Admin` del pie de página público de producción. 3) Desactivado el listener del atajo `Ctrl + Shift + D`, parámetros URL (`?dev=true` / `?admin=true`) y el enlace de pruebas local en producción. 4) En local (`localhost:5173`), el desarrollador conserva el 100% de las herramientas de diagnóstico intactas. Compilación exitosa y despliegue en Vercel. |
 | **CP-70** | 2026-11-03 | Usuario + @master_agent + @front_agent | **Optimización de Bundle (Code Splitting con React.lazy) y Depuración de Disco (v1.0):** 1) Eliminación de la carpeta vacía e inútil `scratch/` en la raíz y purga del asset huérfano `ratavix-meme-original.jpg` (45 KB). 2) Code Splitting con `React.lazy()` y `React.Suspense` para `AdminMaintenancePanel` y `CryptoPlayground` en `App.jsx`. 3) Impacto medido en Vite: reducción del bundle JS principal de producción de 269.56 kB a 245.36 kB (-24.2 kB) y del CSS de 71.31 kB a 57.00 kB (-14.3 kB), ahorrando ~38.5 kB en la carga inicial de los usuarios en producción. Despliegue en Vercel y suites de backend 100% aprobadas. |
 | **CP-71** | 2026-11-03 | Usuario + @master_agent | **Publicación Oficial de RataVix v1.0 en Google Auth Platform (Modo Producción):** 1) Transición oficial a estado de 'Producción' en Google Cloud Console vinculando URLs de Privacidad (`privacy.html`) y Términos (`terms.html`) activas. 2) Erradicación definitiva del cartel 'Google no verificó esta app / App en prueba' en el flujo OAuth. 3) Reparación de estilos de la barra admin en `App.css` resolviendo desacople visual de lazy-loading en local. 4) Ratificada la estrategia de 'Modo Sigiloso' (Stealth Mode) de práctica sin indexación forzada en motores de búsqueda. Versión 1.0 Oficial cerrada y sincronizada en `main`. |
+| **CP-72** | 2026-11-03 | Usuario + @master_agent | **Documentación Exhaustiva de Arquitectura, Criptografía y Operaciones Cloud (Hito 5.2):** 1) Creación de `docs/ARCHITECTURE.md` con la suite completa de 12 diagramas Mermaid interactivos (Topología Cloud con Balanceador y CDN, Casos de Uso, Protocolo de Handshake OAuth 2.0 y Sesión Única, Secuencia Direct-to-Storage, Máquina de Estados de Memoria RAM, Arquitectura en Capas de Backend FastAPI, Diagrama Entidad-Relación ER, Diagrama de Clases UML, Árbol de Componentes React 18, Flujo Dinámico de Datos y Hooks, y Modelo de Amenazas). 2) Creación de `docs/SETUP_AND_OPERATIONS.md`: guía paso a paso 'Cómo recrear desde cero' para entorno local y despliegue en la nube ($0/mes) en Google Cloud Console (OAuth & Drive scopes), Neon PostgreSQL, Render FastAPI y Vercel SPA, con manejo de cold starts y contingencias. 3) Actualización de `README.md` con enlaces directos y nuevo índice documental. Hito 5.2 y Fase 5 completados al 100%. |
 
 ---
 
@@ -140,7 +141,7 @@
   * [x] **Refinamiento UX/UI (Parte 1 — Completado):** Erradicación de clichés de IA y scrollbars parásitos, Header compacto con menú de perfil desplegable, selector segmentado en 1 fila, cuadrícula estable con paginación centrada (16 elementos por página) y login de Modo Secreto hipercompacto.
   * [x] **Pruebas de estrés y visualización en la nube (Archivos grandes, PiP, PDF, Auth):** Validado en vivo y blindado en producción.
   * [x] **Tema Alternativo Pixel Art y Buscador Rápido (Hito 4.5++++++++++++):** Buscador en tiempo real en cabecera (`🔍`), protección anti-duplicados, modales con `✕` y tema visual Pixel Art con paginación de 4 elementos en 1 fila y deslizamiento lateral.
-* [ ] **Fase 5: Consolidación, Refactorización SOLID y Documentación (EN CURSO)**
+* [x] **Fase 5: Consolidación, Refactorización SOLID y Documentación (COMPLETADA)**
   * [x] **5.1: Refactorización y Principios SOLID (COMPLETADA):**
     * [x] Seguridad Backend: Erradicación de fallback anónimo en `security.py` (CP-62).
     * [x] Rendimiento Backend: Optimización de borrado en cascada en 1 sola consulta SQL en `baules.py` (CP-62).
@@ -150,9 +151,9 @@
     * [x] Modularización SOLID JSX: Desacople de `VaultExplorer` en `FolderActionModals`, `ToastContainer` y `useVaultMigration` (CP-65).
     * [x] Modularización SOLID de mosaicos: Extracción de `ExplorerGrid.jsx` (CP-66).
     * [x] Organización funcional en subcarpetas: Colocation de components/ (auth, explorer, modals, admin) y backend/tests/ (CP-67).
-  * [ ] **5.2: Documentación de Arquitectura y Guía "Cómo recrear desde cero":**
-    * [ ] Guía paso a paso de Arquitectura Zero-Knowledge y Principios SOLID.
-    * [ ] Manual de operaciones, variables de entorno y mantenimiento cloud.
+  * [x] **5.2: Documentación de Arquitectura y Guía "Cómo recrear desde cero" (COMPLETADA):**
+    * [x] Guía paso a paso de Arquitectura Zero-Knowledge y Principios SOLID (`docs/ARCHITECTURE.md`).
+    * [x] Manual de operaciones, variables de entorno y mantenimiento cloud (`docs/SETUP_AND_OPERATIONS.md`).
     * [x] Kit de verificación Google OAuth y políticas legales (CP-68).
 * [ ] **Fase 6: Expansión Móvil — Arnés de Agente y Arquitectura Android**
   * Definición del agente especialista en Android / Flutter.

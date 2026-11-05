@@ -24,8 +24,19 @@ RataVix/
 ├── frontend/            # Cliente Web (React + Vite) — Despliegue en Vercel
 ├── backend/             # Servidor API (FastAPI + PostgreSQL) — Despliegue en Render
 └── docs/                # Documentación compartida y contratos de API
-    └── API_CONTRACT.md  # Especificación de endpoints y modelos de datos
+    ├── ARCHITECTURE.md      # Arquitectura Zero-Knowledge y Principios SOLID
+    ├── SETUP_AND_OPERATIONS.md # Guía de puesta en marcha, variables y despliegue
+    └── API_CONTRACT.md      # Especificación de endpoints y modelos de datos
 ```
+
+---
+
+## 📖 Documentación del Sistema
+Para entender a fondo el diseño o levantar tu propia instancia, consulta:
+* 🏛️ **[Arquitectura y Criptografía Zero-Knowledge](docs/ARCHITECTURE.md):** Diagramas de secuencia, Web Crypto API nativa, derivación PBKDF2/AES-GCM y aplicación de principios SOLID.
+* 🛠️ **[Guía de Puesta en Marcha y Operaciones](docs/SETUP_AND_OPERATIONS.md):** Manual paso a paso para ejecutar en local y desplegar en la nube ($0/mes) en Google Cloud, Neon, Render y Vercel.
+* 📑 **[Contrato de API REST](docs/API_CONTRACT.md):** Especificación completa de endpoints, esquemas Pydantic y códigos de respuesta HTTP.
+* 🧭 **[Bitácora de Desarrollo](CHECKPOINT.md):** Historial evolutivo y registro de decisiones de ingeniería.
 
 ---
 
